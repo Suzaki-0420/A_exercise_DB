@@ -1,4 +1,4 @@
-namespace RestAPI_Exercise.Application.Exceptions;
+namespace A_Exercise_DB.Domains.Exceptions;
 /// <summary>
 /// 内部エラーを表す例外クラス
 /// </summary>
