@@ -5,14 +5,14 @@ namespace A_Exercise_DB.Domains.Exceptions;
 public class DomainException : Exception
 {
     /// <summary>
-    /// ドメイン例外
+    /// エラーメッセージだけをもつ例外クラス
     /// </summary>
     /// <param name="message">例外メッセージ</param>
     public DomainException(string message) : base(message) { }
     /// <summary>
-    /// ドメイン例外
+    /// エラーメッセージ + 元の例外（原因）も一緒に持つ例外
     /// </summary>
     /// <param name="message">例外メッセージ</param>
-    /// <param name="innerException"></param>
+    /// <param name="innerException">元の例外</param>
     public DomainException(string message, Exception innerException) : base(message, innerException) { }
 }
