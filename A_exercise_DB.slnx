@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Apps/">
+    <Project Path="Apps/A_exercise_DB.Applications/A_exercise_DB.Applications.csproj" />
+    <Project Path="Apps/A_exercise_DB.Domains/A_exercise_DB.Domains.csproj" />
+    <Project Path="Apps/A_exercise_DB.Infrastructures/A_exercise_DB.Infrastructures.csproj" />
+    <Project Path="Apps/A_exercise_DB.Presentations/A_exercise_DB.Presentations.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/A_exercise_DB.Applications.Tests/A_exercise_DB.Applications.Tests.csproj" />
+    <Project Path="Tests/A_exercise_DB.Domains.Tests/A_exercise_DB.Domains.Tests.csproj" />
+    <Project Path="Tests/A_exercise_DB.Infrastructures.Tests/A_exercise_DB.Infrastructures.Tests.csproj" />
+    <Project Path="Tests/A_exercise_DB.Presentations.Tests/A_exercise_DB.Presentations.Tests.csproj" />
+  </Folder>
+</Solution>

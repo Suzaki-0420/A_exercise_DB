@@ -1,0 +1,10 @@
+﻿namespace A_exercise_DB.Infrastructures.Tests;
+
+[TestClass]
+public sealed class Test1
+{
+    [TestMethod]
+    public void TestMethod1()
+    {
+    }
+}
