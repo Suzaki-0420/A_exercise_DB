@@ -5,10 +5,10 @@ namespace A_exercise_DB.Domains.Models;
 /// </summary>
 public class Employee
 {
-    public Guid? EmployeeUuid { get; private set; } // 社員Id
-    public string EmployeeName { get; private set; } = string.Empty; // 氏名
-    public string EmployeeKana { get; private set; } = string.Empty; // カナ氏名
-    public Department? Department { get; private set; } // 所属部門（null可）
+    public Guid? EmployeeUuid { get; private set; } // 社員識別ID
+    public string Name { get; private set; } = string.Empty; // 社員名
+    public string Kana { get; private set; } = string.Empty; // 社員カナ
+    public Department? Department { get; private set; } // 所属部署（null可）
 
     // 社員名の最大長
     private const int MaxLengthName = 100;
@@ -23,9 +23,9 @@ public class Employee
         ValidateEmpUuid(empId);
         EmployeeUuid = empId;
         ValidateEmpName(empName);
-        EmployeeName = empName;
+        Name = empName;
         ValidateEmpKana(empKana);
-        EmployeeKana = empKana;
+        Kana = empKana;
         Department = department;
     }
 
@@ -36,15 +36,15 @@ public class Employee
         : this(null, empName, empKana, department) { }
 
     /// <summary>
-    /// 社員UUIDの検証
+    /// 社員識別IDの検証
     /// </summary>
     private void ValidateEmpUuid(Guid? employeeUuid)
     {
         if (employeeUuid == null)
-            throw new DomainException("社員UUIDは必須です");
+            throw new DomainException("社員識別IDは必須です");
 
         if (employeeUuid == Guid.Empty)
-            throw new DomainException("社員UUIDが不正です");
+            throw new DomainException("社員識別IDが不正です");
     }
 
     /// <summary>
@@ -76,11 +76,11 @@ public class Employee
     {
         if (ReferenceEquals(this, obj)) return true;
         if (obj is not Employee other) return false;
-        return EmpId == other.EmpId;
+        return EmployeeUuid == other.EmployeeUuid;
     }
 
-    public override int GetHashCode() => EmpId?.GetHashCode() ?? 0;
+    public override int GetHashCode() => EmployeeUuid?.GetHashCode() ?? 0;
 
     public override string ToString()
-        => $"{EmpId?.ToString() ?? "未登録"}: {EmpName},{EmpMailadress},{EmpPhonenumber} / {Department?.Name ?? "未配属"}";
+        => $"{EmployeeUuid?.ToString() ?? "未登録"}: {Name},{Kana} / {Department?.Name ?? "未配属"}";
 }
