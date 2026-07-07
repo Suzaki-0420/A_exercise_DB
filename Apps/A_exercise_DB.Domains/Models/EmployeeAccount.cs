@@ -5,13 +5,26 @@ namespace A_exercise_DB.Domains.Models;
 /// </summary>
 public class EmployeeAccount
 {
-    public Guid? AccountUuid { get; private set; } // アカウント識別ID
-    public string Name { get; private set; } = string.Empty; // アカウント名
-    public string Password { get; private set; } = string.Empty; // パスワード
+    /// <summary>
+    /// アカウント識別ID(UUID)
+    /// </summary>
+    public Guid? AccountUuid { get; private set; }
+    /// <summary>
+    /// アカウント名
+    /// </summary>
+    public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// パスワード
+    /// </summary>
+    public string Password { get; private set; } = string.Empty;
 
-    // アカウント名の最大長
+    /// <summary>
+    /// アカウント名の最大長
+    /// </summary>
     private const int MaxLengthAccountName = 20;
-    // パスワードの最大長
+    /// <summary>
+    /// パスワードの最大長
+    /// </summary>
     private const int MaxLengthAccountPass = 255;
 
     /// <summary>

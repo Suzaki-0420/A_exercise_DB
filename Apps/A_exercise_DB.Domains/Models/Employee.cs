@@ -5,14 +5,30 @@ namespace A_exercise_DB.Domains.Models;
 /// </summary>
 public class Employee
 {
-    public Guid? EmployeeUuid { get; private set; } // 社員識別ID
-    public string Name { get; private set; } = string.Empty; // 社員名
-    public string Kana { get; private set; } = string.Empty; // 社員カナ
-    public Department? Department { get; private set; } // 所属部署（null可）
+    /// <summary>
+    /// 社員識別ID(UUID)
+    /// </summary>
+    public Guid? EmployeeUuid { get; private set; }
+    /// <summary>
+    /// 社員名
+    /// </summary>
+    public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// 社員カナ
+    /// </summary>
+    public string Kana { get; private set; } = string.Empty;
+    /// <summary>
+    /// 所属部署（null可）
+    /// </summary>
+    public Department? Department { get; private set; }
 
-    // 社員名の最大長
+    /// <summary>
+    /// 社員名の最大長
+    /// </summary>
     private const int MaxLengthName = 100;
-    // 社員カナの最大長
+    /// <summary>
+    /// 社員カナの最大長
+    /// </summary>
     private const int MaxLengthKana = 100;
 
     /// <summary>
