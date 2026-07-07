@@ -26,6 +26,11 @@ public class Product
     /// </summary>
     public ProductCategory? ProductCategory { get; private set; }
     /// <summary>
+    /// 商品在庫
+    /// </summary>
+    public ProductStock? ProductStock { get; private set; }
+
+    /// <summary>
     /// 削除フラグ
     /// </summary>
     public int DeleteFlg { get; private set; }
@@ -46,7 +51,7 @@ public class Product
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Product(Guid? productUuid, string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, int deleteFlg)
+    public Product(Guid? productUuid, string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
     {
         ValidateProductUuid(productUuid);
         ProductUuid = productUuid;
@@ -55,7 +60,8 @@ public class Product
         Price = ValidatePrice(productPrice);
         ValidateImageUrl(productImageUrl);
         ImageUrl = productImageUrl;
-        ProductCategory = productCategory ?? throw new DomainException("カテゴリは必須です");
+        ProductCategory = productCategory ?? throw new DomainException("商品カテゴリは必須です");
+        ProductStock = productStock ?? throw new DomainException("商品在庫は必須です");
         ValidateDeleteFlg(deleteFlg);
         DeleteFlg = deleteFlg;
     }
@@ -63,11 +69,11 @@ public class Product
     /// <summary>
     /// ID未定の商品を作成する場合のコンストラクタ
     /// </summary>
-    public Product(string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, int deleteFlg)
-        : this(null, productName, productPrice, productImageUrl, productCategory, deleteFlg) { }
+    public Product(string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
+        : this(null, productName, productPrice, productImageUrl, productCategory, productStock, deleteFlg) { }
 
     /// <summary>
-    /// 商品カテゴリ無しコンストラクタ
+    /// 商品カテゴリ無し、商品在庫なしコンストラクタ
     /// </summary>
     public Product(Guid? productUuid, string productName, string productPrice, string productImageUrl, int deleteFlg)
     {

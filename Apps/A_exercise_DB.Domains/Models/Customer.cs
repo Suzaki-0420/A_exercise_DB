@@ -8,11 +8,15 @@ public class Customer
     /// <summary>
     /// 顧客識別ID(UUID)
     /// </summary>
-    public Guid? CustomerUuid { get; private set; }
+    public Guid CustomerUuid { get; private set; }
     /// <summary>
     /// 顧客名
     /// </summary>
     public string Name { get; private set; } = string.Empty;
+    /// <summary>
+    /// 顧客名カナ
+    /// </summary>
+    public string Kana { get; private set; } = string.Empty;
     /// <summary>
     /// 住所1
     /// </summary>
@@ -48,6 +52,10 @@ public class Customer
     /// </summary>
     private const int MaxLengthName = 20;
     /// <summary>
+    /// 顧客カナ氏名の最大長
+    /// </summary>
+    private const int MaxLengthKana = 20;
+    /// <summary>
     /// 住所の最大長
     /// </summary>
     private const int MaxLengthAddress = 100;
@@ -70,12 +78,14 @@ public class Customer
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Customer(Guid? customerUuid, string customerName, string address1, string? address2, string phoneNumber, string mailAddress, string userName, string passWord, DateTime createdAt)
+    public Customer(Guid? customerUuid, string customerName, string customerKana, string address1, string? address2, string phoneNumber, string mailAddress, string userName, string passWord, DateTime createdAt)
     {
         ValidateCustomerUuid(customerUuid);
         CustomerUuid = customerUuid;
         ValidateName(customerName);
         Name = customerName;
+        ValidateKana(customerKana);
+        Kana = customerKana;
         ValidateAddress1(address1);
         Address1 = address1;
         ValidateAddress2(address2);
@@ -95,8 +105,8 @@ public class Customer
     /// <summary>
     /// ID未定の顧客を作成する場合のコンストラクタ
     /// </summary>
-    public Customer(string customerName, string address1, string address2, string phoneNumber, string mailAddress, string userName, string passWord, DateTime createdAt)
-        : this(null, customerName, address1, address2, phoneNumber, mailAddress, userName, passWord, createdAt) { }
+    public Customer(string customerName, string customerKana, string address1, string address2, string phoneNumber, string mailAddress, string userName, string passWord, DateTime createdAt)
+        : this(null, customerName, customerKana, address1, address2, phoneNumber, mailAddress, userName, passWord, createdAt) { }
 
     /// <summary>
     /// 顧客識別IDの検証
@@ -116,6 +126,17 @@ public class Customer
             throw new DomainException("顧客名は必須です");
         if (customerName.Length > MaxLengthName)
             throw new DomainException($"顧客名は{MaxLengthName}文字以内で入力してください");
+    }
+
+    /// <summary>
+    /// 顧客カナ氏名の検証
+    /// </summary>
+    private void ValidateKana(string customerKana)
+    {
+        if (string.IsNullOrWhiteSpace(customerKana))
+            throw new DomainException("顧客カナ氏名は必須です");
+        if (customerKana.Length > MaxLengthKana)
+            throw new DomainException($"顧客カナ氏名は{MaxLengthKana}文字以内で入力してください");
     }
 
     /// <summary>
@@ -200,5 +221,5 @@ public class Customer
     public override int GetHashCode() => CustomerUuid?.GetHashCode() ?? 0;
 
     public override string ToString()
-        => $"{CustomerUuid?.ToString() ?? "未登録"}: {Name},{Address1}{Address2},{PhoneNumber},{MailAddress},{CreatedAt}";
+        => $"{CustomerUuid?.ToString() ?? "未登録"}: {Name},{Kana},{Address1}{Address2},{PhoneNumber},{MailAddress},{CreatedAt}";
 }
