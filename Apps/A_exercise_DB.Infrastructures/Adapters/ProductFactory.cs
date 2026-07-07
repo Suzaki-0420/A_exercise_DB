@@ -1,7 +1,7 @@
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Infrastructures.Entities;
 
-namespace A_exercise_DB.Infrastructure.Adapters;
+namespace A_exercise_DB.Infrastructures.Adapters;
 /// <summary>
 /// 商品、商品カテゴリ、商品在庫オブジェクトの相互変換Factoryクラス
 /// ドメインオブジェクト:ProductとProductEntityの相互変換

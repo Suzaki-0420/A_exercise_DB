@@ -1,7 +1,7 @@
 using A_exercise_DB.Infrastructures.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace A_exercise_DB.Infrastructure.Contexts;
+namespace A_exercise_DB.Infrastructures.Contexts;
 
 /// <summary>
 /// アプリケーション用データベースコンテキスト
