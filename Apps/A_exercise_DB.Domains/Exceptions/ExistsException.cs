@@ -1,4 +1,4 @@
-namespace A_Exercise_DB.Domains.Exceptions;
+namespace A_exercise_DB.Domains.Exceptions;
 /// <summary>
 /// データが既に存在するエラーを表す例外クラス
 /// </summary>
