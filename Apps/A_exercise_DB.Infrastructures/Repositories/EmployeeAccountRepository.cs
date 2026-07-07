@@ -7,7 +7,7 @@ using A_exercise_DB.Infrastructures.Contexts;
 using Microsoft.EntityFrameworkCore;
 using A_exercise_DB.Infrastructures.Adapters;
 
-namespace A_exercise_DB.Infrastructure.Repositories;
+namespace A_exercise_DB.Infrastructures.Repositories;
 
 /// <summary>
 /// 社員アカウントRepository
