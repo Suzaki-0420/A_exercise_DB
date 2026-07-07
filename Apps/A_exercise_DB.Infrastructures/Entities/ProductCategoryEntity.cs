@@ -15,7 +15,7 @@ public class ProductCategoryEntity
     [Required] // NOT NUll
     [StringLength(36)] // データ長は36文字
     [Column("category_uuid")]// マッピングする列名
-    public string CategoryUuid { get; set; } = string.Empty;
+    public Guid CategoryUuid { get; set; }
 
     [Column("name")]
     [Required] // NOT NULL

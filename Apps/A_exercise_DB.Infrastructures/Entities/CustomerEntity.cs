@@ -69,7 +69,7 @@ public class CustomerEntity
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
 
-    public OrdersEntity? Orders { get; set; }
+    public List<OrdersEntity> ListOrders { get; set; } = new();
 
     public override string ToString()
     {
