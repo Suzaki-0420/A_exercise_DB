@@ -1,5 +1,5 @@
 using A_exercise_DB.Domains.Models;
-using A_exercise_DB.Infrastructure.Entities;
+using A_exercise_DB.Infrastructures.Entities;
 
 namespace A_exercise_DB.Infrastructure.Adapters;
 /// <summary>

@@ -1,6 +1,6 @@
 using A_exercise_DB.Domains.Adapters;
 using A_exercise_DB.Domains.Models;
-using A_exercise_DB.Exceptions;
+using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Infrastructures.Entities;
 
 namespace A_exercise_DB.Infrastructure.Adapters;
@@ -24,11 +24,9 @@ public class OrdersDetailEntityAdapter :
 
         // ドメインオブジェクト:OrderDetailをOrderDetailEntityに変換する
         var entity = new OrdersDetailEntity();
-        entity.OrdersDetailUuid = domain.OrdersDetailUuid;
-        entity.OrdersUuid = domain.OrdersUuid;
-        entity.ProductUuid = domain.ProductUuid;
-        entity.Quantity = domain.Quantity;
-        entity.UnitPrice = domain.UnitPrice;
+        entity.OrderId = domain.OrderId;
+        entity.ProductId = domain.ProductId;
+        entity.Count = domain.Count;
 
         return Task.FromResult(entity);
     }
@@ -45,11 +43,9 @@ public class OrdersDetailEntityAdapter :
 
         // OrderDetailEntityからドメインオブジェクト:OrderDetailを復元する
         var domain = new OrdersDetail(
-            target.OrdersDetailUuid,
-            target.OrdersUuid,
-            target.ProductUuid,
-            target.Quantity,
-            target.UnitPrice
+            target.OrderId,
+            target.ProductId,
+            target.Count
         );
 
         return Task.FromResult(domain);

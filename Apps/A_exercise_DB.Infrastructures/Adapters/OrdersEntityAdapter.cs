@@ -1,6 +1,6 @@
 using A_exercise_DB.Domains.Adapters;
 using A_exercise_DB.Domains.Models;
-using A_exercise_DB.Exceptions;
+using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Infrastructures.Entities;
 
 namespace A_exercise_DB.Infrastructure.Adapters;
@@ -25,9 +25,11 @@ public class OrdersEntityAdapter :
         // ドメインオブジェクト:OrdersをOrdersEntityに変換する
         var entity = new OrdersEntity();
         entity.OrderUuid = domain.OrderUuid;
-        entity.EmployeeUuid = domain.EmployeeUuid;
         entity.OrderDate = domain.OrderDate;
-        entity.TotalAmount = domain.TotalAmount;
+        entity.AmountTotal = domain.AmountTotal;
+        entity.CustomerId = domain.Customer.Id;
+        entity.OrderStatusId = domain.OrderStatus.Id;
+        entity.PaymentMethodId = domain.PaymentMethod.Id;
 
         return Task.FromResult(entity);
     }
@@ -42,12 +44,17 @@ public class OrdersEntityAdapter :
         // 引数targetがnullの場合
         _ = target ?? throw new InternalException("引数targetがnullです。");
 
+        var customer = await new CustomerEntityAdapter().RestoreAsync(target.Customer);
+        var orderStatus = await new OrderStatusEntityAdapter().RestoreAsync(target.OrderStatus);
+        var paymentMethod = await new PaymentMethodEntityAdapter().RestoreAsync(target.PaymentMethod);
+
         // OrdersEntityからドメインオブジェクト:Ordersを復元する
         var domain = new Orders(
-            target.OrderUuid,
-            target.EmployeeUuid,
             target.OrderDate,
-            target.TotalAmount
+            target.AmountTotal,
+            customer,
+            orderStatus,
+            paymentMethod
         );
 
         return Task.FromResult(domain);

@@ -1,6 +1,6 @@
 using A_exercise_DB.Domains.Adapters;
 using A_exercise_DB.Domains.Models;
-using A_exercise_DB.Exceptions;
+using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Infrastructures.Entities;
 
 namespace A_exercise_DB.Infrastructure.Adapters;

@@ -30,7 +30,7 @@ public class ProductStockEntity
     /// <summary>
     /// 商品ID（外部キー）
     /// </summary>
-    [Column("product_i")]
+    [Column("product_id")]
     public int ProductId { get; set; }
 
     /// <summary>

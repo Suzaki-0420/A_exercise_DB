@@ -1,6 +1,6 @@
 using A_exercise_DB.Domains.Adapters;
 using A_exercise_DB.Domains.Models;
-using A_exercise_DB.Exceptions;
+using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Infrastructures.Entities;
 
 namespace A_exercise_DB.Infrastructure.Adapters;
@@ -26,9 +26,8 @@ public class EmployeeEntityAdapter :
         var entity = new EmployeeEntity();
         entity.EmployeeUuid = domain.EmployeeUuid;
         entity.Name = domain.Name;
-        entity.Email = domain.Email;
-        entity.PhoneNumber = domain.PhoneNumber;
-        entity.DepartmentUuid = domain.DepartmentUuid;
+        entity.Kana = domain.Kana;
+        entity.DepartmentId = domain.Department.DepartmentId;
 
         return Task.FromResult(entity);
     }
@@ -47,9 +46,8 @@ public class EmployeeEntityAdapter :
         var domain = new Employee(
             target.EmployeeUuid,
             target.Name,
-            target.Email,
-            target.PhoneNumber,
-            target.DepartmentUuid
+            target.Kana,
+            target.Department
         );
 
         return Task.FromResult(domain);

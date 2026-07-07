@@ -1,6 +1,6 @@
 using A_exercise_DB.Domains.Adapters;
 using A_exercise_DB.Domains.Models;
-using A_exercise_DB.Exceptions;
+using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Infrastructures.Entities;
 
 namespace A_exercise_DB.Infrastructure.Adapters;
@@ -24,12 +24,10 @@ public class EmployeeAccountEntityAdapter :
 
         // ドメインオブジェクト:EmployeeAccountをEmployeeAccountEntityに変換する
         var entity = new EmployeeAccountEntity();
-        entity.EmployeeUuid = domain.EmployeeUuid;
-        entity.Email = domain.Email;
-        entity.Password = domain.Password;
+        entity.AccountUuid = domain.AccountUuid;
         entity.Name = domain.Name;
-        entity.DepartmentUuid = domain.DepartmentUuid;
-        entity.RoleUuid = domain.RoleUuid;
+        entity.Password = domain.Password;
+        entity.EmployeeId = domain.EmployeeId;
 
         return Task.FromResult(entity);
     }
@@ -46,12 +44,10 @@ public class EmployeeAccountEntityAdapter :
 
         // EmployeeAccountEntityからドメインオブジェクト:EmployeeAccountを復元する
         var domain = new EmployeeAccount(
-            target.EmployeeUuid,
-            target.Email,
-            target.Password,
+            target.AccountUuid,
             target.Name,
-            target.DepartmentUuid,
-            target.RoleUuid
+            target.Password,
+            target.EmployeeId
         );
 
         return Task.FromResult(domain);

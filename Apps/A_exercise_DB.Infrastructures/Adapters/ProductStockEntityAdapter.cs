@@ -1,6 +1,6 @@
 using A_exercise_DB.Domains.Adapters;
 using A_exercise_DB.Domains.Models;
-using A_exercise_DB.Exceptions;
+using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Infrastructures.Entities;
 namespace A_exercise_DB.Infrastructure.Adapters;
 /// <summary>
@@ -23,7 +23,7 @@ IConverter<ProductStock, ProductStockEntity>, IRestorer<ProductStock, ProductSto
         // ドメインオブジェクト:ProductStockをProductStockEntityに変換する
         var entity = new ProductStockEntity();
         entity.StockUuid = domain.StockUuid;
-        entity.Stock = domain.Stock;
+        entity.Quantity = domain.Quantity;
         return Task.FromResult(entity);
     }
 
@@ -37,7 +37,7 @@ IConverter<ProductStock, ProductStockEntity>, IRestorer<ProductStock, ProductSto
         // 引数targetがnullの場合
         _ = target ?? throw new InternalException("引数targetがnullです。");
         // ProductStockEntityからドメインオブジェクト:ProductStockを復元する
-        var domain = new ProductStock(target.StockUuid, target.Stock);
+        var domain = new ProductStock(target.StockUuid, target.Quantity);
         return Task.FromResult(domain);
     }
 }
