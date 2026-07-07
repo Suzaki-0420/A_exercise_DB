@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Repositories;
-using A_exercise_DB.Application.Exceptions;
-using A_exercise_DB.Infrastructure.Adapters;
-using A_exercise_DB.Infrastructure.Contexts;
-namespace A_exercise_DB.Infrastructure.Repositories;
+using A_exercise_DB.Domains.Exceptions;
+using A_exercise_DB.Infrastructures.Adapters;
+using A_exercise_DB.Infrastructures.Contexts;
+namespace A_exercise_DB.Infrastructures.Repositories;
 /// <summary>
 ///  ドメインオブジェクト:商品カテゴリのCRUD操作インターフェイスの実装
 /// </summary>
@@ -29,7 +29,7 @@ public class ProductCategoryRepository : IProductCategoryRepository
     /// すべての商品カテゴリを取得する
     /// </summary>
     /// <returns>ProductCategoryのリスト</returns>
-    public async Task<List<ProductCategory>> SelectAllAsync()
+    public async Task<List<ProductCategory>> FindAllAsync()
     {
         try
         {
@@ -65,13 +65,13 @@ public class ProductCategoryRepository : IProductCategoryRepository
     /// </summary>
     /// <param name="id">商品カテゴリId</param>
     /// <returns>ProductCategory または null</returns>
-    public async Task<ProductCategory?> SelectByIdAsync(string id)
+    public async Task<ProductCategory?> FindByIdAsync(string id)
     {
         try
         {
             // 引数のUUIDで商品カテゴリを取得する
             var entity = await _context.ProductCategories
-                .SingleOrDefaultAsync(c => c.CategoryUuid == id); //見つかった1件を返す、見つからなかったらnullを返す
+                .SingleOrDefaultAsync(c => c.CategoryUuid == Guid.Parse(id)); //見つかった1件を返す、見つからなかったらnullを返す
             if (entity is null)
             {
                 return null; // 存在しない場合はnullを返す
@@ -88,6 +88,54 @@ public class ProductCategoryRepository : IProductCategoryRepository
         {
             // InternalExceptionにラップしてスローする
             throw new InternalException($"Id:{id}の商品カテゴリ取得時に予期しないエラーが発生しました。", ex);
+        }
+    }
+
+    /// <summary>
+    /// 指定された商品カテゴリ名の存在有無を返す
+    /// </summary>
+    /// <param name="name">商品カテゴリ名</param>
+    /// <returns>true:存在する false:存在しない</returns> 
+    public async Task<bool> ExistsByNameAsync(string name)
+    {
+        try
+        {
+            return await _context.ProductCategories
+            .AsNoTracking()
+            .AnyAsync(p => p.Name == name); //最低1件でも名前が完全一致するものがあればTure、なければFalseを返す
+        }
+        catch (Exception ex)
+        {
+            // InternalExceptionにラップしてスローする
+            throw new InternalException($"Name:{name}の商品カテゴリ有無取得時に予期しないエラーが発生しました。", ex);
+        }
+    }
+
+    /// <summary>
+    /// 商品カテゴリを永続化する
+    /// </summary>
+    /// <param name="productCategory">永続化する商品カテゴリ</param>
+    /// <returns>なし</returns>
+    public async Task CreateAsync(ProductCategory productCategory)
+    {
+        try
+        {
+            // ProductCategoryをProductCategoryEntityに変換する
+            var entity = await _adapter.ConvertAsync(productCategory);
+
+            // 商品カテゴリを登録する
+            await _context.ProductCategories.AddAsync(entity);
+
+            // 登録した商品カテゴリをデータベースに永続化する
+            await _context.SaveChangesAsync();
+        }
+        catch (DomainException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException("商品カテゴリの永続化中に予期しないエラーが発生しました。", ex);
         }
     }
 }
