@@ -8,7 +8,7 @@ public class OrdersDetail
     /// <summary>
     /// 注文明細ID
     /// </summary>
-    public int Id { get; private set; }
+    public int? Id { get; private set; }
     /// <summary>
     /// 注文
     /// </summary>
@@ -25,7 +25,7 @@ public class OrdersDetail
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public OrdersDetail(int detailId, Orders? orders, Product? product, string count)
+    public OrdersDetail(int? detailId, Orders? orders, Product? product, string count)
     {
         ValidateDetailId(detailId);
         Id = detailId;
@@ -35,33 +35,26 @@ public class OrdersDetail
     }
 
     /// <summary>
-    /// ID未定の注文を作成する場合のコンストラクタ
+    /// ID未定の注文明細を作成する場合のコンストラクタ
     /// </summary>
     public OrdersDetail(Orders? orders, Product? product, string count)
-        : this(orders, product, count)
+        : this(null, orders, product, count)
     {
-        Orders = orders ?? throw new DomainException("注文は必須です。");
-        Product = product ?? throw new DomainException("商品は必須です。");
-        Count = ValidateCount(count);
     }
 
     /// <summary>
     /// 注文・商品なしコンストラクタ
     /// </summary>
-    public OrdersDetail(string count)
-        : this(count)
-    {
-        Count = ValidateCount(count);
-    }
+    public OrdersDetail(string count) { }
 
 
     /// <summary>
     /// 注文明細IDの検証
     /// </summary>
-    private void ValidateDetailId(int detailId)
+    private void ValidateDetailId(int? detailId)
     {
-        if (detailId <= 0)
-            throw new DomainException("注文明細IDが不正です");
+        if (detailId is not null && detailId <= 0)
+            throw new DomainException("注文明細IDが不正です。");
     }
 
     /// <summary>
@@ -94,8 +87,6 @@ public class OrdersDetail
         return Id == other.Id;
     }
 
-    public override int GetHashCode() => OrderUuid?.GetHashCode() ?? 0;
-
     public override string ToString()
-        => $"{Id?.ToString() ?? "未登録"}: {Count} / {Orders?.Name} / {Product?.Name}";
+        => $"{Id.ToString() ?? "未登録"}: {Count} / {Orders.OrderUuid} / {Product?.Name}";
 }
