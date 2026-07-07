@@ -20,7 +20,7 @@ public class Employee
     /// </summary>
     public Employee(Guid? empId, string empName, string empKana, Department? department)
     {
-        ValidateEmployeeUuid(empId);
+        ValidateEmpUuid(empId);
         EmployeeUuid = empId;
         ValidateEmpName(empName);
         EmployeeName = empName;
@@ -38,7 +38,7 @@ public class Employee
     /// <summary>
     /// 社員UUIDの検証
     /// </summary>
-    private void ValidateEmployeeUuid(Guid? employeeUuid)
+    private void ValidateEmpUuid(Guid? employeeUuid)
     {
         if (employeeUuid == null)
             throw new DomainException("社員UUIDは必須です");
