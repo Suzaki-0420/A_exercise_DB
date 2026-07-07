@@ -12,11 +12,11 @@ public class Customer
     /// <summary>
     /// 顧客名
     /// </summary>
-    public string? Name { get; private set; } = string.Empty;
+    public string Name { get; private set; } = string.Empty;
     /// <summary>
     /// 住所1
     /// </summary>
-    public string? Address1 { get; private set; } = string.Empty;
+    public string Address1 { get; private set; } = string.Empty;
     /// <summary>
     /// 住所2
     /// </summary>
@@ -24,20 +24,20 @@ public class Customer
     /// <summary>
     /// 電話番号
     /// </summary>
-    public string? PhoneNumber { get; private set; } = string.Empty;
+    public string PhoneNumber { get; private set; } = string.Empty;
     /// <summary>
     /// メールアドレス
     /// </summary>
-    public string? MailAddress { get; private set; } = string.Empty;
+    public string MailAddress { get; private set; } = string.Empty;
     /// <summary>
-    /// ユーザー名
+    /// アカウント名
     /// </summary>
-    public string? Username { get; private set; } = string.Empty;
+    public string Username { get; private set; } = string.Empty;
 
     /// <summary>
     /// パスワード
     /// </summary>
-    public string? Password { get; private set; } = string.Empty;
+    public string Password { get; private set; } = string.Empty;
     /// <summary>
     /// 登録日時
     /// </summary>
@@ -70,7 +70,7 @@ public class Customer
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Customer(Guid? customerUuid, string? customerName, string? address1, string? address2, string? phoneNumber, string? mailAddress, string? userName, string? passWord, DateTime createdAt)
+    public Customer(Guid? customerUuid, string customerName, string address1, string? address2, string phoneNumber, string mailAddress, string userName, string passWord, DateTime createdAt)
     {
         ValidateCustomerUuid(customerUuid);
         CustomerUuid = customerUuid;
@@ -103,6 +103,8 @@ public class Customer
     /// </summary>
     private void ValidateCustomerUuid(Guid? customerUuid)
     {
+        if (string.IsNullOrWhiteSpace(customerUuid))
+            throw new DomainException("顧客識別IDは必須です");
         if (customerUuid == Guid.Empty)
             throw new DomainException("顧客識別IDが不正です");
     }
@@ -112,6 +114,8 @@ public class Customer
     /// </summary>
     private void ValidateName(string customerName)
     {
+        if (string.IsNullOrWhiteSpace(customerName))
+            throw new DomainException("顧客名は必須です");
         if (customerName.Length > MaxLengthName)
             throw new DomainException($"顧客名は{MaxLengthName}文字以内で入力してください");
     }
@@ -121,6 +125,8 @@ public class Customer
     /// </summary>
     private void ValidateAddress1(string address1)
     {
+        if (string.IsNullOrWhiteSpace(address1))
+            throw new DomainException("住所1は必須です");
         if (address1.Length > MaxLengthAddress)
             throw new DomainException($"住所1は{MaxLengthAddress}文字以内で入力してください");
     }
@@ -137,6 +143,8 @@ public class Customer
     /// </summary>
     private void ValidatePhoneNumber(string phoneNumber)
     {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            throw new DomainException("電話番号は必須です");
         if (phoneNumber.Length > MaxLengthPhone)
             throw new DomainException($"電話番号は{MaxLengthPhone}文字以内で入力してください");
     }
@@ -145,6 +153,8 @@ public class Customer
     /// </summary>
     private void ValidateMail(string mailAddress)
     {
+        if (string.IsNullOrWhiteSpace(mailAddress))
+            throw new DomainException("メールアドレスは必須です");
         if (mailAddress.Length > MaxLengthMail)
             throw new DomainException($"メールアドレスは{MaxLengthMail}文字以内で入力してください");
     }
@@ -153,6 +163,8 @@ public class Customer
     /// </summary>
     private void ValidateUserName(string userName)
     {
+        if (string.IsNullOrWhiteSpace(userName))
+            throw new DomainException("ユーザー名は必須です");
         if (userName.Length > MaxLengthUserName)
             throw new DomainException($"ユーザー名は{MaxLengthUserName}文字以内で入力してください");
     }
@@ -161,6 +173,8 @@ public class Customer
     /// </summary>
     private void ValidatePass(string passWord)
     {
+        if (string.IsNullOrWhiteSpace(passWord))
+            throw new DomainException("パスワードは必須です");
         if (passWord.Length > MaxLengthPass)
             throw new DomainException($"パスワードは{MaxLengthPass}文字以内で入力してください");
     }
