@@ -25,6 +25,7 @@ public class CustomerEntityAdapter :
         var entity = new CustomerEntity();
         entity.CustomerUuid = domain.CustomerUuid;
         entity.Name = domain.Name;
+        entity.Kana = domain.Kana;
         entity.Address1 = domain.Address1;
         entity.Address2 = domain.Address2;
         entity.PhoneNumber = domain.PhoneNumber;

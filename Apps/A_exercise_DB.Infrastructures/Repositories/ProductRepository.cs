@@ -34,10 +34,10 @@ public class ProductRepository : IProductRepository
         {
             // 登録する商品の商品カテゴリを取得する
             var category = await _context.ProductCategories
-                .SingleOrDefaultAsync(c => c.CategoryUuid == product.Category!.CategoryUuid);
+                .SingleOrDefaultAsync(c => c.CategoryUuid == product.ProductCategory!.CategoryUuid);
             if (category is null)
             {
-                throw new Exception($"Id:{product.Category!.CategoryUuid}の商品カテゴリは存在しません。");
+                throw new Exception($"Id:{product.ProductCategory!.CategoryUuid}の商品カテゴリは存在しません。");
             }
             // ProductをProductEntityに変換する
             var entity = await _factory.ConvertAsync(product);
@@ -114,11 +114,11 @@ public class ProductRepository : IProductRepository
             }
 
             var category = await _context.ProductCategories
-                .SingleOrDefaultAsync(c => c.CategoryUuid == product.ProductCategoryId);
+                .SingleOrDefaultAsync(c => c.CategoryUuid == product.ProductCategory!.CategoryUuid);
             // 商品名と単価を変更する
             entity.Name = product.Name; //引数で渡したDomain Objectの名前に変更する
             entity.Price = product.Price; //引数で渡したDomain Objectの値段に変更する
-            entity.ProductCategoryId = category.Id;
+            entity.ProductCategoryId = category!.Id;
             // 在庫数を変更する
             entity.ProductStock!.Quantity = product.Stock!.Quantity;
             // 変更データをデータベースに永続化する

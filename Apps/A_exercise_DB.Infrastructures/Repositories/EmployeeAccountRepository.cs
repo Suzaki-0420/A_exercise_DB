@@ -1,23 +1,25 @@
 using A_exercise_DB.Domains.Adapters;
+using A_exercise_DB.Domains.Repositories;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Infrastructures.Entities;
 using A_exercise_DB.Infrastructures.Contexts;
 using Microsoft.EntityFrameworkCore;
+using A_exercise_DB.Infrastructures.Adapters;
 
 namespace A_exercise_DB.Infrastructure.Repositories;
 
 /// <summary>
 /// 社員アカウントRepository
 /// </summary>
-public class EmployeeAccountRepository
+public class EmployeeAccountRepository : IEmployeeAccountRepository
 {
     private readonly AppDbContext _context;
-    private readonly IConverter<EmployeeAccount, EmployeeAccountEntity> _adapter;
+    private readonly EmployeeAccountEntityAdapter _adapter;
 
     public EmployeeAccountRepository(
         AppDbContext context,
-        IConverter<EmployeeAccount, EmployeeAccountEntity> adapter)
+        EmployeeAccountEntityAdapter adapter)
     {
         _context = context;
         _adapter = adapter;
@@ -35,12 +37,12 @@ public class EmployeeAccountRepository
             // 登録するアカウントに紐づく社員を取得する
             var employee = await _context.Employees
                 .SingleOrDefaultAsync(e =>
-                    e.Id == employeeAccount.EmployeeId);
+                    e.EmployeeUuid == employeeAccount.Employee!.EmployeeUuid);
 
             if (employee is null)
             {
                 throw new Exception(
-                    $"Id:{employeeAccount.Employee.EmployeeUuid}の社員は存在しません。");
+                    $"Id:{employeeAccount.Employee!.EmployeeUuid}の社員は存在しません。");
             }
 
             // EmployeeAccountをEmployeeAccountEntityに変換する

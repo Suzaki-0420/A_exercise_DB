@@ -28,6 +28,12 @@ public class CustomerEntity
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// 顧客名カナ
+    /// </summary>
+    [Column("kana")]
+    public string Kana { get; set; } = string.Empty;
+
+    /// <summary>
     /// 住所1
     /// </summary>
     [Column("address1")]
