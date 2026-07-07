@@ -120,7 +120,7 @@ public class ProductRepository : IProductRepository
             entity.Price = product.Price; //引数で渡したDomain Objectの値段に変更する
             entity.ProductCategoryId = category!.Id;
             // 在庫数を変更する
-            entity.ProductStock!.Quantity = product.Stock!.Quantity;
+            entity.ProductStock!.Quantity = product.ProductStock!.Quantity;
             // 変更データをデータベースに永続化する
             await _context.SaveChangesAsync();
             return true;
