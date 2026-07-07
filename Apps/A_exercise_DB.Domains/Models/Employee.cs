@@ -61,7 +61,7 @@ public class Employee
     }
 
     /// <summary>
-    /// 氏名の検証
+    /// 社員名の検証
     /// </summary>
     private void ValidateEmpName(string empName)
     {
@@ -72,7 +72,7 @@ public class Employee
     }
 
     /// <summary>
-    /// カナ氏名の検証
+    /// 社員名カナの検証
     /// </summary>
     private void ValidateEmpKana(string empKana)
     {

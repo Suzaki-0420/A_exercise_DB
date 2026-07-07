@@ -15,7 +15,7 @@ public class Department
     public string Name { get; private set; } = string.Empty;
 
     /// <summary>
-    /// アカウント名の最大長
+    /// 部署名の最大長
     /// </summary>
     private const int MaxLengthDeptName = 100;
 
@@ -31,22 +31,22 @@ public class Department
     }
 
     /// <summary>
-    /// ID未定の社員を作成する場合のコンストラクタ
+    /// ID未定の部署を作成する場合のコンストラクタ
     /// </summary>
     public Department(string deptName)
         : this(null, deptName) { }
 
     /// <summary>
-    /// アカウント識別IDの検証
+    /// 部署識別IDの検証
     /// </summary>
     private void ValidateDepartmentUuid(Guid? deptUuid)
     {
         if (deptUuid == Guid.Empty)
-            throw new DomainException("アカウント識別IDが不正です");
+            throw new DomainException("部署識別IDが不正です");
     }
 
     /// <summary>
-    /// アカウント名の検証
+    /// 部署名の検証
     /// </summary>
     private void ValidateDeptName(string accountName)
     {
