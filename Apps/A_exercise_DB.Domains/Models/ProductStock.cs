@@ -8,7 +8,7 @@ public class ProductStock
     /// <summary>
     /// 商品在庫識別ID(UUID)
     /// </summary>
-    public Guid? StockUuid { get; private set; }
+    public Guid StockUuid { get; private set; }
     /// <summary>
     /// 商品在庫数
     /// </summary>
@@ -17,7 +17,7 @@ public class ProductStock
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public ProductStock(Guid? stockUuid, string quantity)
+    public ProductStock(Guid stockUuid, string quantity)
     {
         ValidateProductStockUuid(stockUuid);
         StockUuid = stockUuid;
@@ -28,12 +28,12 @@ public class ProductStock
     /// ID未定の商品在庫を作成する場合のコンストラクタ
     /// </summary>
     public ProductStock(string quantity)
-        : this(null, quantity) { }
+        : this(Guid.NewGuid(), quantity) { }
 
     /// <summary>
     /// 商品在庫識別IDの検証
     /// </summary>
-    private void ValidateProductStockUuid(Guid? stockUuid)
+    private void ValidateProductStockUuid(Guid stockUuid)
     {
         if (stockUuid == Guid.Empty)
             throw new DomainException("商品在庫識別IDが不正です");
@@ -65,8 +65,8 @@ public class ProductStock
         return StockUuid == other.StockUuid;
     }
 
-    public override int GetHashCode() => StockUuid?.GetHashCode() ?? 0;
+    public override int GetHashCode() => StockUuid.GetHashCode();
 
     public override string ToString()
-        => $"{StockUuid?.ToString() ?? "未登録"}: {Quantity}";
+        => $"{StockUuid.ToString() ?? "未登録"}: {Quantity}";
 }

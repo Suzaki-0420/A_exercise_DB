@@ -8,7 +8,7 @@ public class Product
     /// <summary>
     /// 商品識別ID(UUID)
     /// </summary>
-    public Guid? ProductUuid { get; private set; }
+    public Guid ProductUuid { get; private set; }
     /// <summary>
     /// 商品名
     /// </summary>
@@ -51,7 +51,7 @@ public class Product
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Product(Guid? productUuid, string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
+    public Product(Guid productUuid, string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
     {
         ValidateProductUuid(productUuid);
         ProductUuid = productUuid;
@@ -70,12 +70,12 @@ public class Product
     /// ID未定の商品を作成する場合のコンストラクタ
     /// </summary>
     public Product(string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
-        : this(null, productName, productPrice, productImageUrl, productCategory, productStock, deleteFlg) { }
+        : this(Guid.NewGuid(), productName, productPrice, productImageUrl, productCategory, productStock, deleteFlg) { }
 
     /// <summary>
     /// 商品カテゴリ無し、商品在庫なしコンストラクタ
     /// </summary>
-    public Product(Guid? productUuid, string productName, string productPrice, string productImageUrl, int deleteFlg)
+    public Product(Guid productUuid, string productName, string productPrice, string productImageUrl, int deleteFlg)
     {
         ValidateProductUuid(productUuid);
         ProductUuid = productUuid;
@@ -91,7 +91,7 @@ public class Product
     /// <summary>
     /// 商品識別IDの検証
     /// </summary>
-    private void ValidateProductUuid(Guid? productUuid)
+    private void ValidateProductUuid(Guid productUuid)
     {
         if (productUuid == Guid.Empty)
             throw new DomainException("商品識別IDが不正です");
@@ -160,8 +160,8 @@ public class Product
         return ProductUuid == other.ProductUuid;
     }
 
-    public override int GetHashCode() => ProductUuid?.GetHashCode() ?? 0;
+    public override int GetHashCode() => ProductUuid.GetHashCode();
 
     public override string ToString()
-        => $"{ProductUuid?.ToString() ?? "未登録"}: {Name},{Price}円,{ImageUrl} / {ProductCategory?.Name} / {DeleteFlg}";
+        => $"{ProductUuid.ToString() ?? "未登録"}: {Name},{Price}円,{ImageUrl} / {ProductCategory?.Name} / {DeleteFlg}";
 }

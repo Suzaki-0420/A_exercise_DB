@@ -117,7 +117,7 @@ public class Customer
         string passWord,
         DateTime createdAt)
         : this(
-            null,
+            Guid.NewGuid(),
             customerName,
             customerKana,
             address1,
@@ -255,8 +255,8 @@ public class Customer
     }
 
     public override int GetHashCode()
-        => CustomerUuid?.GetHashCode() ?? 0;
+        => CustomerUuid.GetHashCode();
 
     public override string ToString()
-        => $"{CustomerUuid.ToString() ?? "未登録"}: {Name},{Kana},{Address1}{Address2},{PhoneNumber},{MailAddress},{CreatedAt}";
+        => $"{CustomerUuid}: {Name},{Kana},{Address1}{Address2},{PhoneNumber},{MailAddress},{CreatedAt}";
 }

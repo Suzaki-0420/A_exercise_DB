@@ -8,7 +8,7 @@ public class ProductCategory
     /// <summary>
     /// 商品カテゴリ識別ID(UUID)
     /// </summary>
-    public Guid? CategoryUuid { get; private set; }
+    public Guid CategoryUuid { get; private set; }
     /// <summary>
     /// 商品カテゴリ名
     /// </summary>
@@ -22,7 +22,7 @@ public class ProductCategory
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public ProductCategory(Guid? categoryUuid, string categoryName)
+    public ProductCategory(Guid categoryUuid, string categoryName)
     {
         ValidateCategoryUuid(categoryUuid);
         CategoryUuid = categoryUuid;
@@ -34,12 +34,12 @@ public class ProductCategory
     /// ID未定の商品カテゴリを作成する場合のコンストラクタ
     /// </summary>
     public ProductCategory(string categoryName)
-        : this(null, categoryName) { }
+        : this(Guid.NewGuid(), categoryName) { }
 
     /// <summary>
     /// 商品カテゴリ識別IDの検証
     /// </summary>
-    private void ValidateCategoryUuid(Guid? categoryUuid)
+    private void ValidateCategoryUuid(Guid categoryUuid)
     {
         if (categoryUuid == Guid.Empty)
             throw new DomainException("商品カテゴリ識別IDが不正です");
@@ -66,8 +66,8 @@ public class ProductCategory
         return CategoryUuid == other.CategoryUuid;
     }
 
-    public override int GetHashCode() => CategoryUuid?.GetHashCode() ?? 0;
+    public override int GetHashCode() => CategoryUuid.GetHashCode();
 
     public override string ToString()
-        => $"{CategoryUuid?.ToString() ?? "未登録"}: {Name}";
+        => $"{CategoryUuid.ToString() ?? "未登録"}: {Name}";
 }

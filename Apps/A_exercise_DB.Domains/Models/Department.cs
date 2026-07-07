@@ -8,7 +8,7 @@ public class Department
     /// <summary>
     /// 部署識別ID（UUID）
     /// </summary>
-    public Guid? DepartmentUuid { get; private set; }
+    public Guid DepartmentUuid { get; private set; }
     /// <summary>
     /// 部署名
     /// </summary>
@@ -22,7 +22,7 @@ public class Department
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Department(Guid? deptUuid, string deptName)
+    public Department(Guid deptUuid, string deptName)
     {
         ValidateDepartmentUuid(deptUuid);
         DepartmentUuid = deptUuid;
@@ -34,7 +34,7 @@ public class Department
     /// ID未定の部署を作成する場合のコンストラクタ
     /// </summary>
     public Department(string deptName)
-        : this(null, deptName) { }
+        : this(Guid.NewGuid(), deptName) { }
 
     /// <summary>
     /// 部署識別IDの検証
@@ -66,8 +66,8 @@ public class Department
         return DepartmentUuid == other.DepartmentUuid;
     }
 
-    public override int GetHashCode() => DepartmentUuid?.GetHashCode() ?? 0;
+    public override int GetHashCode() => DepartmentUuid.GetHashCode();
 
     public override string ToString()
-        => $"{DepartmentUuid?.ToString() ?? "未登録"}: {Name}";
+        => $"{DepartmentUuid.ToString() ?? "未登録"}: {Name}";
 }

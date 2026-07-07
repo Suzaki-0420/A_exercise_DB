@@ -8,7 +8,7 @@ public class Orders
     /// <summary>
     /// 注文識別ID(UUID)
     /// </summary>
-    public Guid? OrderUuid { get; private set; }
+    public Guid OrderUuid { get; private set; }
     /// <summary>
     /// 注文日
     /// </summary>
@@ -33,7 +33,7 @@ public class Orders
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Orders(Guid? orderUuid, DateTime orderDate, string amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod)
+    public Orders(Guid orderUuid, DateTime orderDate, string amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod)
     {
         ValidateOrderUuid(orderUuid);
         OrderUuid = orderUuid;
@@ -49,12 +49,12 @@ public class Orders
     /// ID未定の注文を作成する場合のコンストラクタ
     /// </summary>
     public Orders(DateTime orderDate, string amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod)
-        : this(null, orderDate, amountTotal, customer, orderStatus, paymentMethod) { }
+        : this(Guid.NewGuid(), orderDate, amountTotal, customer, orderStatus, paymentMethod) { }
 
     /// <summary>
     /// 注文識別IDの検証
     /// </summary>
-    private void ValidateOrderUuid(Guid? orderUuid)
+    private void ValidateOrderUuid(Guid orderUuid)
     {
         if (orderUuid == Guid.Empty)
             throw new DomainException("注文識別IDが不正です");
@@ -99,8 +99,8 @@ public class Orders
         return OrderUuid == other.OrderUuid;
     }
 
-    public override int GetHashCode() => OrderUuid?.GetHashCode() ?? 0;
+    public override int GetHashCode() => OrderUuid.GetHashCode();
 
     public override string ToString()
-        => $"{OrderUuid?.ToString() ?? "未登録"}: {OrderDate}, {AmountTotal} / {Customer?.Name} / {OrderStatus?.Name} / {PaymentMethod?.Name}";
+        => $"{OrderUuid.ToString() ?? "未登録"}: {OrderDate}, {AmountTotal} / {Customer?.Name} / {OrderStatus?.Name} / {PaymentMethod?.Name}";
 }

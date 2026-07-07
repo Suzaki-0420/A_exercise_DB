@@ -8,7 +8,7 @@ public class Employee
     /// <summary>
     /// 社員識別ID(UUID)
     /// </summary>
-    public Guid? EmployeeUuid { get; private set; }
+    public Guid EmployeeUuid { get; private set; }
     /// <summary>
     /// 社員名
     /// </summary>
@@ -34,7 +34,7 @@ public class Employee
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Employee(Guid? empId, string empName, string empKana, Department? department)
+    public Employee(Guid empId, string empName, string empKana, Department? department)
     {
         ValidateEmpUuid(empId);
         EmployeeUuid = empId;
@@ -49,12 +49,12 @@ public class Employee
     /// ID未定の社員を作成する場合のコンストラクタ
     /// </summary>
     public Employee(string empName, string empKana, Department? department)
-        : this(null, empName, empKana, department) { }
+        : this(Guid.NewGuid(), empName, empKana, department) { }
 
     /// <summary>
     /// 再構築・復元用コンストラクタ
     /// </summary>
-    public Employee(Guid? empId, string empName, string empKana)
+    public Employee(Guid empId, string empName, string empKana)
     {
         ValidateEmpUuid(empId);
         EmployeeUuid = empId;
@@ -67,7 +67,7 @@ public class Employee
     /// <summary>
     /// 社員識別IDの検証
     /// </summary>
-    private void ValidateEmpUuid(Guid? employeeUuid)
+    private void ValidateEmpUuid(Guid employeeUuid)
     {
         if (employeeUuid == Guid.Empty)
             throw new DomainException("社員識別IDが不正です");
@@ -105,8 +105,8 @@ public class Employee
         return EmployeeUuid == other.EmployeeUuid;
     }
 
-    public override int GetHashCode() => EmployeeUuid?.GetHashCode() ?? 0;
+    public override int GetHashCode() => EmployeeUuid.GetHashCode();
 
     public override string ToString()
-        => $"{EmployeeUuid?.ToString() ?? "未登録"}: {Name},{Kana} / {Department?.Name}";
+        => $"{EmployeeUuid.ToString() ?? "未登録"}: {Name},{Kana} / {Department?.Name}";
 }
