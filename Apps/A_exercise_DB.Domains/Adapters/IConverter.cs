@@ -1,4 +1,5 @@
 namespace A_Exercise_DB.Domains.Adapters;
+
 /// <summary>
 /// DomainObjectをEntityに変換するアダプターのインターフェース
 /// </summary>
