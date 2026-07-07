@@ -40,9 +40,6 @@ public class Employee
     /// </summary>
     private void ValidateEmpUuid(Guid? employeeUuid)
     {
-        if (employeeUuid == null)
-            throw new DomainException("社員識別IDは必須です");
-
         if (employeeUuid == Guid.Empty)
             throw new DomainException("社員識別IDが不正です");
     }

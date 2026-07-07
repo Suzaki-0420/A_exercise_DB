@@ -1,7 +1,7 @@
 using A_exercise_DB.Domains.Exceptions;
 namespace A_exercise_DB.Domains.Models;
 /// <summary>
-/// 社員を表すドメインオブジェクト
+/// 社員アカウントを表すドメインオブジェクト
 /// </summary>
 public class EmployeeAccount
 {
@@ -39,9 +39,6 @@ public class EmployeeAccount
     /// </summary>
     private void ValidateAccountUuid(Guid? accountUuid)
     {
-        if (accountUuid == null)
-            throw new DomainException("アカウント識別IDは必須です");
-
         if (accountUuid == Guid.Empty)
             throw new DomainException("アカウント識別IDが不正です");
     }
@@ -81,5 +78,5 @@ public class EmployeeAccount
     public override int GetHashCode() => AccountUuid?.GetHashCode() ?? 0;
 
     public override string ToString()
-        => $"{AccountUuid?.ToString() ?? "未登録"}: {Name},{Password}";
+        => $"{AccountUuid?.ToString() ?? "未登録"}: {Name}";
 }
