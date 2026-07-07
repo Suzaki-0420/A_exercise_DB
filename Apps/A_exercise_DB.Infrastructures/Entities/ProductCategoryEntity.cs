@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-namespace A_exercise_DB.Infrastructures.Entities;
+namespace RestAPI_Exercise.Infrastructure.Entities;
 /// <summary>
 /// product_categoryテーブルに対応するEntity Framework Coreのエンティティ
 /// </summary>
