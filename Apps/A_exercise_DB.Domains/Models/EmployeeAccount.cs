@@ -17,6 +17,10 @@ public class EmployeeAccount
     /// パスワード
     /// </summary>
     public string Password { get; private set; } = string.Empty;
+    /// <summary>
+    /// 社員（null可）
+    /// </summary>
+    public Employee? Employee { get; private set; }
 
     /// <summary>
     /// アカウント名の最大長
@@ -30,6 +34,26 @@ public class EmployeeAccount
     /// <summary>
     /// コンストラクタ
     /// </summary>
+    public EmployeeAccount(Guid? accountUuid, string accountName, string accountPass, Employee? employee)
+    {
+        ValidateAccountUuid(accountUuid);
+        AccountUuid = accountUuid;
+        ValidateAccountName(accountName);
+        Name = accountName;
+        ValidateAccountPass(accountPass);
+        Password = accountPass;
+        Employee = employee ?? throw new DomainException("社員は必須です。");
+    }
+
+    /// <summary>
+    /// ID未定の社員を作成する場合のコンストラクタ
+    /// </summary>
+    public EmployeeAccount(string accountName, string accountPass, Employee? employee)
+        : this(null, accountName, accountPass, employee) { }
+
+    /// <summary>
+    /// 再構築・復元用コンストラクタ
+    /// </summary>
     public EmployeeAccount(Guid? accountUuid, string accountName, string accountPass)
     {
         ValidateAccountUuid(accountUuid);
@@ -38,14 +62,7 @@ public class EmployeeAccount
         Name = accountName;
         ValidateAccountPass(accountPass);
         Password = accountPass;
-
     }
-
-    /// <summary>
-    /// ID未定の社員を作成する場合のコンストラクタ
-    /// </summary>
-    public EmployeeAccount(string accountName, string accountPass)
-        : this(null, accountName, accountPass) { }
 
     /// <summary>
     /// アカウント識別IDの検証
@@ -91,5 +108,5 @@ public class EmployeeAccount
     public override int GetHashCode() => AccountUuid?.GetHashCode() ?? 0;
 
     public override string ToString()
-        => $"{AccountUuid?.ToString() ?? "未登録"}: {Name}";
+        => $"{AccountUuid?.ToString() ?? "未登録"}: {Name} / / {Employee?.Name}";
 }

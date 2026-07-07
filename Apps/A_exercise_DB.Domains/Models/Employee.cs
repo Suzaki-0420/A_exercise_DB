@@ -42,7 +42,7 @@ public class Employee
         Name = empName;
         ValidateEmpKana(empKana);
         Kana = empKana;
-        Department = department;
+        Department = department ?? throw new DomainException("部署は必須です。");
     }
 
     /// <summary>
@@ -50,6 +50,19 @@ public class Employee
     /// </summary>
     public Employee(string empName, string empKana, Department? department)
         : this(null, empName, empKana, department) { }
+
+    /// <summary>
+    /// 再構築・復元用コンストラクタ
+    /// </summary>
+    public Employee(Guid? empId, string empName, string empKana)
+    {
+        ValidateEmpUuid(empId);
+        EmployeeUuid = empId;
+        ValidateEmpName(empName);
+        Name = empName;
+        ValidateEmpKana(empKana);
+        Kana = empKana;
+    }
 
     /// <summary>
     /// 社員識別IDの検証
@@ -95,5 +108,5 @@ public class Employee
     public override int GetHashCode() => EmployeeUuid?.GetHashCode() ?? 0;
 
     public override string ToString()
-        => $"{EmployeeUuid?.ToString() ?? "未登録"}: {Name},{Kana} / {Department?.Name ?? "未配属"}";
+        => $"{EmployeeUuid?.ToString() ?? "未登録"}: {Name},{Kana} / {Department?.Name}";
 }
