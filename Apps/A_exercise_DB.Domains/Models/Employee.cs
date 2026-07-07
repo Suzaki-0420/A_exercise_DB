@@ -1,5 +1,5 @@
-using A_Exercise_DB.Domains.Exceptions;
-namespace A_Exercise_DB.Domains.Models;
+using A_exercise_DB.Domains.Exceptions;
+namespace A_exercise_DB.Domains.Models;
 /// <summary>
 /// 社員を表すドメインオブジェクト
 /// </summary>
@@ -20,7 +20,7 @@ public class Employee
     /// </summary>
     public Employee(Guid? empId, string empName, string empKana, Department? department)
     {
-        ValidateUuid(empId);
+        ValidateEmployeeUuid(empId);
         EmployeeUuid = empId;
         ValidateEmpName(empName);
         EmployeeName = empName;
@@ -67,32 +67,6 @@ public class Employee
             throw new DomainException("社員名カナは必須です");
         if (empKana.Length > MaxLengthKana)
             throw new DomainException($"社員名カナは{MaxLengthKana}文字以内で入力してください");
-    }
-
-    /// <summary>
-    /// 氏名を変更する
-    /// </summary>
-    public void ChangeEmpName(string empName)
-    {
-        ValidateEmpName(empName);
-        EmployeeName = empName;
-    }
-
-    /// <summary>
-    /// メールアドレスを変更する
-    /// </summary>
-    public void changeEmpKana(string empKana)
-    {
-        ValidateEmpKana(empKana);
-        EmployeeKana = empKana;
-    }
-
-    /// <summary>
-    /// 所属部門を変更する
-    /// </summary>
-    public void ChangeDepartment(Department? department)
-    {
-        Department = department;
     }
 
     /// <summary>
