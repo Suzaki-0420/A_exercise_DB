@@ -48,7 +48,7 @@ public class Department
     /// <summary>
     /// 部署名の検証
     /// </summary>
-    private void ValidateDeptName(string accountName)
+    private void ValidateDeptName(string deptName)
     {
         if (string.IsNullOrWhiteSpace(deptName))
             throw new DomainException("部署名は必須です");

@@ -103,8 +103,6 @@ public class Customer
     /// </summary>
     private void ValidateCustomerUuid(Guid? customerUuid)
     {
-        if (string.IsNullOrWhiteSpace(customerUuid))
-            throw new DomainException("顧客識別IDは必須です");
         if (customerUuid == Guid.Empty)
             throw new DomainException("顧客識別IDが不正です");
     }
