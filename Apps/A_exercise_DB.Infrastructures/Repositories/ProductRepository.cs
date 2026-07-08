@@ -57,6 +57,40 @@ public class ProductRepository : IProductRepository
     }
 
     /// <summary>
+    /// 指定されたキーワードを商品名に含む商品情報を取得する
+    /// </summary>
+    /// <param name="keyword">検索キーワード</param>
+    /// <returns>Productのリスト</returns>
+    public async Task<List<Product>> SearchKeywordAsync(string keyword)
+    {
+        try
+        {
+            var entities = await _context.Products
+                .AsNoTracking()
+                .Include(p => p.ProductStock)
+                .Include(p => p.ProductCategory)
+                .Where(p =>
+                    EF.Functions.Like(p.Name, $"%{keyword}%")
+                    && p.DeleteFlg == 0)
+                .ToListAsync();
+
+            var products = await _factory.RestoreAsync(entities);
+
+            return products;
+        }
+        catch (DomainException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                $"キーワード:{keyword}の商品取得時に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
+
+    /// <summary>
     /// 指定した商品カテゴリに属する商品情報をリストで返す
     /// 削除フラグを立てたものが表示されないように.Whereで条件付けしてます
     /// </summary>
