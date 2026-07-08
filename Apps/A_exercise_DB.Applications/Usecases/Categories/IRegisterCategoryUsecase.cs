@@ -5,7 +5,7 @@ namespace A_exercise_DB.Applications.Usecases.Categories;
 /// <summary>
 /// 商品カテゴリ登録ユースケース
 /// </summary>
-public interface IRegisterCateogryUsecase
+public interface IRegisterCategoryUsecase
 {
     /// <summary>
     /// 指定された商品カテゴリの存在有無を調べる

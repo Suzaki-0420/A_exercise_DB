@@ -7,7 +7,7 @@ namespace A_exercise_DB.Applications.Usecases.Categories;
 /// <summary>
 /// 商品カテゴリ登録ユースケース
 /// </summary>
-public class RegisterCategoryUsecase : IRegisterCateogryUsecase
+public class RegisterCategoryUsecase : IRegisterCategoryUsecase
 {
     private readonly IProductCategoryRepository _productCategoryRepository;
     private readonly IUnitOfWork _unitOfWork;
