@@ -67,6 +67,7 @@ public static class ApplicationDependencyExtensions
 
         // Product・ProductCategory・ProductStock復元用Factory
         services.AddScoped<ProductFactory>();
+        services.AddScoped<EmployeeFactory>();
 
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<IEmployeeAccountRepository, EmployeeAccountRepository>();

@@ -15,7 +15,7 @@ namespace A_exercise_DB.Infrastructures.Repositories;
 public class EmployeeRepository : IEmployeeRepository
 {
     private readonly AppDbContext _context;
-    private readonly EmployeeEntityAdapter _adapter;
+    private readonly EmployeeFactory _factory;
 
     /// <summary>
     /// コンストラクタ
@@ -24,10 +24,10 @@ public class EmployeeRepository : IEmployeeRepository
     /// <param name="adapter">EmployeeEntityAdapter</param>
     public EmployeeRepository(
         AppDbContext context,
-        EmployeeEntityAdapter adapter)
+        EmployeeFactory factory)
     {
         _context = context;
-        _adapter = adapter;
+        _factory = factory;
     }
 
     /// <summary>
@@ -49,24 +49,11 @@ public class EmployeeRepository : IEmployeeRepository
 
             foreach (var entity in entities)
             {
-                var employee = await _adapter.RestoreAsync(entity);
-                if (entity.Department is not null)
-                {
-                    var department = new Department(
-                        entity.Department.DepartmentUuid,
-                        entity.Department.Name
-                    );
+                var employee = await _factory.RestoreAsync(entity);
+                employees.Add(employee);
 
-                    employee.ChangeDepartment(department);
-                    employees.Add(employee);
-                }
-
-                return employees;
             }
-        }
-        catch (DomainException)
-        {
-            throw;
+            return employees;
         }
         catch (Exception ex)
         {
@@ -97,13 +84,9 @@ public class EmployeeRepository : IEmployeeRepository
             }
 
             // EmployeeEntityからEmployeeを復元する
-            var employee = await _adapter.RestoreAsync(entity);
+            var employee = await _factory.RestoreAsync(entity);
 
             return employee;
-        }
-        catch (DomainException)
-        {
-            throw;
         }
         catch (Exception ex)
         {
