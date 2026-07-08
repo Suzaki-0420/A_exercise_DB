@@ -24,11 +24,11 @@ public class Product
     /// <summary>
     /// 商品カテゴリ
     /// </summary>
-    public ProductCategory ProductCategory { get; private set; }
+    public ProductCategory? ProductCategory { get; private set; }
     /// <summary>
     /// 商品在庫
     /// </summary>
-    public ProductStock ProductStock { get; private set; }
+    public ProductStock? ProductStock { get; private set; }
 
     /// <summary>
     /// 削除フラグ
@@ -53,7 +53,7 @@ public class Product
     /// productPriceは7/8以前引数string戻り値intにしていたが、
     /// Adapterとの互換性のため引数int戻り値intに変更
     /// </summary>
-    public Product(Guid productUuid, string productName, int productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
+    public Product(Guid productUuid, string productName, int productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
     {
         ValidateProductUuid(productUuid);
         ProductUuid = productUuid;
@@ -72,8 +72,14 @@ public class Product
     /// <summary>
     /// ID未定の商品を作成する場合のコンストラクタ
     /// </summary>
-    public Product(string productName, int productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
+    public Product(string productName, int productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
         : this(Guid.NewGuid(), productName, productPrice, productImageUrl, productCategory, productStock, deleteFlg) { }
+
+    /// <summary>
+    /// 引数3つのコンストラクタ
+    /// </summary>
+    public Product(Guid productUuid, string productName, int productPrice) { }
+
 
     /// <summary>
     /// 商品識別IDの検証
@@ -129,6 +135,58 @@ public class Product
     {
         if (deleteFlg != 0 && deleteFlg != 1)
             throw new DomainException("削除フラグが不正です");
+    }
+    /// <summary>
+    /// 商品名の変更
+    /// </summary>
+    public void ChangeName(string productName)
+    {
+        ValidateProductName(productName);
+        Name = productName;
+    }
+
+    /// <summary>
+    /// 価格の変更
+    /// </summary>
+    public void ChangePrice(int productPrice)
+    {
+        ValidatePrice(productPrice);
+        Price = productPrice;
+    }
+
+    /// <summary>
+    /// 画像URLの変更
+    /// </summary>
+    public void ChangeImageUrl(string productImageUrl)
+    {
+        ValidateImageUrl(productImageUrl);
+        ImageUrl = productImageUrl;
+    }
+
+    /// <summary>
+    /// 商品カテゴリの変更
+    /// </summary>
+    public void ChangeProductCategory(ProductCategory productCategory)
+    {
+        ProductCategory = productCategory ?? throw new DomainException("商品カテゴリは必須です");
+    }
+
+
+    /// <summary>
+    /// 商品在庫の変更
+    /// </summary>
+    public void ChangeProductStock(ProductStock productStock)
+    {
+        ProductStock = productStock ?? throw new DomainException("商品在庫は必須です");
+    }
+
+    /// <summary>
+    /// 削除フラグの変更
+    /// </summary>
+    public void ChangeDeleteFlg(int deleteFlg)
+    {
+        ValidateDeleteFlg(deleteFlg);
+        DeleteFlg = deleteFlg;
     }
 
     /// <summary>
