@@ -39,23 +39,23 @@ public class ProductFactory
         // ProductからProductEntityを生成する
         var entity = await _productEntityAdapter.ConvertAsync(domain);
         // 商品カテゴリ、在庫が存在しない場合はリターンする
-        if (domain.Category is null && domain.Stock is null)
+        if (domain.ProductCategory is null && domain.ProductStock is null)
         {
             return entity;
         }
         // 商品カテゴリが存在する
-        if (domain.Category != null)
+        if (domain.ProductCategory != null)
         {
             // CategoryをCategoryEntityに変換してプロパティに設定する
             entity.ProductCategory =
-                await _productCategoryEntityAdapter.ConvertAsync(domain.Category);
+                await _productCategoryEntityAdapter.ConvertAsync(domain.ProductCategory);
         }
         // 在庫が存在する
-        if (domain.Stock != null)
+        if (domain.ProductStock != null)
         {
             // ProductStockをProductStockEntityに変換してプロパティに設定する
             entity.ProductStock =
-                await _productStockEntityAdapter.ConvertAsync(domain.Stock);
+                await _productStockEntityAdapter.ConvertAsync(domain.ProductStock);
         }
         return entity;
     }
