@@ -125,6 +125,10 @@ public class ProductRepository : IProductRepository
             await _context.SaveChangesAsync();
             return true;
         }
+        catch (DomainException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             // InternalExceptionにラップしてスローする
