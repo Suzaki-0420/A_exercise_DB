@@ -16,18 +16,21 @@ public class ProductStock
 
     /// <summary>
     /// コンストラクタ
+    /// quantityは7/8以前引数string戻り値intにしていたが、
+    /// Adapterとの互換性のため引数int戻り値intに変更
     /// </summary>
-    public ProductStock(Guid stockUuid, string quantity)
+    public ProductStock(Guid stockUuid, int quantity)
     {
         ValidateProductStockUuid(stockUuid);
         StockUuid = stockUuid;
-        Quantity = ValidateQuantity(quantity);
+        Quantity = quantity;
+        ValidateQuantity(quantity);
     }
 
     /// <summary>
     /// ID未定の商品在庫を作成する場合のコンストラクタ
     /// </summary>
-    public ProductStock(string quantity)
+    public ProductStock(int quantity)
         : this(Guid.NewGuid(), quantity) { }
 
     /// <summary>
@@ -42,18 +45,12 @@ public class ProductStock
     /// <summary>
     /// 商品在庫数の検証
     /// </summary>
-    private int ValidateQuantity(string? quantity)
+    private int ValidateQuantity(int quantity)
     {
-        if (string.IsNullOrWhiteSpace(quantity))
-            throw new DomainException("在庫数を入力してください");
-
-        if (!int.TryParse(quantity, out var parsedQuantity))
-            throw new DomainException("正しい在庫数形式で入力してください");
-
-        if (parsedQuantity < 0)
+        if (quantity < 0)
             throw new DomainException("在庫数は0以上で入力してください");
 
-        return parsedQuantity;
+        return quantity;
     }
     /// <summary>
     /// 等価性（IDによる比較）
