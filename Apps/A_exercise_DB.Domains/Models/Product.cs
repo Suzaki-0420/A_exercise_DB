@@ -50,14 +50,17 @@ public class Product
 
     /// <summary>
     /// コンストラクタ
+    /// productPriceは7/8以前引数string戻り値intにしていたが、
+    /// Adapterとの互換性のため引数int戻り値intに変更
     /// </summary>
-    public Product(Guid productUuid, string productName, string productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
+    public Product(Guid productUuid, string productName, int productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
     {
         ValidateProductUuid(productUuid);
         ProductUuid = productUuid;
         ValidateProductName(productName);
         Name = productName;
-        Price = ValidatePrice(productPrice);
+        Price = productPrice;
+        ValidatePrice(productPrice);
         ValidateImageUrl(productImageUrl);
         ImageUrl = productImageUrl;
         ProductCategory = productCategory ?? throw new DomainException("商品カテゴリは必須です");
@@ -69,7 +72,7 @@ public class Product
     /// <summary>
     /// ID未定の商品を作成する場合のコンストラクタ
     /// </summary>
-    public Product(string productName, string productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
+    public Product(string productName, int productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
         : this(Guid.NewGuid(), productName, productPrice, productImageUrl, productCategory, productStock, deleteFlg) { }
 
     /// <summary>
@@ -94,18 +97,12 @@ public class Product
     /// <summary>
     /// 価格の検証
     /// </summary>
-    private int ValidatePrice(string productPrice)
+    private int ValidatePrice(int productPrice)
     {
-        if (string.IsNullOrWhiteSpace(productPrice))
-            throw new DomainException("価格を入力してください");
-
-        if (!int.TryParse(productPrice, out var parsedPrice))
-            throw new DomainException("正しい価格形式で入力してください");
-
-        if (parsedPrice > MaxPrice)
+        if (productPrice > MaxPrice)
             throw new DomainException("価格は100万円以下で入力してください");
 
-        return parsedPrice;
+        return productPrice;
     }
     /// <summary>
     /// 画像URLの検証
