@@ -8,7 +8,7 @@ public class OrderStatus
     /// <summary>
     /// 注文ステータスID
     /// </summary>
-    public int? Id { get; private set; }
+    public int Id { get; private set; }
     /// <summary>
     /// 注文ステータス名
     /// </summary>
@@ -67,13 +67,11 @@ public class OrderStatus
         if (ReferenceEquals(this, obj)) return true;
         if (obj is not OrderStatus other) return false;
 
-        if (Id is null || other.Id is null) return false;
-
         return Id == other.Id;
     }
 
-    public override int GetHashCode() => Id?.GetHashCode() ?? 0;
+    public override int GetHashCode() => Id.GetHashCode();
 
     public override string ToString()
-        => $"{Id?.ToString() ?? "未登録"}: {Name}";
+        => $"{Id.ToString() ?? "未登録"}: {Name}";
 }
