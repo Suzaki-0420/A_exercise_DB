@@ -44,7 +44,7 @@ public class RegisterCategoryController : ControllerBase
     [SwaggerResponse(StatusCodes.Status401Unauthorized, "未認証、またはJWT トークン無効)")]
     [SwaggerResponse(StatusCodes.Status500InternalServerError, "サーバー内部エラー")]
     */
-    public async Task<IActionResult> ValidateCategory([FromQuery] string categoryName)
+    public async Task<IActionResult> ValidateCategoryName([FromQuery] string categoryName)
     {
         // カテゴリ名がnullか空白
         if (string.IsNullOrWhiteSpace(categoryName))
