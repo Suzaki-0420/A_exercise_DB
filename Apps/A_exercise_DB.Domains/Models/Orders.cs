@@ -33,13 +33,14 @@ public class Orders
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Orders(Guid orderUuid, DateTime orderDate, string amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod)
+    public Orders(Guid orderUuid, DateTime orderDate, int amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod)
     {
         ValidateOrderUuid(orderUuid);
         OrderUuid = orderUuid;
         ValidateOrderDate(orderDate);
         OrderDate = orderDate;
-        AmountTotal = ValidateAmountTotal(amountTotal);
+        AmountTotal = amountTotal;
+        ValidateAmountTotal(amountTotal);
         Customer = customer ?? throw new DomainException("顧客は必須です。");
         OrderStatus = orderStatus ?? throw new DomainException("注文ステータスは必須です。");
         PaymentMethod = paymentMethod ?? throw new DomainException("支払い方法は必須です。");
@@ -48,7 +49,7 @@ public class Orders
     /// <summary>
     /// ID未定の注文を作成する場合のコンストラクタ
     /// </summary>
-    public Orders(DateTime orderDate, string amountTotal, Customer customer, OrderStatus orderStatus, PaymentMethod paymentMethod)
+    public Orders(DateTime orderDate, int amountTotal, Customer customer, OrderStatus orderStatus, PaymentMethod paymentMethod)
         : this(Guid.NewGuid(), orderDate, amountTotal, customer, orderStatus, paymentMethod) { }
 
     /// <summary>
@@ -75,18 +76,12 @@ public class Orders
     /// <summary>
     /// 合計金額の検証
     /// </summary>
-    private int ValidateAmountTotal(string? amountTotal)
+    private int ValidateAmountTotal(int amountTotal)
     {
-        if (string.IsNullOrWhiteSpace(amountTotal))
-            throw new DomainException("合計金額を入力してください");
-
-        if (!int.TryParse(amountTotal, out var parsedAmount))
-            throw new DomainException("正しい合計金額形式で入力してください");
-
-        if (parsedAmount < 0)
+        if (amountTotal < 0)
             throw new DomainException("合計金額は0以上で入力してください");
 
-        return parsedAmount;
+        return amountTotal;
     }
 
     /// <summary>
