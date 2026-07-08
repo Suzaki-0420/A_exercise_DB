@@ -45,11 +45,6 @@ public class ProductCategoryRepository : IProductCategoryRepository
             }
             return categories;
         }
-        catch (DomainException) //データ不備による業務ルール違反の場合
-        {
-            throw; // DomainException例外はそのまま再スローする（同じメールアドレスが入力された等、ユーザーのミスはそのまま上げる）
-            // メッセージはDomainObjectで設定しているものが出力される
-        }
         catch (Exception ex)
         {
             // InternalExceptionにラップしてスローする（DBアクセス不可など）
@@ -79,10 +74,6 @@ public class ProductCategoryRepository : IProductCategoryRepository
             // ProductCategoryEntityからProductCategoryを復元する
             var category = await _adapter.RestoreAsync(entity); // Entity→DomainObject
             return category;
-        }
-        catch (DomainException)
-        {
-            throw; // DomainException例外はそのまま再スローする
         }
         catch (Exception ex)
         {
