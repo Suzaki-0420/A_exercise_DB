@@ -8,7 +8,7 @@ public class OrdersDetail
     /// <summary>
     /// 注文明細ID
     /// </summary>
-    public int? Id { get; private set; }
+    public int Id { get; private set; }
     /// <summary>
     /// 注文
     /// </summary>
@@ -25,7 +25,7 @@ public class OrdersDetail
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public OrdersDetail(int? detailId, Orders? orders, Product? product, string count)
+    public OrdersDetail(int detailId, Orders? orders, Product? product, string count)
     {
         ValidateDetailId(detailId);
         Id = detailId;
@@ -37,10 +37,7 @@ public class OrdersDetail
     /// <summary>
     /// ID未定の注文明細を作成する場合のコンストラクタ
     /// </summary>
-    public OrdersDetail(Orders? orders, Product? product, string count)
-        : this(null, orders, product, count)
-    {
-    }
+    public OrdersDetail(Orders? orders, Product? product, string count) { }
 
     /// <summary>
     /// 注文・商品なしコンストラクタ
@@ -82,11 +79,9 @@ public class OrdersDetail
         if (ReferenceEquals(this, obj)) return true;
         if (obj is not OrdersDetail other) return false;
 
-        if (Id is null || other.Id is null) return false;
-
         return Id == other.Id;
     }
 
     public override string ToString()
-        => $"{Id.ToString() ?? "未登録"}: {Count} / {Orders.OrderUuid} / {Product?.Name}";
+        => $"{Id.ToString() ?? "未登録"}: {Count} / {Orders?.OrderUuid} / {Product?.Name}";
 }
