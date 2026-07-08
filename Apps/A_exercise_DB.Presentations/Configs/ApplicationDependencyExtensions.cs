@@ -7,6 +7,7 @@ using A_exercise_DB.Domains.Repositories;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Infrastructures.Shared;
 using A_exercise_DB.Applications.Usecases;
+using A_exercise_DB.Applications.Usecases.Products;
 
 
 namespace A_exercise_DB.Presentations.Configs;
@@ -86,6 +87,7 @@ public static class ApplicationDependencyExtensions
     this IServiceCollection services, IConfiguration config)
     {
         //services.AddScoped<IRegisterBookUsecase, RegisterBookUsecase>();
+        services.AddScoped<IDeleteProductUsecase, DeleteProductUsecase>();
 
         return services;
     }
