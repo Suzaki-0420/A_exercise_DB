@@ -20,15 +20,15 @@ public class Orders
     /// <summary>
     /// 顧客
     /// </summary>
-    public Customer? Customer { get; private set; }
+    public Customer Customer { get; private set; }
     /// <summary>
     /// 注文ステータス
     /// </summary>
-    public OrderStatus? OrderStatus { get; private set; }
+    public OrderStatus OrderStatus { get; private set; }
     /// <summary>
     /// 支払い方法
     /// </summary>
-    public PaymentMethod? PaymentMethod { get; private set; }
+    public PaymentMethod PaymentMethod { get; private set; }
 
     /// <summary>
     /// コンストラクタ
@@ -48,7 +48,7 @@ public class Orders
     /// <summary>
     /// ID未定の注文を作成する場合のコンストラクタ
     /// </summary>
-    public Orders(DateTime orderDate, string amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod)
+    public Orders(DateTime orderDate, string amountTotal, Customer customer, OrderStatus orderStatus, PaymentMethod paymentMethod)
         : this(Guid.NewGuid(), orderDate, amountTotal, customer, orderStatus, paymentMethod) { }
 
     /// <summary>
