@@ -27,7 +27,6 @@ public class EmployeeEntityAdapter :
         entity.EmployeeUuid = domain.EmployeeUuid;
         entity.Name = domain.Name;
         entity.Kana = domain.Kana;
-        entity.DepartmentId = domain.Department.DepartmentId;
 
         return Task.FromResult(entity);
     }
@@ -46,8 +45,7 @@ public class EmployeeEntityAdapter :
         var domain = new Employee(
             target.EmployeeUuid,
             target.Name,
-            target.Kana,
-            target.Department
+            target.Kana
         );
 
         return Task.FromResult(domain);

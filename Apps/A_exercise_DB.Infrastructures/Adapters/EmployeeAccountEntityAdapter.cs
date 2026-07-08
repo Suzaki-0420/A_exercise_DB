@@ -27,7 +27,6 @@ public class EmployeeAccountEntityAdapter :
         entity.AccountUuid = domain.AccountUuid;
         entity.Name = domain.Name;
         entity.Password = domain.Password;
-        entity.EmployeeId = domain.EmployeeId;
 
         return Task.FromResult(entity);
     }
@@ -46,8 +45,7 @@ public class EmployeeAccountEntityAdapter :
         var domain = new EmployeeAccount(
             target.AccountUuid,
             target.Name,
-            target.Password,
-            target.EmployeeId
+            target.Password
         );
 
         return Task.FromResult(domain);

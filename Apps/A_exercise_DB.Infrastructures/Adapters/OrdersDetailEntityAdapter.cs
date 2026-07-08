@@ -24,8 +24,6 @@ public class OrdersDetailEntityAdapter :
 
         // ドメインオブジェクト:OrderDetailをOrderDetailEntityに変換する
         var entity = new OrdersDetailEntity();
-        entity.OrderId = domain.OrderId;
-        entity.ProductId = domain.ProductId;
         entity.Count = domain.Count;
 
         return Task.FromResult(entity);
@@ -43,8 +41,6 @@ public class OrdersDetailEntityAdapter :
 
         // OrderDetailEntityからドメインオブジェクト:OrderDetailを復元する
         var domain = new OrdersDetail(
-            target.OrderId,
-            target.ProductId,
             target.Count
         );
 

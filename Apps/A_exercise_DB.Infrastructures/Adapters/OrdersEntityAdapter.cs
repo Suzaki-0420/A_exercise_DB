@@ -27,7 +27,6 @@ public class OrdersEntityAdapter :
         entity.OrderUuid = domain.OrderUuid;
         entity.OrderDate = domain.OrderDate;
         entity.AmountTotal = domain.AmountTotal;
-        entity.CustomerId = domain.Customer.Id;
         entity.OrderStatusId = domain.OrderStatus.Id;
         entity.PaymentMethodId = domain.PaymentMethod.Id;
 
