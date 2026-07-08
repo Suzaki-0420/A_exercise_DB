@@ -50,6 +50,7 @@ public class CustomerEntityAdapter :
         var domain = new Customer(
             target.CustomerUuid,
             target.Name,
+            target.Kana,
             target.Address1,
             target.Address2,
             target.PhoneNumber,
