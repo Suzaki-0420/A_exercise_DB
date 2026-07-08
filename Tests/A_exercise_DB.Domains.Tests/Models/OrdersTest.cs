@@ -158,10 +158,9 @@ public class OrdersTests
     {
         var ex = Assert.ThrowsExactly<DomainException>(() =>
         {
-            _ = CreateOrders(orderDate: default);
+            _ = CreateOrders(orderDate: default(DateTime));
         });
 
-        // 例外メッセージを検証する
         Assert.AreEqual("注文日が不正です", ex.Message);
     }
 

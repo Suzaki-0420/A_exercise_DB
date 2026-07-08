@@ -428,4 +428,15 @@ public class OrdersDetailTests
         StringAssert.Contains(result, orders.OrderUuid.ToString());
         StringAssert.Contains(result, "商品A");
     }
+
+    [TestMethod(DisplayName = "OrdersまたはProductが未設定の場合、ToStringで例外になる可能性を確認する")]
+    public void ToString_WithUnsetOrdersOrProduct_ShouldThrowException()
+    {
+        var ordersDetail = new OrdersDetail(3);
+
+        Assert.ThrowsExactly<NullReferenceException>(() =>
+        {
+            _ = ordersDetail.ToString();
+        });
+    }
 }

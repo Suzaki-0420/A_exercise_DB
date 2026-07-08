@@ -422,10 +422,9 @@ public class CustomerTests
     {
         var ex = Assert.ThrowsExactly<DomainException>(() =>
         {
-            _ = CreateCustomer(createdAt: default);
+            _ = CreateCustomer(createdAt: default(DateTime));
         });
 
-        // 例外メッセージを検証する
         Assert.AreEqual("登録日時が不正です", ex.Message);
     }
 
