@@ -96,6 +96,14 @@ public class Employee
     }
 
     /// <summary>
+    /// 部署の変更
+    /// </summary>
+    public void ChangeDepartment(Department department)
+    {
+        Department = department ?? throw new DomainException("部署は必須です。");
+    }
+
+    /// <summary>
     /// 等価性（IDによる比較）
     /// </summary>
     public override bool Equals(object? obj)
