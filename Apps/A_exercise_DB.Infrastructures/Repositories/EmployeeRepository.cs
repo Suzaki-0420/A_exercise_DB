@@ -5,6 +5,7 @@ using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Infrastructures.Entities;
 using A_exercise_DB.Infrastructures.Contexts;
 using Microsoft.EntityFrameworkCore;
+using A_exercise_DB.Infrastructures.Adapters;
 
 namespace A_exercise_DB.Infrastructures.Repositories;
 
@@ -14,7 +15,7 @@ namespace A_exercise_DB.Infrastructures.Repositories;
 public class EmployeeRepository : IEmployeeRepository
 {
     private readonly AppDbContext _context;
-    private readonly IRestorer<Employee, EmployeeEntity> _adapter;
+    private readonly EmployeeEntityAdapter _adapter;
 
     /// <summary>
     /// コンストラクタ
@@ -23,7 +24,7 @@ public class EmployeeRepository : IEmployeeRepository
     /// <param name="adapter">EmployeeEntityAdapter</param>
     public EmployeeRepository(
         AppDbContext context,
-        IRestorer<Employee, EmployeeEntity> adapter)
+        EmployeeEntityAdapter adapter)
     {
         _context = context;
         _adapter = adapter;
@@ -49,10 +50,19 @@ public class EmployeeRepository : IEmployeeRepository
             foreach (var entity in entities)
             {
                 var employee = await _adapter.RestoreAsync(entity);
-                employees.Add(employee);
-            }
+                if (entity.Department is not null)
+                {
+                    var department = new Department(
+                        entity.Department.DepartmentUuid,
+                        entity.Department.Name
+                    );
 
-            return employees;
+                    employee.ChangeDepartment(department);
+                    employees.Add(employee);
+                }
+
+                return employees;
+            }
         }
         catch (DomainException)
         {
