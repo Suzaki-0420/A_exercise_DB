@@ -18,6 +18,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Apps\A_exercise_DB.Presentations\A_exercise_DB.Presentations.csproj" />
+    <ProjectReference Include="..\..\Apps\A_exercise_DB.Domains\A_exercise_DB.Domains.csproj" />
+    <ProjectReference Include="..\..\Apps\A_exercise_DB.Applications\A_exercise_DB.Applications.csproj" />
+    <ProjectReference Include="..\..\Apps\A_exercise_DB.Infrastructures\A_exercise_DB.Infrastructures.csproj" />
   </ItemGroup>
 
 </Project>
