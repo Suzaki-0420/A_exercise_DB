@@ -451,4 +451,36 @@ public class EmployeeTests
         StringAssert.Contains(result, employeeName);
         StringAssert.Contains(result, employeeKana);
     }
+
+    [TestMethod(DisplayName = "部署を正常に変更できる")]
+    public void ChangeDepartment_WithValidDepartment_ShouldChangeDepartment()
+    {
+        // インスタンスを生成する
+        var employee = CreateEmployee();
+
+        // 変更後の部署を用意する
+        var newDepartment = CreateDepartment("総務部");
+
+        // 部署を変更する
+        employee.ChangeDepartment(newDepartment);
+
+        // 部署を検証する
+        Assert.AreEqual(newDepartment, employee.Department);
+        Assert.AreEqual("総務部", employee.Department?.Name);
+    }
+
+    [TestMethod(DisplayName = "部署にnullを指定して変更すると、DomainExceptionがスローされる")]
+    public void ChangeDepartment_WithNull_ShouldThrowDomainException()
+    {
+        // インスタンスを生成する
+        var employee = CreateEmployee();
+
+        var ex = Assert.ThrowsExactly<DomainException>(() =>
+        {
+            employee.ChangeDepartment(null!);
+        });
+
+        // 例外メッセージを検証する
+        Assert.AreEqual("部署は必須です。", ex.Message);
+    }
 }
