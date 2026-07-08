@@ -78,10 +78,6 @@ public class ProductRepository : IProductRepository
 
             return products;
         }
-        catch (DomainException)
-        {
-            throw;
-        }
         catch (Exception ex)
         {
             throw new InternalException(
