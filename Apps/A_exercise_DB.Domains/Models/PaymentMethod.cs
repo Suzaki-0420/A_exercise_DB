@@ -8,7 +8,7 @@ public class PaymentMethod
     /// <summary>
     /// 支払い方法ID
     /// </summary>
-    public int? Id { get; private set; }
+    public int Id { get; private set; }
     /// <summary>
     /// 支払い方法名
     /// </summary>
@@ -65,13 +65,11 @@ public class PaymentMethod
         if (ReferenceEquals(this, obj)) return true;
         if (obj is not PaymentMethod other) return false;
 
-        if (Id is null || other.Id is null) return false;
-
         return Id == other.Id;
     }
 
-    public override int GetHashCode() => Id?.GetHashCode() ?? 0;
+    public override int GetHashCode() => Id.GetHashCode();
 
     public override string ToString()
-        => $"{Id?.ToString() ?? "未登録"}: {Name}";
+        => $"{Id.ToString() ?? "未登録"}: {Name}";
 }
