@@ -211,31 +211,99 @@ public class ProductRepositoryTests
             await repository.SelectByProductCategoryIdAsync(1);
         });
     }
+    [TestMethod(DisplayName = "キーワードに一致する商品一覧を取得できる")]
+    public async Task SearchKeywordAsync_WhenProductsExist_ShouldReturnProducts()
+    {
+        var products = await _repository.SearchKeywordAsync("ボールペン");
+
+        Assert.IsNotNull(products);
+
+        Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
+        Assert.IsTrue(products.All(p => p.DeleteFlg == 0));
+        Assert.HasCount(2, products);
+        Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
+    }
+
+    [TestMethod(DisplayName = "キーワードに一致する商品が存在しない場合は空リストを返す")]
+    public async Task SearchKeywordAsync_WhenProductsDoNotExist_ShouldReturnEmptyList()
+    {
+        var products = await _repository.SearchKeywordAsync("存在しない商品");
+
+        Assert.IsNotNull(products);
+        Assert.AreEqual(0, products.Count);
+    }
+
+    [TestMethod(DisplayName = "SearchKeywordAsyncでDB接続エラー時にInternalExceptionが発生する")]
+    public async Task SearchKeywordAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(
+                "Host=localhost;Port=9999;Database=All_Exercise;Username=postgres;Password=postgres")
+            .Options;
+
+        await using var context = new AppDbContext(options);
+
+        var factory =
+            _scope.ServiceProvider.GetRequiredService<ProductFactory>();
+
+        var repository = new ProductRepository(context, factory);
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await repository.SearchKeywordAsync("ボールペン");
+        });
+    }
 
     [TestMethod(DisplayName = "商品を正常に更新できる")]
     public async Task UpdateByIdAsync_WhenProductExists_ShouldReturnTrue()
     {
-        var productEntity = await _dbContext.Products
-            .Include(p => p.ProductStock)
-            .AsNoTracking()
-            .FirstAsync(p => p.DeleteFlg == 0);
+        // 登録用データを作成
+        var productUuid = Guid.NewGuid();
 
         var stock = new ProductStock(
-            productEntity.ProductStock!.StockUuid,
-            productEntity.ProductStock.Quantity + 1);
+            Guid.NewGuid(),
+            10);
 
         var product = new Product(
-            productEntity.ProductUuid,
-            "更新商品",
-            productEntity.Price + 10,
-            productEntity.ImageUrl ?? "https://example.com/test.png",
+            productUuid,
+            "更新前商品",
+            100,
+            "https://example.com/before.png",
             _stationeryCategory,
             stock,
             0);
 
-        var result = await _repository.UpdateByIdAsync(product);
+        await _repository.CreateAsync(product);
 
+        // 更新用データを作成
+        var updatedStock = new ProductStock(
+            stock.StockUuid,
+            99);
+
+        var updatedProduct = new Product(
+            productUuid,
+            "更新後商品",
+            500,
+            "https://example.com/after.png",
+            _stationeryCategory,
+            updatedStock,
+            0);
+
+        // 実行
+        var result = await _repository.UpdateByIdAsync(updatedProduct);
+
+        // 検証
         Assert.IsTrue(result);
+
+        var saved = await _dbContext.Products
+            .Include(p => p.ProductStock)
+            .AsNoTracking()
+            .SingleAsync(p => p.ProductUuid == productUuid);
+
+        Assert.AreEqual("更新後商品", saved.Name);
+        Assert.AreEqual(500, saved.Price);
+        Assert.IsNotNull(saved.ProductStock);
+        Assert.AreEqual(99, saved.ProductStock.Quantity);
     }
 
     [TestMethod(DisplayName = "存在しない商品を更新した場合falseが返る")]

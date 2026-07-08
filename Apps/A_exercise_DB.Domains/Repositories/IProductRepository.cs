@@ -22,6 +22,13 @@ public interface IProductRepository
     Task<List<Product>> SelectByProductCategoryIdAsync(int productCategoryId);
 
     /// <summary>
+    /// 指定されたキーワードを商品名に含む商品情報を取得する
+    /// </summary>
+    /// <param name="keyword">検索キーワード</param>
+    /// <returns>Productのリスト</returns>
+    Task<List<Product>> SearchKeywordAsync(string keyword);
+
+    /// <summary>
     /// 商品を更新する
     /// </summary>
     /// <param name="product">更新対象の商品</param>
