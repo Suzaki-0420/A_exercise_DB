@@ -12,11 +12,11 @@ public class OrdersDetail
     /// <summary>
     /// 注文
     /// </summary>
-    public Orders? Orders { get; private set; }
+    public Orders Orders { get; private set; }
     /// <summary>
     /// 商品
     /// </summary>
-    public Product? Product { get; private set; }
+    public Product Product { get; private set; }
     /// <summary>
     /// 合計金額
     /// </summary>
@@ -25,50 +25,45 @@ public class OrdersDetail
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public OrdersDetail(int detailId, Orders? orders, Product? product, string count)
+    public OrdersDetail(int detailId, Orders orders, Product product, int count)
     {
         ValidateDetailId(detailId);
         Id = detailId;
         Orders = orders ?? throw new DomainException("注文は必須です。");
         Product = product ?? throw new DomainException("商品は必須です。");
-        Count = ValidateCount(count);
+        Count = count;
+        ValidateCount(count);
     }
 
     /// <summary>
     /// ID未定の注文明細を作成する場合のコンストラクタ
     /// </summary>
-    public OrdersDetail(Orders? orders, Product? product, string count) { }
+    public OrdersDetail(Orders orders, Product product, int count) { }
 
     /// <summary>
     /// 注文・商品なしコンストラクタ
     /// </summary>
-    public OrdersDetail(string count) { }
+    public OrdersDetail(int count) { }
 
 
     /// <summary>
     /// 注文明細IDの検証
     /// </summary>
-    private void ValidateDetailId(int? detailId)
+    private void ValidateDetailId(int detailId)
     {
-        if (detailId is not null && detailId <= 0)
+        if (detailId <= 0)
             throw new DomainException("注文明細IDが不正です。");
     }
 
     /// <summary>
     /// 合計金額の検証
     /// </summary>
-    private int ValidateCount(string? count)
+    private int ValidateCount(int count)
     {
-        if (string.IsNullOrWhiteSpace(count))
-            throw new DomainException("合計金額を入力してください");
-
-        if (!int.TryParse(count, out var parsedCount))
-            throw new DomainException("正しい合計金額形式で入力してください");
-
-        if (parsedCount < 0)
+        if (count < 0)
             throw new DomainException("合計金額は0以上で入力してください");
 
-        return parsedCount;
+        return count;
     }
 
     /// <summary>
@@ -83,5 +78,5 @@ public class OrdersDetail
     }
 
     public override string ToString()
-        => $"{Id.ToString() ?? "未登録"}: {Count} / {Orders?.OrderUuid} / {Product?.Name}";
+        => $"{Id.ToString() ?? "未登録"}: {Count} / {Orders.OrderUuid} / {Product.Name}";
 }
