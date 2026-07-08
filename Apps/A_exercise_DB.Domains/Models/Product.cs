@@ -78,9 +78,17 @@ public class Product
     /// <summary>
     /// 引数3つのコンストラクタ
     /// </summary>
-    public Product(Guid productUuid, string productName, int productPrice) { }
+    public Product(Guid productUuid, string productName, int productPrice)
+    {
+        ValidateProductUuid(productUuid);
+        ProductUuid = productUuid;
 
+        ValidateProductName(productName);
+        Name = productName;
 
+        ValidatePrice(productPrice);
+        Price = productPrice;
+    }
     /// <summary>
     /// 商品識別IDの検証
     /// </summary>
