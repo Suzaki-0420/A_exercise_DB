@@ -177,11 +177,13 @@ public class ProductCategoryRepositoryTests
     }
 
     [TestMethod(DisplayName = "商品カテゴリ名が空の場合DomainExceptionが発生する")]
-    public async Task CreateAsync_WhenNameIsEmpty_ShouldThrowDomainException()
+    public async Task CreateAsync_WhenCategoryNameIsEmpty_ShouldThrowDomainException()
     {
         await Assert.ThrowsExactlyAsync<DomainException>(async () =>
         {
-            var category = new ProductCategory(Guid.NewGuid(), "");
+            var category = new ProductCategory(
+                Guid.NewGuid(),
+                "");
 
             await _repository.CreateAsync(category);
         });

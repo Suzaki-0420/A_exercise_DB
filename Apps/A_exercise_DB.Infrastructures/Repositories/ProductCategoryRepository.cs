@@ -120,10 +120,7 @@ public class ProductCategoryRepository : IProductCategoryRepository
             // 登録した商品カテゴリをデータベースに永続化する
             await _context.SaveChangesAsync();
         }
-        catch (DomainException)
-        {
-            throw;
-        }
+
         catch (Exception ex)
         {
             throw new InternalException("商品カテゴリの永続化中に予期しないエラーが発生しました。", ex);

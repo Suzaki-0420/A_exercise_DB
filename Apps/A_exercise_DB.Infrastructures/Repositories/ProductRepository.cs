@@ -49,10 +49,6 @@ public class ProductRepository : IProductRepository
             // 登録した商品をデータベースに永続化する
             await _context.SaveChangesAsync(); //ここではじめてDBに反映される
         }
-        catch (DomainException)
-        {
-            throw; // DomainException例外はそのまま再スローする
-        }
         catch (Exception ex)
         {
             // InternalExceptionにラップしてスローする
@@ -82,10 +78,6 @@ public class ProductRepository : IProductRepository
             var products = await _factory.RestoreAsync(entities);
 
             return products;
-        }
-        catch (DomainException)
-        {
-            throw;
         }
         catch (Exception ex)
         {
@@ -124,10 +116,6 @@ public class ProductRepository : IProductRepository
             // 変更データをデータベースに永続化する
             await _context.SaveChangesAsync();
             return true;
-        }
-        catch (DomainException)
-        {
-            throw;
         }
         catch (Exception ex)
         {

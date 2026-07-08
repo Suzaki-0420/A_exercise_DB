@@ -1,0 +1,370 @@
+using A_exercise_DB.Domains.Exceptions;
+using A_exercise_DB.Domains.Models;
+using A_exercise_DB.Domains.Repositories;
+using A_exercise_DB.Infrastructures.Adapters;
+using A_exercise_DB.Infrastructures.Contexts;
+using A_exercise_DB.Infrastructures.Repositories;
+using A_exercise_DB.Presentations.Configs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace A_exercise_DB.Infrastructures.Tests.Repositories;
+
+[TestClass]
+[TestCategory("Repositories")]
+public class ProductRepositoryTests
+{
+    public TestContext TestContext { get; set; } = null!;
+
+    private static ServiceProvider _provider = null!;
+
+    private IServiceScope _scope = null!;
+    private IProductRepository _repository = null!;
+    private AppDbContext _dbContext = null!;
+
+    private ProductCategory _stationeryCategory = null!;
+
+    [ClassInitialize]
+    public static void ClassInit(TestContext context)
+    {
+        var config = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false)
+            .Build();
+
+        _provider = ApplicationDependencyExtensions.BuildAppProvider(config);
+    }
+
+    [ClassCleanup]
+    public static void ClassCleanup()
+    {
+        _provider.Dispose();
+    }
+
+    [TestInitialize]
+    public async Task TestInit()
+    {
+        _scope = _provider.CreateScope();
+
+        _repository =
+            _scope.ServiceProvider.GetRequiredService<IProductRepository>();
+
+        _dbContext =
+            _scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var categoryEntity = await _dbContext.ProductCategories
+            .AsNoTracking()
+            .SingleAsync(c => c.Name == "文房具");
+
+        _stationeryCategory = new ProductCategory(
+            categoryEntity.CategoryUuid,
+            categoryEntity.Name);
+    }
+
+    [TestCleanup]
+    public void TestCleanup()
+    {
+        _scope.Dispose();
+    }
+
+    [TestMethod(DisplayName = "商品を正常に登録できる")]
+    public async Task CreateAsync_WhenValidProduct_ShouldCreateProduct()
+    {
+        var productUuid = Guid.NewGuid();
+        var stockUuid = Guid.NewGuid();
+
+        var stock = new ProductStock(stockUuid, 10);
+
+        var product = new Product(
+            productUuid,
+            "テスト商品",
+            100,
+            "https://example.com/test.png",
+            _stationeryCategory,
+            stock,
+            0);
+
+        await _repository.CreateAsync(product);
+
+        var saved = await _dbContext.Products
+            .Include(p => p.ProductStock)
+            .AsNoTracking()
+            .SingleOrDefaultAsync(p => p.ProductUuid == productUuid);
+
+        Assert.IsNotNull(saved);
+        Assert.AreEqual(productUuid, saved.ProductUuid);
+        Assert.AreEqual("テスト商品", saved.Name);
+        Assert.AreEqual(100, saved.Price);
+        Assert.AreEqual(0, saved.DeleteFlg);
+        Assert.IsNotNull(saved.ProductStock);
+        Assert.AreEqual(10, saved.ProductStock.Quantity);
+    }
+
+    [TestMethod(DisplayName = "商品カテゴリが存在しない場合InternalExceptionが発生する")]
+    public async Task CreateAsync_WhenCategoryDoesNotExist_ShouldThrowInternalException()
+    {
+        var notExistCategory = new ProductCategory(
+            Guid.Parse("99999999-9999-9999-9999-999999999999"),
+            "存在なし");
+
+        var stock = new ProductStock(Guid.NewGuid(), 10);
+
+        var product = new Product(
+            Guid.NewGuid(),
+            "カテゴリなし商品",
+            100,
+            "https://example.com/test.png",
+            notExistCategory,
+            stock,
+            0);
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await _repository.CreateAsync(product);
+        });
+    }
+
+    [TestMethod(DisplayName = "商品名が空の場合DomainExceptionが発生する")]
+    public async Task CreateAsync_WhenProductNameIsEmpty_ShouldThrowDomainException()
+    {
+        await Assert.ThrowsExactlyAsync<DomainException>(async () =>
+        {
+            var stock = new ProductStock(Guid.NewGuid(), 10);
+
+            var product = new Product(
+                Guid.NewGuid(),
+                "",
+                100,
+                "https://example.com/test.png",
+                _stationeryCategory,
+                stock,
+                0);
+
+            await _repository.CreateAsync(product);
+        });
+    }
+
+    [TestMethod(DisplayName = "CreateAsyncでDB接続エラー時にInternalExceptionが発生する")]
+    public async Task CreateAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=localhost;Port=9999;Database=All_Exercise;Username=postgres;Password=postgres")
+            .Options;
+
+        await using var context = new AppDbContext(options);
+
+        var factory =
+            _scope.ServiceProvider.GetRequiredService<ProductFactory>();
+
+        var repository = new ProductRepository(context, factory);
+
+        var stock = new ProductStock(Guid.NewGuid(), 10);
+
+        var product = new Product(
+            Guid.NewGuid(),
+            "DBテスト商品",
+            100,
+            "https://example.com/test.png",
+            _stationeryCategory,
+            stock,
+            0);
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await repository.CreateAsync(product);
+        });
+    }
+
+    [TestMethod(DisplayName = "指定カテゴリの商品一覧を取得できる")]
+    public async Task SelectByProductCategoryIdAsync_WhenProductsExist_ShouldReturnProductList()
+    {
+        var categoryEntity = await _dbContext.ProductCategories
+            .AsNoTracking()
+            .SingleAsync(c => c.Name == "文房具");
+
+        var products = await _repository.SelectByProductCategoryIdAsync(categoryEntity.Id);
+
+        Assert.IsNotNull(products);
+        Assert.IsTrue(products.Count > 0);
+        Assert.IsTrue(products.All(p => p.ProductCategory is not null));
+        Assert.IsTrue(products.All(p => p.ProductStock is not null));
+        Assert.IsTrue(products.All(p => p.DeleteFlg == 0));
+    }
+
+    [TestMethod(DisplayName = "SelectByProductCategoryIdAsyncでDB接続エラー時にInternalExceptionが発生する")]
+    public async Task SelectByProductCategoryIdAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=localhost;Port=9999;Database=All_Exercise;Username=postgres;Password=postgres")
+            .Options;
+
+        await using var context = new AppDbContext(options);
+
+        var factory =
+            _scope.ServiceProvider.GetRequiredService<ProductFactory>();
+
+        var repository = new ProductRepository(context, factory);
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await repository.SelectByProductCategoryIdAsync(1);
+        });
+    }
+
+    [TestMethod(DisplayName = "商品を正常に更新できる")]
+    public async Task UpdateByIdAsync_WhenProductExists_ShouldReturnTrue()
+    {
+        var productEntity = await _dbContext.Products
+            .Include(p => p.ProductStock)
+            .AsNoTracking()
+            .FirstAsync(p => p.DeleteFlg == 0);
+
+        var stock = new ProductStock(
+            productEntity.ProductStock!.StockUuid,
+            productEntity.ProductStock.Quantity + 1);
+
+        var product = new Product(
+            productEntity.ProductUuid,
+            "更新商品",
+            productEntity.Price + 10,
+            productEntity.ImageUrl ?? "https://example.com/test.png",
+            _stationeryCategory,
+            stock,
+            0);
+
+        var result = await _repository.UpdateByIdAsync(product);
+
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod(DisplayName = "存在しない商品を更新した場合falseが返る")]
+    public async Task UpdateByIdAsync_WhenProductDoesNotExist_ShouldReturnFalse()
+    {
+        var stock = new ProductStock(Guid.NewGuid(), 10);
+
+        var product = new Product(
+            Guid.NewGuid(),
+            "存在しない商品",
+            100,
+            "https://example.com/test.png",
+            _stationeryCategory,
+            stock,
+            0);
+
+        var result = await _repository.UpdateByIdAsync(product);
+
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod(DisplayName = "UpdateByIdAsyncでDB接続エラー時にInternalExceptionが発生する")]
+    public async Task UpdateByIdAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=localhost;Port=9999;Database=All_Exercise;Username=postgres;Password=postgres")
+            .Options;
+
+        await using var context = new AppDbContext(options);
+
+        var factory =
+            _scope.ServiceProvider.GetRequiredService<ProductFactory>();
+
+        var repository = new ProductRepository(context, factory);
+
+        var stock = new ProductStock(Guid.NewGuid(), 10);
+
+        var product = new Product(
+            Guid.NewGuid(),
+            "DB更新商品",
+            100,
+            "https://example.com/test.png",
+            _stationeryCategory,
+            stock,
+            0);
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await repository.UpdateByIdAsync(product);
+        });
+    }
+
+    [TestMethod(DisplayName = "商品を正常に削除できる")]
+    public async Task DeleteByIdAsync_WhenProductExists_ShouldReturnTrue()
+    {
+        var stock = new ProductStock(Guid.NewGuid(), 5);
+
+        var product = new Product(
+            Guid.NewGuid(),
+            "削除テスト",
+            100,
+            "https://example.com/delete.png",
+            _stationeryCategory,
+            stock,
+            0);
+
+        await _repository.CreateAsync(product);
+
+        var result = await _repository.DeleteByIdAsync(product.ProductUuid.ToString());
+
+        Assert.IsTrue(result);
+
+        var saved = await _dbContext.Products
+            .AsNoTracking()
+            .SingleAsync(p => p.ProductUuid == product.ProductUuid);
+
+        Assert.AreEqual(1, saved.DeleteFlg);
+    }
+
+    [TestMethod(DisplayName = "存在しない商品を削除した場合falseが返る")]
+    public async Task DeleteByIdAsync_WhenProductDoesNotExist_ShouldReturnFalse()
+    {
+        var result = await _repository.DeleteByIdAsync(Guid.NewGuid().ToString());
+
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod(DisplayName = "不正なUUIDで削除した場合InternalExceptionが発生する")]
+    public async Task DeleteByIdAsync_WhenUuidIsInvalid_ShouldThrowInternalException()
+    {
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await _repository.DeleteByIdAsync("invalid-uuid");
+        });
+    }
+
+    [TestMethod(DisplayName = "存在する商品名の場合trueが返る")]
+    public async Task ExistsByNameAsync_WhenNameExists_ShouldReturnTrue()
+    {
+        var result = await _repository.ExistsByNameAsync("水性ボールペン(黒)");
+
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod(DisplayName = "存在しない商品名の場合falseが返る")]
+    public async Task ExistsByNameAsync_WhenNameDoesNotExist_ShouldReturnFalse()
+    {
+        var result = await _repository.ExistsByNameAsync("存在しない商品名");
+
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod(DisplayName = "ExistsByNameAsyncでDB接続エラー時にInternalExceptionが発生する")]
+    public async Task ExistsByNameAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql("Host=localhost;Port=9999;Database=All_Exercise;Username=postgres;Password=postgres")
+            .Options;
+
+        await using var context = new AppDbContext(options);
+
+        var factory =
+            _scope.ServiceProvider.GetRequiredService<ProductFactory>();
+
+        var repository = new ProductRepository(context, factory);
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await repository.ExistsByNameAsync("水性ボールペン(黒)");
+        });
+    }
+}

@@ -58,10 +58,6 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
             // データベースに反映する
             await _context.SaveChangesAsync();
         }
-        catch (DomainException)
-        {
-            throw;
-        }
         catch (Exception ex)
         {
             throw new InternalException(
