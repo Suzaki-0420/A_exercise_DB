@@ -38,12 +38,22 @@ public class OrdersDetail
     /// <summary>
     /// ID未定の注文明細を作成する場合のコンストラクタ
     /// </summary>
-    public OrdersDetail(Orders orders, Product product, int count) { }
+    public OrdersDetail(Orders orders, Product product, int count)
+    {
+        Orders = orders ?? throw new DomainException("注文は必須です。");
+        Product = product ?? throw new DomainException("商品は必須です。");
+        ValidateCount(count);
+        Count = count;
+    }
 
     /// <summary>
     /// 注文・商品なしコンストラクタ
     /// </summary>
-    public OrdersDetail(int count) { }
+    public OrdersDetail(int count)
+    {
+        ValidateCount(count);
+        Count = count;
+    }
 
 
     /// <summary>
