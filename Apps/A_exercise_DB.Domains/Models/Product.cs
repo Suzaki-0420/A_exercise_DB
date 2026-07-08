@@ -24,11 +24,11 @@ public class Product
     /// <summary>
     /// 商品カテゴリ
     /// </summary>
-    public ProductCategory? ProductCategory { get; private set; }
+    public ProductCategory ProductCategory { get; private set; }
     /// <summary>
     /// 商品在庫
     /// </summary>
-    public ProductStock? ProductStock { get; private set; }
+    public ProductStock ProductStock { get; private set; }
 
     /// <summary>
     /// 削除フラグ
@@ -51,7 +51,7 @@ public class Product
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Product(Guid productUuid, string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
+    public Product(Guid productUuid, string productName, string productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
     {
         ValidateProductUuid(productUuid);
         ProductUuid = productUuid;
@@ -69,24 +69,8 @@ public class Product
     /// <summary>
     /// ID未定の商品を作成する場合のコンストラクタ
     /// </summary>
-    public Product(string productName, string productPrice, string productImageUrl, ProductCategory? productCategory, ProductStock? productStock, int deleteFlg)
+    public Product(string productName, string productPrice, string productImageUrl, ProductCategory productCategory, ProductStock productStock, int deleteFlg)
         : this(Guid.NewGuid(), productName, productPrice, productImageUrl, productCategory, productStock, deleteFlg) { }
-
-    /// <summary>
-    /// 商品カテゴリ無し、商品在庫なしコンストラクタ
-    /// </summary>
-    public Product(Guid productUuid, string productName, string productPrice, string productImageUrl, int deleteFlg)
-    {
-        ValidateProductUuid(productUuid);
-        ProductUuid = productUuid;
-        ValidateProductName(productName);
-        Name = productName;
-        Price = ValidatePrice(productPrice);
-        ValidateImageUrl(productImageUrl);
-        ImageUrl = productImageUrl;
-        ValidateDeleteFlg(deleteFlg);
-        DeleteFlg = deleteFlg;
-    }
 
     /// <summary>
     /// 商品識別IDの検証
