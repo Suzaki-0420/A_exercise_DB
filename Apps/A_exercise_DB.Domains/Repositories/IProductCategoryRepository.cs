@@ -2,7 +2,7 @@ using A_exercise_DB.Domains.Models;
 
 namespace A_exercise_DB.Domains.Repositories;
 /// <summary>
-///  ドメインオブジェクト:商品カテゴリのCRUD操作インターフェイスの実装
+///  ドメインオブジェクト:商品カテゴリのCRUD操作インターフェイス
 /// </summary>
 public interface IProductCategoryRepository
 {
