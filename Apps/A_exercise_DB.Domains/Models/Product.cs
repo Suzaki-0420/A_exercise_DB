@@ -166,7 +166,7 @@ public class Product
     /// <summary>
     /// 商品カテゴリの変更
     /// </summary>
-    public void ChangeProductCategory(ProductCategory productCategory)
+    public void ChangeCategory(ProductCategory productCategory)
     {
         ProductCategory = productCategory ?? throw new DomainException("商品カテゴリは必須です");
     }
@@ -175,7 +175,7 @@ public class Product
     /// <summary>
     /// 商品在庫の変更
     /// </summary>
-    public void ChangeProductStock(ProductStock productStock)
+    public void ChangeStock(ProductStock productStock)
     {
         ProductStock = productStock ?? throw new DomainException("商品在庫は必須です");
     }
