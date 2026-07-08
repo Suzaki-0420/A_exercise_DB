@@ -56,6 +56,6 @@ public class OrdersEntityAdapter :
             paymentMethod
         );
 
-        return Task.FromResult(domain);
+        return domain;
     }
 }
