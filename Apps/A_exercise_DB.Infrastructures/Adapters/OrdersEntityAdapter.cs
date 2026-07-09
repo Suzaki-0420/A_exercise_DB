@@ -46,6 +46,12 @@ public class OrdersEntityAdapter :
         var customer = await new CustomerEntityAdapter().RestoreAsync(target.Customer);
         var orderStatus = await new OrderStatusEntityAdapter().RestoreAsync(target.OrderStatus);
         var paymentMethod = await new PaymentMethodEntityAdapter().RestoreAsync(target.PaymentMethod);
+        var details = new List<OrdersDetail>();
+
+        foreach (var detailEntity in target.OrderDetails)
+        {
+            details.Add(await new OrdersDetailEntityAdapter().RestoreAsync(detailEntity));
+        }
 
         // OrdersEntityからドメインオブジェクト:Ordersを復元する
         var domain = new Orders(
@@ -54,7 +60,8 @@ public class OrdersEntityAdapter :
             target.AmountTotal,
             customer,
             orderStatus,
-            paymentMethod
+            paymentMethod,
+            details
         );
 
         return domain;
