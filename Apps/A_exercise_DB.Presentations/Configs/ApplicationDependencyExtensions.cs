@@ -89,6 +89,7 @@ public static class ApplicationDependencyExtensions
     {
         //services.AddScoped<IRegisterBookUsecase, RegisterBookUsecase>();
         services.AddScoped<IDeleteProductUsecase, DeleteProductUsecase>();
+        services.AddScoped<IUpdateProductUsecase, UpdateProductUsecase>();
 
         return services;
     }
