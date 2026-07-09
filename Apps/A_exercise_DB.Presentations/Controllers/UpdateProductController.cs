@@ -10,6 +10,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/admin/products")]
+[Tags("UC012: 商品修正")]
 public class UpdateProductController : ControllerBase
 {
     private readonly IUpdateProductUsecase _updateProductUsecase;

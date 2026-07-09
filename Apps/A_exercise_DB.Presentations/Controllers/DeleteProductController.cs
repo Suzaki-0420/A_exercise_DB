@@ -9,6 +9,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/admin/products")]
+[Tags("UC013: 商品削除")]
 public class DeleteProductController : ControllerBase
 {
     private readonly IDeleteProductUsecase _deleteProductUsecase;
