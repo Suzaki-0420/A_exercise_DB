@@ -1,4 +1,4 @@
-namespace LibraryApi.Domains.Exceptions;
+namespace A_exercise_DB.Domains.Exceptions;
 /// <summary>
 /// パスワードの再ハッシュが必要な場合にスローされる例外
 /// </summary>
