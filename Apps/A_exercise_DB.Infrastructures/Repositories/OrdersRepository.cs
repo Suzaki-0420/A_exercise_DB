@@ -43,8 +43,11 @@ public class OrdersRepository : IOrdersRepository
 
             if (orderDate.HasValue)
             {
+                var from = orderDate.Value.Date;
+                var to = from.AddDays(1);
+
                 query = query.Where(o =>
-                    o.OrderDate.Date == orderDate.Value.Date);
+                    o.OrderDate >= from && o.OrderDate < to);
             }
 
             if (!string.IsNullOrWhiteSpace(customerName))
