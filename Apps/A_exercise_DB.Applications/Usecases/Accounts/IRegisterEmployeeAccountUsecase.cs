@@ -8,18 +8,17 @@ namespace A_exercise_DB.Applications.Usecases.EmployeeAccounts;
 public interface IRegisterEmployeeAccountUsecase
 {
     /// <summary>
+    /// アカウント未登録の社員一覧を取得する
+    /// </summary>
+    /// <returns>アカウント未登録の社員一覧</returns>
+    Task<IReadOnlyList<Employee>> GetUnregisteredEmployeesAsync();
+
+    /// <summary>
     /// アカウント名が既に存在するかを検証する
     /// </summary>
     /// <param name="accountName">アカウント名</param>
     /// <returns>なし</returns>
     Task ExistsByAccountNameAsync(string accountName);
-
-    /// <summary>
-    /// 社員に既に担当者アカウントが登録されているかを検証する
-    /// </summary>
-    /// <param name="employeeUuid">社員UUID</param>
-    /// <returns>なし</returns>
-    Task ExistsByEmployeeUuidAsync(Guid employeeUuid);
 
     /// <summary>
     /// 担当者アカウントを登録する
