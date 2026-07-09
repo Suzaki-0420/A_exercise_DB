@@ -1,11 +1,10 @@
 using System.Reflection;
-using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 using A_exercise_DB.Applications.Usecases.Orders;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Runtime.CompilerServices;
 using Moq;
 using OrdersModel = A_exercise_DB.Domains.Models.Orders;
 
@@ -17,6 +16,24 @@ namespace A_exercise_DB.Applications.Tests.Usecases.Orders;
 [TestClass]
 public class SearchOrdersUsecaseTest
 {
+    private Mock<IOrdersRepository> _ordersRepositoryMock = null!;
+    private Mock<IOrderStatusRepository> _orderStatusRepositoryMock = null!;
+    private SearchOrdersUsecase _usecase = null!;
+
+    /// <summary>
+    /// 各テスト実行前の初期化処理
+    /// </summary>
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        _ordersRepositoryMock = new Mock<IOrdersRepository>();
+        _orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
+
+        _usecase = new SearchOrdersUsecase(
+            _ordersRepositoryMock.Object,
+            _orderStatusRepositoryMock.Object);
+    }
+
     /// <summary>
     /// SearchAsyncで購入履歴を取得できること
     /// </summary>
@@ -24,30 +41,23 @@ public class SearchOrdersUsecaseTest
     public async Task SearchAsync_ReturnsOrders()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var expected = new List<OrdersModel>();
 
-        ordersRepositoryMock
+        _ordersRepositoryMock
             .Setup(x => x.SearchByDateOrNameAsync(
                 It.IsAny<DateTime?>(),
                 It.IsAny<string?>()))
             .ReturnsAsync(expected);
 
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
-        var actual = await usecase.SearchAsync(
+        var actual = await _usecase.SearchAsync(
             new DateTime(2026, 7, 9),
             "山田");
 
         // Assert
         Assert.AreSame(expected, actual);
 
-        ordersRepositoryMock.Verify(x => x.SearchByDateOrNameAsync(
+        _ordersRepositoryMock.Verify(x => x.SearchByDateOrNameAsync(
             new DateTime(2026, 7, 9),
             "山田"), Times.Once);
     }
@@ -59,25 +69,18 @@ public class SearchOrdersUsecaseTest
     public async Task SearchAsync_WhenDomainExceptionThrown_ThrowsExactlyDomainException()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var expected = new DomainException("業務ルール違反です。");
 
-        ordersRepositoryMock
+        _ordersRepositoryMock
             .Setup(x => x.SearchByDateOrNameAsync(
                 It.IsAny<DateTime?>(),
                 It.IsAny<string?>()))
             .ThrowsAsync(expected);
 
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
         var actual = await Assert.ThrowsExactlyAsync<DomainException>(async () =>
         {
-            await usecase.SearchAsync(null, "山田");
+            await _usecase.SearchAsync(null, "山田");
         });
 
         // Assert
@@ -91,25 +94,18 @@ public class SearchOrdersUsecaseTest
     public async Task SearchAsync_WhenExceptionThrown_ThrowsExactlyInternalException()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var innerException = new InvalidOperationException("DB接続エラーです。");
 
-        ordersRepositoryMock
+        _ordersRepositoryMock
             .Setup(x => x.SearchByDateOrNameAsync(
                 It.IsAny<DateTime?>(),
                 It.IsAny<string?>()))
             .ThrowsAsync(innerException);
 
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
         var actual = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await usecase.SearchAsync(null, "山田");
+            await _usecase.SearchAsync(null, "山田");
         });
 
         // Assert
@@ -124,26 +120,21 @@ public class SearchOrdersUsecaseTest
     public async Task FindAllStatusAsync_ReturnsOrderStatuses()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var expected = new List<OrderStatus>();
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindAllAsync())
             .ReturnsAsync(expected);
 
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
-        var actual = await usecase.FindAllStatusAsync();
+        var actual = await _usecase.FindAllStatusAsync();
 
         // Assert
         Assert.AreSame(expected, actual);
 
-        orderStatusRepositoryMock.Verify(x => x.FindAllAsync(), Times.Once);
+        _orderStatusRepositoryMock.Verify(
+            x => x.FindAllAsync(),
+            Times.Once);
     }
 
     /// <summary>
@@ -153,23 +144,16 @@ public class SearchOrdersUsecaseTest
     public async Task FindAllStatusAsync_WhenDomainExceptionThrown_ThrowsExactlyDomainException()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var expected = new DomainException("業務ルール違反です。");
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindAllAsync())
             .ThrowsAsync(expected);
-
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
 
         // Act
         var actual = await Assert.ThrowsExactlyAsync<DomainException>(async () =>
         {
-            await usecase.FindAllStatusAsync();
+            await _usecase.FindAllStatusAsync();
         });
 
         // Assert
@@ -183,23 +167,16 @@ public class SearchOrdersUsecaseTest
     public async Task FindAllStatusAsync_WhenExceptionThrown_ThrowsExactlyInternalException()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var innerException = new InvalidOperationException("DB接続エラーです。");
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindAllAsync())
             .ThrowsAsync(innerException);
-
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
 
         // Act
         var actual = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await usecase.FindAllStatusAsync();
+            await _usecase.FindAllStatusAsync();
         });
 
         // Assert
@@ -213,18 +190,10 @@ public class SearchOrdersUsecaseTest
     [TestMethod(DisplayName = "ChangeStatusAsync_orderがnullの場合はInternalExceptionに変換される")]
     public async Task ChangeStatusAsync_WhenOrderIsNull_ThrowsExactlyInternalException()
     {
-        // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
         var actual = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await usecase.ChangeStatusAsync(null!);
+            await _usecase.ChangeStatusAsync(null!);
         });
 
         // Assert
@@ -240,19 +209,12 @@ public class SearchOrdersUsecaseTest
     public async Task ChangeStatusAsync_WhenOrderStatusIsNull_ThrowsExactlyInternalException()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var order = CreateOrder(null);
-
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
 
         // Act
         var actual = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await usecase.ChangeStatusAsync(order);
+            await _usecase.ChangeStatusAsync(order);
         });
 
         // Assert
@@ -268,28 +230,26 @@ public class SearchOrdersUsecaseTest
     public async Task ChangeStatusAsync_WhenOrderStatusNotFound_ReturnsFalse()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var orderStatus = CreateOrderStatus(1);
         var order = CreateOrder(orderStatus);
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindByIdAsync(1))
             .ReturnsAsync((OrderStatus?)null);
 
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
-        var actual = await usecase.ChangeStatusAsync(order);
+        var actual = await _usecase.ChangeStatusAsync(order);
 
         // Assert
         Assert.IsFalse(actual);
 
-        orderStatusRepositoryMock.Verify(x => x.FindByIdAsync(1), Times.Once);
-        ordersRepositoryMock.Verify(x => x.ChangeStatusAsync(It.IsAny<OrdersModel>()), Times.Never);
+        _orderStatusRepositoryMock.Verify(
+            x => x.FindByIdAsync(1),
+            Times.Once);
+
+        _ordersRepositoryMock.Verify(
+            x => x.ChangeStatusAsync(It.IsAny<OrdersModel>()),
+            Times.Never);
     }
 
     /// <summary>
@@ -299,32 +259,30 @@ public class SearchOrdersUsecaseTest
     public async Task ChangeStatusAsync_WhenOrderStatusExists_ReturnsTrue()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var orderStatus = CreateOrderStatus(1);
         var order = CreateOrder(orderStatus);
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindByIdAsync(1))
             .ReturnsAsync(orderStatus);
 
-        ordersRepositoryMock
+        _ordersRepositoryMock
             .Setup(x => x.ChangeStatusAsync(order))
             .ReturnsAsync(true);
 
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
-        var actual = await usecase.ChangeStatusAsync(order);
+        var actual = await _usecase.ChangeStatusAsync(order);
 
         // Assert
         Assert.IsTrue(actual);
 
-        orderStatusRepositoryMock.Verify(x => x.FindByIdAsync(1), Times.Once);
-        ordersRepositoryMock.Verify(x => x.ChangeStatusAsync(order), Times.Once);
+        _orderStatusRepositoryMock.Verify(
+            x => x.FindByIdAsync(1),
+            Times.Once);
+
+        _ordersRepositoryMock.Verify(
+            x => x.ChangeStatusAsync(order),
+            Times.Once);
     }
 
     /// <summary>
@@ -334,32 +292,30 @@ public class SearchOrdersUsecaseTest
     public async Task ChangeStatusAsync_WhenRepositoryReturnsFalse_ReturnsFalse()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var orderStatus = CreateOrderStatus(1);
         var order = CreateOrder(orderStatus);
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindByIdAsync(1))
             .ReturnsAsync(orderStatus);
 
-        ordersRepositoryMock
+        _ordersRepositoryMock
             .Setup(x => x.ChangeStatusAsync(order))
             .ReturnsAsync(false);
 
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
-
         // Act
-        var actual = await usecase.ChangeStatusAsync(order);
+        var actual = await _usecase.ChangeStatusAsync(order);
 
         // Assert
         Assert.IsFalse(actual);
 
-        orderStatusRepositoryMock.Verify(x => x.FindByIdAsync(1), Times.Once);
-        ordersRepositoryMock.Verify(x => x.ChangeStatusAsync(order), Times.Once);
+        _orderStatusRepositoryMock.Verify(
+            x => x.FindByIdAsync(1),
+            Times.Once);
+
+        _ordersRepositoryMock.Verify(
+            x => x.ChangeStatusAsync(order),
+            Times.Once);
     }
 
     /// <summary>
@@ -369,25 +325,18 @@ public class SearchOrdersUsecaseTest
     public async Task ChangeStatusAsync_WhenDomainExceptionThrown_ThrowsExactlyDomainException()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var orderStatus = CreateOrderStatus(1);
         var order = CreateOrder(orderStatus);
         var expected = new DomainException("業務ルール違反です。");
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindByIdAsync(1))
             .ThrowsAsync(expected);
-
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
 
         // Act
         var actual = await Assert.ThrowsExactlyAsync<DomainException>(async () =>
         {
-            await usecase.ChangeStatusAsync(order);
+            await _usecase.ChangeStatusAsync(order);
         });
 
         // Assert
@@ -401,29 +350,22 @@ public class SearchOrdersUsecaseTest
     public async Task ChangeStatusAsync_WhenExceptionThrown_ThrowsExactlyInternalException()
     {
         // Arrange
-        var ordersRepositoryMock = new Mock<IOrdersRepository>();
-        var orderStatusRepositoryMock = new Mock<IOrderStatusRepository>();
-
         var orderStatus = CreateOrderStatus(1);
         var order = CreateOrder(orderStatus);
         var innerException = new InvalidOperationException("DB接続エラーです。");
 
-        orderStatusRepositoryMock
+        _orderStatusRepositoryMock
             .Setup(x => x.FindByIdAsync(1))
             .ReturnsAsync(orderStatus);
 
-        ordersRepositoryMock
+        _ordersRepositoryMock
             .Setup(x => x.ChangeStatusAsync(order))
             .ThrowsAsync(innerException);
-
-        var usecase = new SearchOrdersUsecase(
-            ordersRepositoryMock.Object,
-            orderStatusRepositoryMock.Object);
 
         // Act
         var actual = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await usecase.ChangeStatusAsync(order);
+            await _usecase.ChangeStatusAsync(order);
         });
 
         // Assert
@@ -436,7 +378,8 @@ public class SearchOrdersUsecaseTest
     /// </summary>
     private static OrdersModel CreateOrder(OrderStatus? orderStatus)
     {
-        var order = (OrdersModel)RuntimeHelpers.GetUninitializedObject(typeof(OrdersModel));
+        var order =
+            (OrdersModel)RuntimeHelpers.GetUninitializedObject(typeof(OrdersModel));
 
         SetPrivateProperty(order, "OrderStatus", orderStatus);
 
@@ -448,7 +391,8 @@ public class SearchOrdersUsecaseTest
     /// </summary>
     private static OrderStatus CreateOrderStatus(int id)
     {
-        var orderStatus = (OrderStatus)RuntimeHelpers.GetUninitializedObject(typeof(OrderStatus));
+        var orderStatus =
+            (OrderStatus)RuntimeHelpers.GetUninitializedObject(typeof(OrderStatus));
 
         SetPrivateProperty(orderStatus, "Id", id);
 
@@ -458,7 +402,10 @@ public class SearchOrdersUsecaseTest
     /// <summary>
     /// private setのプロパティへテスト用の値を設定する
     /// </summary>
-    private static void SetPrivateProperty<T>(T target, string propertyName, object? value)
+    private static void SetPrivateProperty<T>(
+        T target,
+        string propertyName,
+        object? value)
     {
         var field = typeof(T).GetField(
             $"<{propertyName}>k__BackingField",
@@ -466,7 +413,8 @@ public class SearchOrdersUsecaseTest
 
         if (field is null)
         {
-            throw new InvalidOperationException($"{propertyName}のバッキングフィールドが見つかりません。");
+            throw new InvalidOperationException(
+                $"{propertyName}のバッキングフィールドが見つかりません。");
         }
 
         field.SetValue(target, value);
