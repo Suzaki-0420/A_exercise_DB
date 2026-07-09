@@ -49,7 +49,6 @@ public class OrderStatusRepositoryTests
         _dbContext =
             _scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        Seed();
     }
 
     [TestCleanup]
@@ -111,30 +110,5 @@ public class OrderStatusRepositoryTests
         });
     }
 
-    private void Seed()
-    {
-        if (_dbContext.OrderStatuses.Any())
-        {
-            return;
-        }
 
-        _dbContext.OrderStatuses.AddRange(
-            new OrderStatusEntity
-            {
-                Id = 1,
-                Name = "受付"
-            },
-            new OrderStatusEntity
-            {
-                Id = 2,
-                Name = "発送済み"
-            },
-            new OrderStatusEntity
-            {
-                Id = 3,
-                Name = "キャンセル"
-            });
-
-        _dbContext.SaveChanges();
-    }
 }

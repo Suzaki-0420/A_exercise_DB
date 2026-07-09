@@ -163,4 +163,90 @@ public class EmployeeAccountRepositoryTests
             await repository.CreateAsync(employeeAccount);
         });
     }
+
+    [TestMethod(DisplayName = "存在するアカウント名の場合trueを返す")]
+    public async Task ExistsByAccountNameAsync_WhenAccountNameExists_ShouldReturnTrue()
+    {
+        var result = await _repository.ExistsByAccountNameAsync("sato_hanako");
+
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod(DisplayName = "存在しないアカウント名の場合falseを返す")]
+    public async Task ExistsByAccountNameAsync_WhenAccountNameDoesNotExist_ShouldReturnFalse()
+    {
+        var result = await _repository.ExistsByAccountNameAsync("not_exists_account");
+
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod(DisplayName = "社員UUIDに紐づくアカウントが存在する場合trueを返す")]
+    public async Task ExistsByEmployeeUuidAsync_WhenEmployeeAccountExists_ShouldReturnTrue()
+    {
+        var result = await _repository.ExistsByEmployeeUuidAsync(Guid.Parse("22222222-2222-2222-2222-222222222222"));
+
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod(DisplayName = "社員UUIDに紐づくアカウントが存在しない場合falseを返す")]
+    public async Task ExistsByEmployeeUuidAsync_WhenEmployeeAccountDoesNotExist_ShouldReturnFalse()
+    {
+        var result = await _repository.ExistsByEmployeeUuidAsync(
+            Guid.Parse("99999999-9999-9999-9999-999999999999"));
+
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod(DisplayName = "アカウント名存在確認中にDB接続エラーが発生した場合InternalExceptionが発生する")]
+    public async Task ExistsByAccountNameAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        _dbContext.Dispose();
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await _repository.ExistsByAccountNameAsync("yamada_taro");
+        });
+    }
+
+    [TestMethod(DisplayName = "社員UUID存在確認中にDB接続エラーが発生した場合InternalExceptionが発生する")]
+    public async Task ExistsByEmployeeUuidAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        _dbContext.Dispose();
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await _repository.ExistsByEmployeeUuidAsync(_employeeUuid);
+        });
+    }
+
+    [TestMethod(DisplayName = "アカウント名に一致する社員アカウントを取得できる")]
+    public async Task FindByNameAsync_WhenAccountExists_ShouldReturnEmployeeAccount()
+    {
+        var result = await _repository.FindByNameAsync("sato_hanako");
+
+        Assert.IsNotNull(result);
+        Assert.AreEqual("sato_hanako", result.Name);
+        Assert.AreEqual("password", result.Password);
+        Assert.IsNotNull(result.Employee);
+        Assert.AreEqual(_employeeUuid, result.Employee.EmployeeUuid);
+    }
+
+    [TestMethod(DisplayName = "アカウント名に一致する社員アカウントが存在しない場合nullを返す")]
+    public async Task FindByNameAsync_WhenAccountDoesNotExist_ShouldReturnNull()
+    {
+        var result = await _repository.FindByNameAsync("not_exists_account");
+
+        Assert.IsNull(result);
+    }
+
+    [TestMethod(DisplayName = "社員アカウント取得中にDB接続エラーが発生した場合InternalExceptionが発生する")]
+    public async Task FindByNameAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        _dbContext.Dispose();
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await _repository.FindByNameAsync("yamada_taro");
+        });
+    }
 }

@@ -31,7 +31,7 @@ public class EmployeeRepository : IEmployeeRepository
     }
 
     /// <summary>
-    /// 社員情報をすべて取得する
+    /// アカウント登録がされていない社員情報をすべて取得する
     /// </summary>
     /// <returns>Employeeのリスト</returns>
     public async Task<List<Employee>> FindAllWithoutAccountAsync()
@@ -116,4 +116,6 @@ public class EmployeeRepository : IEmployeeRepository
                 ex);
         }
     }
+
+
 }

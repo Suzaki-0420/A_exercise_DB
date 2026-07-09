@@ -62,32 +62,20 @@ public class EmployeeRepositoryTests
         _scope.Dispose();
     }
 
-    [TestMethod(DisplayName = "社員情報をすべて取得できる")]
-    public async Task FindAllAsync_WhenEmployeesExist_ShouldReturnEmployeeList()
+    [TestMethod(DisplayName = "アカウント登録されていない社員情報をすべて取得できる")]
+    public async Task FindAllWithoutAccountAsync_WhenEmployeesExist_ShouldReturnEmployeeList()
     {
-        var employees = await _employeeRepository.FindAllAsync();
+        var employees = await _employeeRepository.FindAllWithoutAccountAsync();
 
         Assert.IsNotNull(employees);
         Assert.IsInstanceOfType(employees, typeof(List<Employee>));
         Assert.IsTrue(employees.All(e => e.Department is not null));
 
-        Assert.AreEqual(Guid.Parse("11111111-1111-1111-1111-111111111111"), employees[0].EmployeeUuid);
-        Assert.AreEqual("山田 太郎", employees[0].Name);
-        Assert.AreEqual("ヤマダ タロウ", employees[0].Kana);
-        Assert.AreEqual(Guid.Parse("e480fa43-f51c-4738-93dc-fb4fe0ecea42"), employees[0].Department!.DepartmentUuid);
-        Assert.AreEqual("営業部", employees[0].Department!.Name);
-
-        Assert.AreEqual(Guid.Parse("22222222-2222-2222-2222-222222222222"), employees[1].EmployeeUuid);
-        Assert.AreEqual("佐藤 花子", employees[1].Name);
-        Assert.AreEqual("サトウ ハナコ", employees[1].Kana);
-        Assert.AreEqual(Guid.Parse("3d2639a4-5c77-4737-81de-cf80cfce21de"), employees[1].Department!.DepartmentUuid);
-        Assert.AreEqual("総務部", employees[1].Department!.Name);
-
-        Assert.AreEqual(Guid.Parse("33333333-3333-3333-3333-333333333333"), employees[2].EmployeeUuid);
-        Assert.AreEqual("鈴木 一郎", employees[2].Name);
-        Assert.AreEqual("スズキ イチロウ", employees[2].Kana);
-        Assert.AreEqual(Guid.Parse("6e06cad7-09e6-4eae-adbe-20102ea58efc"), employees[2].Department!.DepartmentUuid);
-        Assert.AreEqual("開発部", employees[2].Department!.Name);
+        Assert.AreEqual(Guid.Parse("33333333-3333-3333-3333-333333333333"), employees[0].EmployeeUuid);
+        Assert.AreEqual("鈴木 一郎", employees[0].Name);
+        Assert.AreEqual("スズキ イチロウ", employees[0].Kana);
+        Assert.AreEqual(Guid.Parse("6e06cad7-09e6-4eae-adbe-20102ea58efc"), employees[0].Department!.DepartmentUuid);
+        Assert.AreEqual("開発部", employees[0].Department!.Name);
     }
 
     /// <summary>
@@ -111,7 +99,7 @@ public class EmployeeRepositoryTests
 
         await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await repository.FindAllAsync();
+            await repository.FindAllWithoutAccountAsync();
         });
     }
 
@@ -154,6 +142,34 @@ public class EmployeeRepositoryTests
         await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
             await _employeeRepository.FindByIdAsync(uuid);
+        });
+    }
+
+    [TestMethod(DisplayName = "存在する社員UUIDの場合trueを返す")]
+    public async Task ExistsByEmployeeUuidAsync_WhenEmployeeExists_ShouldReturnTrue()
+    {
+        var result = await _employeeRepository.ExistsByEmployeeUuidAsync(Guid.Parse("11111111-1111-1111-1111-111111111111"));
+
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod(DisplayName = "存在しない社員UUIDの場合falseを返す")]
+    public async Task ExistsByEmployeeUuidAsync_WhenEmployeeDoesNotExist_ShouldReturnFalse()
+    {
+        var result = await _employeeRepository.ExistsByEmployeeUuidAsync(
+            Guid.Parse("99999999-9999-9999-9999-999999999999"));
+
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod(DisplayName = "社員UUID存在確認中にDB接続エラーが発生した場合InternalExceptionが発生する")]
+    public async Task ExistsByEmployeeUuidAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        _dbContext.Dispose();
+
+        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await _employeeRepository.ExistsByEmployeeUuidAsync(Guid.Parse("11111111-1111-1111-1111-111111111111"));
         });
     }
 }
