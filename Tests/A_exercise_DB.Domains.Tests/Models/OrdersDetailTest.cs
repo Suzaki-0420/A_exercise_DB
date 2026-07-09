@@ -56,7 +56,8 @@ public class OrdersDetailTests
             amountTotal,
             CreateCustomer(),
             CreateOrderStatus(),
-            CreatePaymentMethod());
+            CreatePaymentMethod(),
+            new List<OrdersDetail>());
     }
 
     /// <summary>
@@ -95,13 +96,11 @@ public class OrdersDetailTests
     /// </summary>
     private OrdersDetail CreateOrdersDetail(
         int detailId = 1,
-        Orders? orders = null,
         Product? product = null,
         int count = 1)
     {
         return new OrdersDetail(
             detailId,
-            orders ?? CreateOrders(),
             product ?? CreateProduct(),
             count);
     }
@@ -111,22 +110,17 @@ public class OrdersDetailTests
     {
         // データを用意する
         var detailId = 1;
-        var orders = CreateOrders();
         var product = CreateProduct();
         var count = 3;
 
         // インスタンスを生成する
         var ordersDetail = new OrdersDetail(
             detailId,
-            orders,
             product,
             count);
 
         // 注文明細IDを検証する
         Assert.AreEqual(detailId, ordersDetail.Id);
-
-        // 注文を検証する
-        Assert.AreEqual(orders, ordersDetail.Orders);
 
         // 商品を検証する
         Assert.AreEqual(product, ordersDetail.Product);
@@ -172,22 +166,6 @@ public class OrdersDetailTests
         Assert.AreEqual("注文明細IDが不正です。", ex.Message);
     }
 
-    [TestMethod(DisplayName = "注文がnullの場合、DomainExceptionがスローされる")]
-    public void NullOrders_ShouldThrowDomainException()
-    {
-        var ex = Assert.ThrowsExactly<DomainException>(() =>
-        {
-            _ = new OrdersDetail(
-                1,
-                null!,
-                CreateProduct(),
-                1);
-        });
-
-        // 例外メッセージを検証する
-        Assert.AreEqual("注文は必須です。", ex.Message);
-    }
-
     [TestMethod(DisplayName = "商品がnullの場合、DomainExceptionがスローされる")]
     public void NullProduct_ShouldThrowDomainException()
     {
@@ -195,7 +173,6 @@ public class OrdersDetailTests
         {
             _ = new OrdersDetail(
                 1,
-                CreateOrders(),
                 null!,
                 1);
         });
@@ -242,22 +219,17 @@ public class OrdersDetailTests
         Assert.AreEqual("合計金額は0以上で入力してください", ex.Message);
     }
 
-    [TestMethod(DisplayName = "ID未定の注文明細を作成すると注文・商品・数量が設定される")]
-    public void Constructor_WithoutId_ShouldSetOrdersProductAndCount()
+    [TestMethod(DisplayName = "ID未定の注文明細を作成すると商品・数量が設定される")]
+    public void Constructor_WithoutId_ShouldSetProductAndCount()
     {
         // データを用意する
-        var orders = CreateOrders();
         var product = CreateProduct();
         var count = 3;
 
         // インスタンスを生成する
         var ordersDetail = new OrdersDetail(
-            orders,
             product,
             count);
-
-        // 注文を検証する
-        Assert.AreEqual(orders, ordersDetail.Orders);
 
         // 商品を検証する
         Assert.AreEqual(product, ordersDetail.Product);
@@ -266,28 +238,12 @@ public class OrdersDetailTests
         Assert.AreEqual(count, ordersDetail.Count);
     }
 
-    [TestMethod(DisplayName = "ID未定の注文明細で注文がnullの場合、DomainExceptionがスローされる")]
-    public void Constructor_WithoutId_NullOrders_ShouldThrowDomainException()
-    {
-        var ex = Assert.ThrowsExactly<DomainException>(() =>
-        {
-            _ = new OrdersDetail(
-                null!,
-                CreateProduct(),
-                1);
-        });
-
-        // 例外メッセージを検証する
-        Assert.AreEqual("注文は必須です。", ex.Message);
-    }
-
     [TestMethod(DisplayName = "ID未定の注文明細で商品がnullの場合、DomainExceptionがスローされる")]
     public void Constructor_WithoutId_NullProduct_ShouldThrowDomainException()
     {
         var ex = Assert.ThrowsExactly<DomainException>(() =>
         {
             _ = new OrdersDetail(
-                CreateOrders(),
                 null!,
                 1);
         });
@@ -302,7 +258,6 @@ public class OrdersDetailTests
         var ex = Assert.ThrowsExactly<DomainException>(() =>
         {
             _ = new OrdersDetail(
-                CreateOrders(),
                 CreateProduct(),
                 -1);
         });
@@ -408,14 +363,12 @@ public class OrdersDetailTests
     {
         // データを用意する
         var detailId = 1;
-        var orders = CreateOrders();
         var product = CreateProduct("商品A");
         var count = 3;
 
         // インスタンスを生成する
         var ordersDetail = new OrdersDetail(
             detailId,
-            orders,
             product,
             count);
 
@@ -425,7 +378,6 @@ public class OrdersDetailTests
         // 文字列に注文明細情報が含まれることを検証する
         StringAssert.Contains(result, detailId.ToString());
         StringAssert.Contains(result, count.ToString());
-        StringAssert.Contains(result, orders.OrderUuid.ToString());
         StringAssert.Contains(result, "商品A");
     }
 
