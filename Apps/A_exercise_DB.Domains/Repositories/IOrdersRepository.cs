@@ -6,7 +6,7 @@ public interface IOrdersRepository
 {
     Task<List<Orders>> SearchByDateOrNameAsync(
         DateTime? orderDate,
-        string? customerName);
+        string? customerUsername);
 
     Task<bool> ChangeStatusAsync(Orders order);
 }

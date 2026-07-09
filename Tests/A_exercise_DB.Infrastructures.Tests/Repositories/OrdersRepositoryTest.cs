@@ -78,7 +78,7 @@ public class OrdersRepositoryTests
     {
         var result = await _repository.SearchByDateOrNameAsync(
             null,
-            "山田");
+            "yamada");
 
         Assert.HasCount(2, result);
         Assert.AreEqual("山田 太郎", result[0].Customer.Name);
@@ -90,7 +90,7 @@ public class OrdersRepositoryTests
     {
         var result = await _repository.SearchByDateOrNameAsync(
             new DateTime(2026, 7, 1),
-            "山田");
+            "yamada");
 
         Assert.HasCount(1, result);
         Assert.AreEqual(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), result[0].OrderUuid);

@@ -24,11 +24,11 @@ public class OrdersRepository : IOrdersRepository
     }
 
     /// <summary>
-    /// 購入日または顧客名で購入履歴を検索する
+    /// 購入日または顧客アカウント名で購入履歴を検索する
     /// </summary>
     public async Task<List<Orders>> SearchByDateOrNameAsync(
         DateTime? orderDate,
-        string? customerName)
+        string? customerUsername)
     {
         try
         {
@@ -39,6 +39,12 @@ public class OrdersRepository : IOrdersRepository
                 .Include(o => o.PaymentMethod)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(d => d.Product)
+                .Include(o => o.OrderDetails)
+                   .ThenInclude(d => d.Product)
+                       .ThenInclude(p => p.ProductStock)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.ProductCategory)
                 .AsQueryable();
 
             if (orderDate.HasValue)
@@ -50,11 +56,12 @@ public class OrdersRepository : IOrdersRepository
                     o.OrderDate >= from && o.OrderDate < to);
             }
 
-            if (!string.IsNullOrWhiteSpace(customerName))
+            if (!string.IsNullOrWhiteSpace(customerUsername))
             {
                 query = query.Where(o =>
-                    EF.Functions.Like(o.Customer.Name, $"%{customerName}%"));
+                    EF.Functions.Like(o.Customer.Username, $"%{customerUsername}%"));
             }
+            query = query.OrderByDescending(o => o.OrderDate);
 
             var entities = await query.ToListAsync();
 
