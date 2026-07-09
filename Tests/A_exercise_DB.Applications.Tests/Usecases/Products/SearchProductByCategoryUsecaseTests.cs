@@ -4,7 +4,7 @@ using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Repositories;
 using A_exercise_DB.Applications.Usecases.Products;
 
-namespace A_exercise_DB.Tests.Usecases.Products;
+namespace A_exercise_DB.Applications.Tests.Usecases.Products;
 
 [TestClass]
 public class SearchProductByCategoryUsecaseTests
