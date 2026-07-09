@@ -107,6 +107,9 @@ public static class ApplicationDependencyExtensions
         services.AddScoped<IRegisterEmployeeAccountUsecase, RegisterEmployeeAccountUsecase>();
         services.AddScoped<ISearchOrdersUsecase, SearchOrdersUsecase>();
 
+        services.AddScoped<ISearchProductByCategoryUsecase, SearchProductByCategoryUsecase>();
+        services.AddScoped<ISearchProductByKeywordUsecase, SearchProductByKeywordUsecase>();
+
         return services;
     }
 

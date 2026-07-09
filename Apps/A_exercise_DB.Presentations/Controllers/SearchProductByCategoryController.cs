@@ -9,7 +9,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// ユースケース:[商品をカテゴリー検索をする]を実現するコントローラ
 /// </summary>
 [ApiController]
-[Route("admin/product")]
+[Route("admin/product/category")]
 [Tags("UC011: 商品カテゴリー検索")]
 // [SwaggerTag("商品をカテゴリー検索API")]
 public class SearchProductByCategory : ControllerBase
