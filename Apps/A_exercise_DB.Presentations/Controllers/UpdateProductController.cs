@@ -1,5 +1,6 @@
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Domains.Exceptions;
+using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A_exercise_DB.Presentations.Controllers;
@@ -35,7 +36,7 @@ public class UpdateProductController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateAsync(
         string productUuid,
-        [FromBody] ProductUpdateRequest? request)
+        [FromBody] UpdateProductViewModel? request)
     {
         if (request is null)
         {
@@ -47,7 +48,14 @@ public class UpdateProductController : ControllerBase
 
         try
         {
-            var result = await _updateProductUsecase.UpdateAsync(productUuid, request);
+            var updateRequest = new ProductUpdateRequest(
+                request.Name,
+                request.Price,
+                request.StockQuantity,
+                request.CategoryUuid,
+                null);
+
+            var result = await _updateProductUsecase.UpdateAsync(productUuid, updateRequest);
 
             return Ok(ApiResponse<ProductUpdateCompleteResult>.Ok(result));
         }
