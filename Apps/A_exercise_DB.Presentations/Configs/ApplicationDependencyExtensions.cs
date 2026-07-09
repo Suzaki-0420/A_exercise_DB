@@ -68,12 +68,16 @@ public static class ApplicationDependencyExtensions
         // Product・ProductCategory・ProductStock復元用Factory
         services.AddScoped<ProductFactory>();
         services.AddScoped<EmployeeFactory>();
+        services.AddScoped<OrdersFactory>();
 
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<IEmployeeAccountRepository, EmployeeAccountRepository>();
 
         services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
+
+        services.AddScoped<IOrdersRepository, OrdersRepository>();
+        services.AddScoped<IOrderStatusRepository, OrderStatusRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
