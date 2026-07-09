@@ -125,6 +125,8 @@ public static class ApplicationDependencyExtensions
         // RegisterBookViewModelからドメインオブジェクト:Bookへ変換するアダプタ
         //services.AddScoped<RegisterBookViewModelAdapter>();
         services.AddScoped<RegisterCategoryViewModelAdapter>();
+        services.AddScoped<SearchOrdersViewModelAdapter>();
+        services.AddScoped<RegisterEmployeeAccountViewModelAdapter>();
         return services;
     }
 
