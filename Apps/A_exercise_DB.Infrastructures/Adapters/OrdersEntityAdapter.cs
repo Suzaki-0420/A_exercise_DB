@@ -49,6 +49,7 @@ public class OrdersEntityAdapter :
 
         // OrdersEntityからドメインオブジェクト:Ordersを復元する
         var domain = new Orders(
+            target.OrderUuid,
             target.OrderDate,
             target.AmountTotal,
             customer,
