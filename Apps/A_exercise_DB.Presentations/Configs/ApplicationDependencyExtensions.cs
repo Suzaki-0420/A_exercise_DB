@@ -6,6 +6,7 @@ using A_exercise_DB.Infrastructures.Repositories;
 using A_exercise_DB.Domains.Repositories;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Infrastructures.Shared;
+using A_exercise_DB.Applications.Security;
 using A_exercise_DB.Applications.Usecases;
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Applications.Usecases.Categories;
@@ -92,6 +93,11 @@ public static class ApplicationDependencyExtensions
     private static IServiceCollection AddApplicationLayerDependencies(
     this IServiceCollection services, IConfiguration config)
     {
+        // ASP.NET Core Identityのパスワードハッシュ化・検証機能
+        services.AddScoped<IPasswordHasher<EmployeeAccount>, PasswordHasher<EmployeeAccount>>();
+        // PBKDF2アルゴリズムを利用したパスワードハッシュ化・検証機能
+        services.AddScoped<IPasswordHashingService, PBKDF2PasswordHashingService>();
+
         //services.AddScoped<IRegisterBookUsecase, RegisterBookUsecase>();
         services.AddScoped<IDeleteProductUsecase, DeleteProductUsecase>();
         services.AddScoped<IUpdateProductUsecase, UpdateProductUsecase>();
