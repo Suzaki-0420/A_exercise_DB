@@ -9,6 +9,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [Route("admin/category")]
+[Tags("UC014: 新規商品カテゴリ登録")]
 public class RegisterCategoryController : ControllerBase
 {
     private readonly IRegisterCategoryUsecase _registerCategoryUsecase;
@@ -37,6 +38,10 @@ public class RegisterCategoryController : ControllerBase
     /// 存在しない場合: Ok(200)、存在する場合: Conflict(409)
     /// </returns>
     [HttpGet("validate")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ValidateCategoryName([FromQuery] string categoryName)
     {
         try
@@ -84,6 +89,10 @@ public class RegisterCategoryController : ControllerBase
     /// <param name="model">商品カテゴリ登録用ViewModel</param>
     /// <returns></returns>
     [HttpPost("register")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Register([FromBody] RegisterCategoryViewModel model)
     {
         if (!ModelState.IsValid)
