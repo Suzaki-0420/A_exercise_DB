@@ -30,7 +30,7 @@ public class SearchProductByCategory : ControllerBase
     
     // [Authorize]
     [HttpGet]
-    // [SwaggerResponse(StatusCodes.Status200OK, "検索に成功した場合、商品リストを返す", typeof(List<Product>))]
+    [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Search(int productCategoryId)
     {
         // 商品キーワード検索する
