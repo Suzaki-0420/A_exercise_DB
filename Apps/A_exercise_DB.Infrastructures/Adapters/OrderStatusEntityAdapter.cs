@@ -24,6 +24,7 @@ public class OrderStatusEntityAdapter :
 
         // ドメインオブジェクト:OrderStatusをOrderStatusEntityに変換する
         var entity = new OrderStatusEntity();
+        entity.Id = domain.Id;
         entity.Name = domain.Name;
 
         return Task.FromResult(entity);
@@ -41,6 +42,7 @@ public class OrderStatusEntityAdapter :
 
         // OrderStatusEntityからドメインオブジェクト:OrderStatusを復元する
         var domain = new OrderStatus(
+            target.Id,
             target.Name
         );
 

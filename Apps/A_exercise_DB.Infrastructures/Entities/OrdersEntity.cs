@@ -24,7 +24,7 @@ public class OrdersEntity
     /// <summary>
     /// 注文日
     /// </summary>
-    [Column("order_date")]
+    [Column("order_date", TypeName = "timestamp without time zone")]
     public DateTime OrderDate { get; set; }
 
     /// <summary>

@@ -72,7 +72,7 @@ public class CustomerEntity
     /// <summary>
     /// 登録日時
     /// </summary>
-    [Column("created_at")]
+    [Column("created_at", TypeName = "timestamp without time zone")]
     public DateTime CreatedAt { get; set; }
 
     public List<OrdersEntity> ListOrders { get; set; } = new();

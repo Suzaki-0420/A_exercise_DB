@@ -98,10 +98,6 @@ public class OrdersRepository : IOrdersRepository
 
             return true;
         }
-        catch (DomainException)
-        {
-            throw;
-        }
         catch (Exception ex)
         {
             throw new InternalException(

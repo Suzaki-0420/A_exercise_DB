@@ -96,7 +96,7 @@ public class AppDbContext : DbContext
             e.HasIndex(o => o.OrderUuid).IsUnique();
 
             e.HasOne(o => o.Customer)
-                .WithMany()
+                .WithMany(c => c.ListOrders)
                 .HasForeignKey(o => o.CustomerId)
                 .HasConstraintName("orders_ibfk_customer")
                 .OnDelete(DeleteBehavior.Restrict);

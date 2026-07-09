@@ -13,4 +13,11 @@ public interface IEmployeeAccountRepository
     /// <param name="employeeAccount">永続化する社員アカウント</param>
     /// <returns>なし</returns>
     Task CreateAsync(EmployeeAccount employeeAccount);
+
+    /// <summary>
+    /// アカウント名に一致する社員アカウントを取得する
+    /// </summary>
+    /// <param name="accountName">アカウント名</param>
+    /// <returns>社員アカウント。存在しない場合はnull</returns>
+    Task<EmployeeAccount?> FindByNameAsync(string accountName);
 }

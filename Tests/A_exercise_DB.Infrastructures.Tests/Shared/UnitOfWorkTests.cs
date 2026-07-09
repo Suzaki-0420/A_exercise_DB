@@ -2,9 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
-using LibraryApi.Infrastructure.Contexts;
-using LibraryApi.Infrastructure.Shared;
-namespace LibraryApi.Infrastructure.Tests.Shared;
+using A_exercise_DB.Infrastructures.Contexts;
+using A_exercise_DB.Infrastructures.Shared;
+namespace A_exercise_DB.Applications.Tests.Shared;
 /// <summary>
 /// Unit of Workパターンを利用したトランザクション制御インターフェイス実装の単体テストドライバ
 /// </summary>

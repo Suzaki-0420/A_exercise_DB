@@ -65,4 +65,42 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
                 ex);
         }
     }
+
+    /// <summary>
+    /// アカウント名に一致する社員アカウントを取得する
+    /// </summary>
+    /// <param name="accountName">アカウント名</param>
+    /// <returns>社員アカウント。存在しない場合はnull</returns>
+    public async Task<EmployeeAccount?> FindByNameAsync(string accountName)
+    {
+        try
+        {
+            var entity = await _context.EmployeeAccounts
+                .AsNoTracking()
+                .Include(a => a.Employee)
+                .SingleOrDefaultAsync(a => a.Name == accountName);
+
+            if (entity is null)
+            {
+                return null;
+            }
+
+            var employee = new Employee(
+                entity.Employee.EmployeeUuid,
+                entity.Employee.Name,
+                entity.Employee.Kana);
+
+            return new EmployeeAccount(
+                entity.AccountUuid,
+                entity.Name,
+                entity.Password,
+                employee);
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                $"アカウント名:{accountName}の社員アカウント取得中に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
 }
