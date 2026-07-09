@@ -88,6 +88,7 @@ public class RegisterEmployeeAccountUsecase : IRegisterEmployeeAccountUsecase
         var employeeUuid = employeeAccount.Employee.EmployeeUuid;
 
         await _unitOfWork.BeginAsync();
+        var isCommitted = false;
 
         try
         {
@@ -127,11 +128,14 @@ public class RegisterEmployeeAccountUsecase : IRegisterEmployeeAccountUsecase
             await _employeeAccountRepository.CreateAsync(registeredAccount);
 
             await _unitOfWork.CommitAsync();
+            isCommitted = true;
         }
-        catch
+        finally
         {
-            await _unitOfWork.RollbackAsync();
-            throw;
+            if (!isCommitted)
+            {
+                await _unitOfWork.RollbackAsync();
+            }
         }
     }
 }
