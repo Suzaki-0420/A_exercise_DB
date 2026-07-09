@@ -5,6 +5,7 @@ using A_exercise_DB.Presentations.Adapters;
 using A_exercise_DB.Presentations.Controllers;
 using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace A_exercise_DB.Presentations.Tests.Controllers;
@@ -16,6 +17,7 @@ namespace A_exercise_DB.Presentations.Tests.Controllers;
 public class RegisterCategoryControllerTests
 {
     private Mock<IRegisterCategoryUsecase> _registerCategoryUsecaseMock = null!;
+    private Mock<ILogger<RegisterCategoryController>> _loggerMock = null!;
     private RegisterCategoryViewModelAdapter _adapter = null!;
     private RegisterCategoryController _controller = null!;
 
@@ -23,12 +25,24 @@ public class RegisterCategoryControllerTests
     public void TestInitialize()
     {
         _registerCategoryUsecaseMock = new Mock<IRegisterCategoryUsecase>();
+        _loggerMock = new Mock<ILogger<RegisterCategoryController>>();
         _adapter = new RegisterCategoryViewModelAdapter();
 
         _controller = new RegisterCategoryController(
             _registerCategoryUsecaseMock.Object,
-            _adapter
+            _adapter,
+            _loggerMock.Object
         );
+    }
+
+    /// <summary>
+    /// 匿名オブジェクトのプロパティ値を取得する
+    /// </summary>
+    private static object? GetPropertyValue(object target, string propertyName)
+    {
+        return target.GetType()
+            .GetProperty(propertyName)?
+            .GetValue(target);
     }
 
     /// <summary>
@@ -41,6 +55,10 @@ public class RegisterCategoryControllerTests
         // Arrange
         var categoryName = string.Empty;
 
+        _registerCategoryUsecaseMock
+            .Setup(x => x.ExistsByCategoryAsync(categoryName))
+            .ThrowsAsync(new DomainException("カテゴリ名を入力してください"));
+
         // Act
         var result = await _controller.ValidateCategoryName(categoryName);
 
@@ -50,9 +68,15 @@ public class RegisterCategoryControllerTests
         Assert.IsNotNull(badRequestResult);
         Assert.AreEqual(400, badRequestResult.StatusCode);
 
+        var code = GetPropertyValue(badRequestResult.Value!, "code");
+        var message = GetPropertyValue(badRequestResult.Value!, "message");
+
+        Assert.AreEqual("VALIDATION_ERROR", code);
+        Assert.AreEqual("カテゴリ名を入力してください", message);
+
         _registerCategoryUsecaseMock.Verify(
-            x => x.ExistsByCategoryAsync(It.IsAny<string>()),
-            Times.Never
+            x => x.ExistsByCategoryAsync(categoryName),
+            Times.Once
         );
     }
 
@@ -66,6 +90,10 @@ public class RegisterCategoryControllerTests
         // Arrange
         var categoryName = "   ";
 
+        _registerCategoryUsecaseMock
+            .Setup(x => x.ExistsByCategoryAsync(categoryName))
+            .ThrowsAsync(new DomainException("カテゴリ名を入力してください"));
+
         // Act
         var result = await _controller.ValidateCategoryName(categoryName);
 
@@ -75,9 +103,15 @@ public class RegisterCategoryControllerTests
         Assert.IsNotNull(badRequestResult);
         Assert.AreEqual(400, badRequestResult.StatusCode);
 
+        var code = GetPropertyValue(badRequestResult.Value!, "code");
+        var message = GetPropertyValue(badRequestResult.Value!, "message");
+
+        Assert.AreEqual("VALIDATION_ERROR", code);
+        Assert.AreEqual("カテゴリ名を入力してください", message);
+
         _registerCategoryUsecaseMock.Verify(
-            x => x.ExistsByCategoryAsync(It.IsAny<string>()),
-            Times.Never
+            x => x.ExistsByCategoryAsync(categoryName),
+            Times.Once
         );
     }
 
@@ -104,6 +138,12 @@ public class RegisterCategoryControllerTests
         Assert.IsNotNull(okResult);
         Assert.AreEqual(200, okResult.StatusCode);
 
+        var exists = GetPropertyValue(okResult.Value!, "exists");
+        var message = GetPropertyValue(okResult.Value!, "message");
+
+        Assert.IsFalse((bool?)exists);
+        Assert.AreEqual("使用できるカテゴリ名です", message);
+
         _registerCategoryUsecaseMock.Verify(
             x => x.ExistsByCategoryAsync(categoryName),
             Times.Once
@@ -122,7 +162,7 @@ public class RegisterCategoryControllerTests
 
         _registerCategoryUsecaseMock
             .Setup(x => x.ExistsByCategoryAsync(categoryName))
-            .ThrowsAsync(new ExistsException($"カテゴリ名：{categoryName}"));
+            .ThrowsAsync(new ExistsException("このカテゴリ名は既に登録されています"));
 
         // Act
         var result = await _controller.ValidateCategoryName(categoryName);
@@ -132,6 +172,49 @@ public class RegisterCategoryControllerTests
 
         Assert.IsNotNull(conflictResult);
         Assert.AreEqual(409, conflictResult.StatusCode);
+
+        var code = GetPropertyValue(conflictResult.Value!, "code");
+        var exists = GetPropertyValue(conflictResult.Value!, "exists");
+        var message = GetPropertyValue(conflictResult.Value!, "message");
+
+        Assert.AreEqual("CATEGORY_ALREADY_EXISTS", code);
+        Assert.IsTrue((bool?)exists);
+        Assert.AreEqual("このカテゴリ名は既に登録されています", message);
+
+        _registerCategoryUsecaseMock.Verify(
+            x => x.ExistsByCategoryAsync(categoryName),
+            Times.Once
+        );
+    }
+
+    /// <summary>
+    /// ValidateCategoryName:
+    /// 予期しない例外が発生した場合、InternalServerErrorを返すこと
+    /// </summary>
+    [TestMethod(DisplayName = "ValidateCategoryNameで予期しない例外が発生した場合、InternalServerErrorを返す")]
+    public async Task ValidateCategoryName_WhenUnexpectedExceptionOccurs_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var categoryName = "食品";
+
+        _registerCategoryUsecaseMock
+            .Setup(x => x.ExistsByCategoryAsync(categoryName))
+            .ThrowsAsync(new Exception("DB接続エラー"));
+
+        // Act
+        var result = await _controller.ValidateCategoryName(categoryName);
+
+        // Assert
+        var objectResult = result as ObjectResult;
+
+        Assert.IsNotNull(objectResult);
+        Assert.AreEqual(500, objectResult.StatusCode);
+
+        var code = GetPropertyValue(objectResult.Value!, "code");
+        var message = GetPropertyValue(objectResult.Value!, "message");
+
+        Assert.AreEqual("SYSTEM_ERROR", code);
+        Assert.AreEqual("システムエラーが発生しました。管理者に連絡してください", message);
 
         _registerCategoryUsecaseMock.Verify(
             x => x.ExistsByCategoryAsync(categoryName),
@@ -154,7 +237,7 @@ public class RegisterCategoryControllerTests
 
         _controller.ModelState.AddModelError(
             "CategoryName",
-            "商品カテゴリ名は必須です。"
+            "カテゴリ名を入力してください"
         );
 
         // Act
@@ -165,6 +248,12 @@ public class RegisterCategoryControllerTests
 
         Assert.IsNotNull(badRequestResult);
         Assert.AreEqual(400, badRequestResult.StatusCode);
+
+        var code = GetPropertyValue(badRequestResult.Value!, "code");
+        var message = GetPropertyValue(badRequestResult.Value!, "message");
+
+        Assert.AreEqual("VALIDATION_ERROR", code);
+        Assert.AreEqual("カテゴリ名を入力してください", message);
 
         _registerCategoryUsecaseMock.Verify(
             x => x.ExistsByCategoryAsync(It.IsAny<string>()),
@@ -190,12 +279,14 @@ public class RegisterCategoryControllerTests
             CategoryName = "食品"
         };
 
-        _registerCategoryUsecaseMock
-            .Setup(x => x.ExistsByCategoryAsync(model.CategoryName))
-            .Returns(Task.CompletedTask);
+        ProductCategory? registeredCategory = null;
 
         _registerCategoryUsecaseMock
             .Setup(x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()))
+            .Callback<ProductCategory>(category =>
+            {
+                registeredCategory = category;
+            })
             .Returns(Task.CompletedTask);
 
         // Act
@@ -207,15 +298,20 @@ public class RegisterCategoryControllerTests
         Assert.IsNotNull(createdResult);
         Assert.AreEqual(201, createdResult.StatusCode);
 
-        var category = createdResult.Value as ProductCategory;
+        Assert.IsNotNull(registeredCategory);
+        Assert.AreEqual(model.CategoryName, registeredCategory.Name);
+        Assert.AreNotEqual(Guid.Empty, registeredCategory.CategoryUuid);
 
-        Assert.IsNotNull(category);
-        Assert.AreEqual(model.CategoryName, category.Name);
-        Assert.AreNotEqual(Guid.Empty, category.CategoryUuid);
+        var message = GetPropertyValue(createdResult.Value!, "message");
+        var categoryValue = GetPropertyValue(createdResult.Value!, "category") as ProductCategory;
+
+        Assert.AreEqual("商品カテゴリ「食品」を登録しました", message);
+        Assert.IsNotNull(categoryValue);
+        Assert.AreEqual(model.CategoryName, categoryValue.Name);
 
         _registerCategoryUsecaseMock.Verify(
-            x => x.ExistsByCategoryAsync(model.CategoryName),
-            Times.Once
+            x => x.ExistsByCategoryAsync(It.IsAny<string>()),
+            Times.Never
         );
 
         _registerCategoryUsecaseMock.Verify(
@@ -228,10 +324,10 @@ public class RegisterCategoryControllerTests
 
     /// <summary>
     /// Register:
-    /// カテゴリ名が既に存在する場合、BadRequestを返すこと
+    /// カテゴリ名が既に存在する場合、Conflictを返すこと
     /// </summary>
-    [TestMethod(DisplayName = "Registerでカテゴリ名が既に存在する場合、BadRequestを返す")]
-    public async Task Register_WhenCategoryAlreadyExists_ShouldReturnBadRequest()
+    [TestMethod(DisplayName = "Registerでカテゴリ名が既に存在する場合、Conflictを返す")]
+    public async Task Register_WhenCategoryAlreadyExists_ShouldReturnConflict()
     {
         // Arrange
         var model = new RegisterCategoryViewModel
@@ -240,26 +336,34 @@ public class RegisterCategoryControllerTests
         };
 
         _registerCategoryUsecaseMock
-            .Setup(x => x.ExistsByCategoryAsync(model.CategoryName))
-            .ThrowsAsync(new ExistsException($"カテゴリ名：{model.CategoryName}"));
+            .Setup(x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()))
+            .ThrowsAsync(new ExistsException("このカテゴリ名は既に登録されています"));
 
         // Act
         var result = await _controller.Register(model);
 
         // Assert
-        var badRequestResult = result as BadRequestObjectResult;
+        var conflictResult = result as ConflictObjectResult;
 
-        Assert.IsNotNull(badRequestResult);
-        Assert.AreEqual(400, badRequestResult.StatusCode);
+        Assert.IsNotNull(conflictResult);
+        Assert.AreEqual(409, conflictResult.StatusCode);
+
+        var code = GetPropertyValue(conflictResult.Value!, "code");
+        var message = GetPropertyValue(conflictResult.Value!, "message");
+
+        Assert.AreEqual("CATEGORY_ALREADY_EXISTS", code);
+        Assert.AreEqual("このカテゴリ名は既に登録されています", message);
 
         _registerCategoryUsecaseMock.Verify(
-            x => x.ExistsByCategoryAsync(model.CategoryName),
-            Times.Once
+            x => x.ExistsByCategoryAsync(It.IsAny<string>()),
+            Times.Never
         );
 
         _registerCategoryUsecaseMock.Verify(
-            x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()),
-            Times.Never
+            x => x.RegisterCategoryAsync(It.Is<ProductCategory>(
+                c => c.Name == model.CategoryName
+            )),
+            Times.Once
         );
     }
 
@@ -277,12 +381,8 @@ public class RegisterCategoryControllerTests
         };
 
         _registerCategoryUsecaseMock
-            .Setup(x => x.ExistsByCategoryAsync(model.CategoryName))
-            .Returns(Task.CompletedTask);
-
-        _registerCategoryUsecaseMock
             .Setup(x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()))
-            .ThrowsAsync(new DomainException("商品カテゴリ名は不正です。"));
+            .ThrowsAsync(new DomainException("カテゴリ名は2～20文字で入力してください"));
 
         // Act
         var result = await _controller.Register(model);
@@ -293,10 +393,92 @@ public class RegisterCategoryControllerTests
         Assert.IsNotNull(badRequestResult);
         Assert.AreEqual(400, badRequestResult.StatusCode);
 
+        var code = GetPropertyValue(badRequestResult.Value!, "code");
+        var message = GetPropertyValue(badRequestResult.Value!, "message");
+
+        Assert.AreEqual("DOMAIN_RULE_VIOLATION", code);
+        Assert.AreEqual("カテゴリ名は2～20文字で入力してください", message);
+
         _registerCategoryUsecaseMock.Verify(
-            x => x.ExistsByCategoryAsync(model.CategoryName),
+            x => x.ExistsByCategoryAsync(It.IsAny<string>()),
+            Times.Never
+        );
+
+        _registerCategoryUsecaseMock.Verify(
+            x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()),
             Times.Once
         );
+    }
+
+    /// <summary>
+    /// Register:
+    /// 内部例外が発生した場合、InternalServerErrorを返すこと
+    /// </summary>
+    [TestMethod(DisplayName = "Registerで内部例外が発生した場合、InternalServerErrorを返す")]
+    public async Task Register_WhenInternalExceptionOccurs_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var model = new RegisterCategoryViewModel
+        {
+            CategoryName = "食品"
+        };
+
+        _registerCategoryUsecaseMock
+            .Setup(x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()))
+            .ThrowsAsync(new InternalException("引数productCategoryがnullです。"));
+
+        // Act
+        var result = await _controller.Register(model);
+
+        // Assert
+        var objectResult = result as ObjectResult;
+
+        Assert.IsNotNull(objectResult);
+        Assert.AreEqual(500, objectResult.StatusCode);
+
+        var code = GetPropertyValue(objectResult.Value!, "code");
+        var message = GetPropertyValue(objectResult.Value!, "message");
+
+        Assert.AreEqual("INTERNAL_ERROR", code);
+        Assert.AreEqual("システムエラーが発生しました。管理者に連絡してください", message);
+
+        _registerCategoryUsecaseMock.Verify(
+            x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()),
+            Times.Once
+        );
+    }
+
+    /// <summary>
+    /// Register:
+    /// 予期しない例外が発生した場合、InternalServerErrorを返すこと
+    /// </summary>
+    [TestMethod(DisplayName = "Registerで予期しない例外が発生した場合、InternalServerErrorを返す")]
+    public async Task Register_WhenUnexpectedExceptionOccurs_ShouldReturnInternalServerError()
+    {
+        // Arrange
+        var model = new RegisterCategoryViewModel
+        {
+            CategoryName = "食品"
+        };
+
+        _registerCategoryUsecaseMock
+            .Setup(x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()))
+            .ThrowsAsync(new Exception("DB接続エラー"));
+
+        // Act
+        var result = await _controller.Register(model);
+
+        // Assert
+        var objectResult = result as ObjectResult;
+
+        Assert.IsNotNull(objectResult);
+        Assert.AreEqual(500, objectResult.StatusCode);
+
+        var code = GetPropertyValue(objectResult.Value!, "code");
+        var message = GetPropertyValue(objectResult.Value!, "message");
+
+        Assert.AreEqual("SYSTEM_ERROR", code);
+        Assert.AreEqual("システムエラーが発生しました。管理者に連絡してください", message);
 
         _registerCategoryUsecaseMock.Verify(
             x => x.RegisterCategoryAsync(It.IsAny<ProductCategory>()),
