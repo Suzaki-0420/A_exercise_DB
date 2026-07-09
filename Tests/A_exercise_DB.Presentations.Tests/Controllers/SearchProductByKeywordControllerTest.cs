@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace A_exercise_DB.Tests.Presentations.Controllers;
+namespace A_exercise_DB.Presentations.Tests.Controllers;
 
 [TestClass]
 [TestCategory("Controllers")]
@@ -32,7 +32,7 @@ public class SearchProductByKeywordControllerTests
     /// <summary>
     /// 存在するキーワードの場合、200 OKと商品一覧を返す
     /// </summary>
-    [TestMethod]
+    [TestMethod(DisplayName = "存在するキーワードの場合、200 OKと商品一覧を返す")]
     public async Task Search_ShouldReturnOkWithProducts_WhenKeywordExists()
     {
         // Arrange
@@ -85,7 +85,7 @@ public class SearchProductByKeywordControllerTests
     /// <summary>
     /// キーワードがnullの場合、400 BadRequestを返す
     /// </summary>
-    [TestMethod]
+    [TestMethod(DisplayName = "キーワードがnullの場合、400 BadRequestを返す")]
     public async Task Search_ShouldReturnBadRequest_WhenKeywordIsNull()
     {
         // Act
@@ -105,7 +105,7 @@ public class SearchProductByKeywordControllerTests
     /// <summary>
     /// キーワードが空文字の場合、400 BadRequestを返す
     /// </summary>
-    [TestMethod]
+    [TestMethod(DisplayName = "キーワードが空文字の場合、400 BadRequestを返す")]
     public async Task Search_ShouldReturnBadRequest_WhenKeywordIsEmpty()
     {
         // Act
@@ -125,7 +125,7 @@ public class SearchProductByKeywordControllerTests
     /// <summary>
     /// キーワードが空白のみの場合、400 BadRequestを返す
     /// </summary>
-    [TestMethod]
+    [TestMethod(DisplayName = "キーワードが空白のみの場合、400 BadRequestを返す")]
     public async Task Search_ShouldReturnBadRequest_WhenKeywordIsWhiteSpace()
     {
         // Act
