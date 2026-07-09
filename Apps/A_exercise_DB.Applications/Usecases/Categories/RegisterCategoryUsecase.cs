@@ -33,10 +33,16 @@ public class RegisterCategoryUsecase : IRegisterCategoryUsecase
     /// <exception cref="ExistsException">同一商品カテゴリ名が存在する場合にスローされる</exception>
     public async Task ExistsByCategoryAsync(string categoryName)
     {
-        var result = await _productCategoryRepository.ExistsByNameAsync(categoryName);
-        if (result)
+        if (string.IsNullOrWhiteSpace(categoryName))
         {
-            throw new ExistsException($"カテゴリ名：{categoryName}");
+            throw new DomainException("カテゴリ名を入力してください");
+        }
+
+        var exists = await _productCategoryRepository.ExistsByNameAsync(categoryName);
+
+        if (exists)
+        {
+            throw new ExistsException("このカテゴリ名は既に登録されています");
         }
     }
 
@@ -48,16 +54,29 @@ public class RegisterCategoryUsecase : IRegisterCategoryUsecase
     /// <exception cref="NotFoundException">商品カテゴリが存在しない場合にスローされる</exception>
     public async Task RegisterCategoryAsync(ProductCategory productCategory)
     {
+        _ = productCategory ?? throw new InternalException("引数productCategoryがnullです。");
+
         await _unitOfWork.BeginAsync();
+
+        var isCommitted = false;
+
         try
         {
+            // 登録直前にも重複チェックを行う
+            await ExistsByCategoryAsync(productCategory.Name);
+
             await _productCategoryRepository.CreateAsync(productCategory);
+
             await _unitOfWork.CommitAsync();
+
+            isCommitted = true;
         }
-        catch
+        finally
         {
-            await _unitOfWork.RollbackAsync();
-            throw;
+            if (!isCommitted)
+            {
+                await _unitOfWork.RollbackAsync();
+            }
         }
     }
 }
