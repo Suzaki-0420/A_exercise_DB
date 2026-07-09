@@ -88,6 +88,14 @@ public class EmployeeAccountRepositoryTests
         Assert.AreEqual("yamada_taro", saved.Name);
         Assert.IsNotNull(saved.Employee);
         Assert.AreEqual(_employeeUuid, saved.Employee.EmployeeUuid);
+
+        // クリーンアップ
+        var deleteTarget = await _dbContext.EmployeeAccounts
+            .SingleAsync(a => a.AccountUuid == employeeAccount.AccountUuid);
+
+        _dbContext.EmployeeAccounts.Remove(deleteTarget);
+
+        await _dbContext.SaveChangesAsync();
     }
 
     [TestMethod(DisplayName = "ユーザーネームが空の場合DomainExceptionが発生する")]

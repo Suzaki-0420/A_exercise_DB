@@ -99,6 +99,18 @@ public class ProductRepositoryTests
         Assert.AreEqual(0, saved.DeleteFlg);
         Assert.IsNotNull(saved.ProductStock);
         Assert.AreEqual(10, saved.ProductStock.Quantity);
+
+        // テストデータ削除
+        var deleteTarget = await _dbContext.Products
+            .Include(p => p.ProductStock)
+            .SingleAsync(p => p.ProductUuid == productUuid);
+
+        if (deleteTarget.ProductStock is not null)
+        {
+            _dbContext.ProductStocks.Remove(deleteTarget.ProductStock);
+        }
+
+        _dbContext.Products.Remove(deleteTarget);
     }
 
     [TestMethod(DisplayName = "商品カテゴリが存在しない場合InternalExceptionが発生する")]
@@ -304,6 +316,20 @@ public class ProductRepositoryTests
         Assert.AreEqual(500, saved.Price);
         Assert.IsNotNull(saved.ProductStock);
         Assert.AreEqual(99, saved.ProductStock.Quantity);
+
+        // クリーンアップ
+        var deleteTarget = await _dbContext.Products
+            .Include(p => p.ProductStock)
+            .SingleAsync(p => p.ProductUuid == productUuid);
+
+        if (deleteTarget.ProductStock is not null)
+        {
+            _dbContext.ProductStocks.Remove(deleteTarget.ProductStock);
+        }
+
+        _dbContext.Products.Remove(deleteTarget);
+
+        await _dbContext.SaveChangesAsync();
     }
 
     [TestMethod(DisplayName = "存在しない商品を更新した場合falseが返る")]
@@ -381,6 +407,20 @@ public class ProductRepositoryTests
             .SingleAsync(p => p.ProductUuid == product.ProductUuid);
 
         Assert.AreEqual(1, saved.DeleteFlg);
+
+        // クリーンアップ
+        var deleteTarget = await _dbContext.Products
+            .Include(p => p.ProductStock)
+            .SingleAsync(p => p.ProductUuid == product.ProductUuid);
+
+        if (deleteTarget.ProductStock is not null)
+        {
+            _dbContext.ProductStocks.Remove(deleteTarget.ProductStock);
+        }
+
+        _dbContext.Products.Remove(deleteTarget);
+
+        await _dbContext.SaveChangesAsync();
     }
 
     [TestMethod(DisplayName = "存在しない商品を削除した場合falseが返る")]
