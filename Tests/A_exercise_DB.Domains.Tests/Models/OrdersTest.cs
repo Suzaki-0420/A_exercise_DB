@@ -54,7 +54,8 @@ public class OrdersTests
         int amountTotal = 1000,
         Customer? customer = null,
         OrderStatus? orderStatus = null,
-        PaymentMethod? paymentMethod = null)
+        PaymentMethod? paymentMethod = null,
+        List<OrdersDetail>? ordersDetails = null)
     {
         return new Orders(
             orderUuid ?? Guid.NewGuid(),
@@ -62,7 +63,8 @@ public class OrdersTests
             amountTotal,
             customer ?? CreateCustomer(),
             orderStatus ?? CreateOrderStatus(),
-            paymentMethod ?? CreatePaymentMethod());
+            paymentMethod ?? CreatePaymentMethod(),
+            ordersDetails ?? new List<OrdersDetail>());
     }
 
     [TestMethod(DisplayName = "コンストラクタに正常値を指定するとインスタンス生成される")]
@@ -83,7 +85,8 @@ public class OrdersTests
             amountTotal,
             customer,
             orderStatus,
-            paymentMethod);
+            paymentMethod,
+            new List<OrdersDetail>());
 
         // 注文識別IDを検証する
         Assert.AreEqual(orderUuid, orders.OrderUuid);
@@ -120,7 +123,8 @@ public class OrdersTests
             amountTotal,
             customer,
             orderStatus,
-            paymentMethod);
+            paymentMethod,
+            new List<OrdersDetail>());
 
         // 注文識別IDが自動生成されていることを検証する
         Assert.AreNotEqual(Guid.Empty, orders.OrderUuid);
@@ -241,7 +245,8 @@ public class OrdersTests
                 1000,
                 null,
                 CreateOrderStatus(),
-                CreatePaymentMethod());
+                CreatePaymentMethod(),
+                new List<OrdersDetail>());
         });
 
         // 例外メッセージを検証する
@@ -259,7 +264,8 @@ public class OrdersTests
                 1000,
                 CreateCustomer(),
                 null,
-                CreatePaymentMethod());
+                CreatePaymentMethod(),
+                new List<OrdersDetail>());
         });
 
         // 例外メッセージを検証する
@@ -277,7 +283,8 @@ public class OrdersTests
                 1000,
                 CreateCustomer(),
                 CreateOrderStatus(),
-                null);
+                null,
+                new List<OrdersDetail>());
         });
 
         // 例外メッセージを検証する
@@ -398,5 +405,103 @@ public class OrdersTests
         StringAssert.Contains(result, "山田太郎");
         StringAssert.Contains(result, "注文受付");
         StringAssert.Contains(result, "クレジットカード");
+    }
+
+    [TestMethod(DisplayName = "注文明細がnullの場合、DomainExceptionがスローされる")]
+    public void NullOrdersDetails_ShouldThrowDomainException()
+    {
+        var ex = Assert.ThrowsExactly<DomainException>(() =>
+        {
+            _ = new Orders(
+                Guid.NewGuid(),
+                DateTime.Now.AddDays(-1),
+                1000,
+                CreateCustomer(),
+                CreateOrderStatus(),
+                CreatePaymentMethod(),
+                null!);
+        });
+
+        // 例外メッセージを検証する
+        Assert.AreEqual("注文明細は必須です。", ex.Message);
+    }
+
+    [TestMethod(DisplayName = "注文ステータスを変更できる")]
+    public void ChangeOrderStatus_WithValidValue_ShouldChangeOrderStatus()
+    {
+        // インスタンスを生成する
+        var orders = CreateOrders();
+
+        // 変更後の注文ステータスを用意する
+        var newOrderStatus = new OrderStatus(2, "発送済");
+
+        // 注文ステータスを変更する
+        orders.ChangeOrderStatus(newOrderStatus);
+
+        // 注文ステータスを検証する
+        Assert.AreEqual(newOrderStatus, orders.OrderStatus);
+    }
+
+    [TestMethod(DisplayName = "注文ステータス変更時にnullの場合、DomainExceptionがスローされる")]
+    public void ChangeOrderStatus_WithNull_ShouldThrowDomainException()
+    {
+        // インスタンスを生成する
+        var orders = CreateOrders();
+
+        var ex = Assert.ThrowsExactly<DomainException>(() =>
+        {
+            orders.ChangeOrderStatus(null!);
+        });
+
+        // 例外メッセージを検証する
+        Assert.AreEqual("注文ステータスは必須です。", ex.Message);
+    }
+
+    [TestMethod(DisplayName = "コンストラクタで注文明細リストが設定される")]
+    public void Constructor_WithOrdersDetails_ShouldSetOrdersDetails()
+    {
+        // データを用意する
+        var ordersDetails = new List<OrdersDetail>
+    {
+        new OrdersDetail(1)
+    };
+
+        // インスタンスを生成する
+        var orders = CreateOrders(ordersDetails: ordersDetails);
+
+        // 注文明細リストを検証する
+        Assert.AreEqual(ordersDetails, orders.OrdersDetails);
+    }
+
+    [TestMethod(DisplayName = "注文明細を追加できる")]
+    public void AddOrderDetail_WithValidValue_ShouldAddOrdersDetail()
+    {
+        // インスタンスを生成する
+        var orders = CreateOrders();
+
+        // 追加する注文明細を用意する
+        var ordersDetail = new OrdersDetail(1);
+
+        // 注文明細を追加する
+        orders.AddOrderDetail(ordersDetail);
+
+        // 注文明細が追加されていることを検証する
+        Assert.AreEqual(1, orders.OrdersDetails.Count);
+        Assert.AreEqual(ordersDetail, orders.OrdersDetails[0]);
+    }
+
+    [TestMethod(DisplayName = "注文明細追加時にnullの場合、DomainExceptionがスローされる")]
+    public void AddOrderDetail_WithNull_ShouldThrowDomainException()
+    {
+        // インスタンスを生成する
+        var orders = CreateOrders();
+
+        var ex = Assert.ThrowsExactly<DomainException>(() =>
+        {
+            orders.AddOrderDetail(null!);
+        });
+
+        // 例外メッセージを検証する
+        Assert.AreEqual("注文明細は必須です。", ex.Message);
     }
 }
