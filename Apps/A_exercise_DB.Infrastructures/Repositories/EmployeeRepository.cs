@@ -34,31 +34,31 @@ public class EmployeeRepository : IEmployeeRepository
     /// 社員情報をすべて取得する
     /// </summary>
     /// <returns>Employeeのリスト</returns>
-    public async Task<List<Employee>> FindAllAsync()
+    public async Task<List<Employee>> FindAllWithoutAccountAsync()
     {
         try
         {
-            // 社員と部署を取得する
             var entities = await _context.Employees
                 .AsNoTracking()
                 .Include(e => e.Department)
+                .Include(e => e.EmployeeAccount)
+                .Where(e => e.EmployeeAccount == null)
                 .ToListAsync();
 
-            // EmployeeEntityからEmployeeを復元する
             var employees = new List<Employee>();
 
             foreach (var entity in entities)
             {
                 var employee = await _factory.RestoreAsync(entity);
                 employees.Add(employee);
-
             }
+
             return employees;
         }
         catch (Exception ex)
         {
             throw new InternalException(
-                "社員情報の一覧取得時に予期しないエラーが発生しました。",
+                "アカウント未登録の社員一覧取得時に予期しないエラーが発生しました。",
                 ex);
         }
     }
@@ -92,6 +92,27 @@ public class EmployeeRepository : IEmployeeRepository
         {
             throw new InternalException(
                 $"Id:{uuid}の社員情報取得時に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// 社員UUIDに一致する社員が存在するかを確認する
+    /// </summary>
+    /// <param name="employeeUuid">社員UUID</param>
+    /// <returns>存在する場合true</returns>
+    public async Task<bool> ExistsByEmployeeUuidAsync(Guid employeeUuid)
+    {
+        try
+        {
+            return await _context.Employees
+                .AsNoTracking()
+                .AnyAsync(e => e.EmployeeUuid == employeeUuid);
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                $"社員UUID:{employeeUuid}の存在確認中に予期しないエラーが発生しました。",
                 ex);
         }
     }

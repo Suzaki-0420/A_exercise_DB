@@ -103,4 +103,47 @@ public class EmployeeAccountRepository : IEmployeeAccountRepository
                 ex);
         }
     }
+
+    /// <summary>
+    /// アカウント名が既に存在するかを確認する
+    /// </summary>
+    /// <param name="accountName">アカウント名</param>
+    /// <returns>存在する場合true</returns>
+    public async Task<bool> ExistsByAccountNameAsync(string accountName)
+    {
+        try
+        {
+            return await _context.EmployeeAccounts
+                .AsNoTracking()
+                .AnyAsync(a => a.Name == accountName);
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                $"アカウント名:{accountName}の存在確認中に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// 社員UUIDに紐づく担当者アカウントが既に存在するかを確認する
+    /// </summary>
+    /// <param name="employeeUuid">社員UUID</param>
+    /// <returns>存在する場合true</returns>
+    public async Task<bool> ExistsByEmployeeUuidAsync(Guid employeeUuid)
+    {
+        try
+        {
+            return await _context.EmployeeAccounts
+                .AsNoTracking()
+                .Include(a => a.Employee)
+                .AnyAsync(a => a.Employee.EmployeeUuid == employeeUuid);
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                $"社員UUID:{employeeUuid}に紐づくアカウントの存在確認中に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
 }
