@@ -71,7 +71,7 @@ public class RegisterCategoryUsecaseTests
         );
 
         // Assert
-        Assert.Contains(categoryName, exception.Message);
+        Assert.AreEqual("このカテゴリ名は既に登録されています", exception.Message);
 
         _productCategoryRepositoryMock.Verify(
             x => x.ExistsByNameAsync(categoryName),
@@ -237,6 +237,333 @@ public class RegisterCategoryUsecaseTests
         _unitOfWorkMock.Verify(
             x => x.CommitAsync(),
             Times.Never
+        );
+    }
+
+    /// <summary>
+    /// カテゴリ名が空文字の場合、DomainExceptionが発生すること
+    /// </summary>
+    [TestMethod(DisplayName = "カテゴリ名が空文字の場合、DomainExceptionが発生する")]
+    public async Task ExistsByCategoryAsync_WhenCategoryNameIsEmpty_ShouldThrowDomainException()
+    {
+        // Arrange
+        var categoryName = "";
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<DomainException>(async () =>
+            await _usecase.ExistsByCategoryAsync(categoryName)
+        );
+
+        // Assert
+        Assert.AreEqual("カテゴリ名を入力してください", exception.Message);
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.ExistsByNameAsync(It.IsAny<string>()),
+            Times.Never
+        );
+    }
+
+    /// <summary>
+    /// カテゴリ名が空白の場合、DomainExceptionが発生すること
+    /// </summary>
+    [TestMethod(DisplayName = "カテゴリ名が空白の場合、DomainExceptionが発生する")]
+    public async Task ExistsByCategoryAsync_WhenCategoryNameIsWhiteSpace_ShouldThrowDomainException()
+    {
+        // Arrange
+        var categoryName = "   ";
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<DomainException>(async () =>
+            await _usecase.ExistsByCategoryAsync(categoryName)
+        );
+
+        // Assert
+        Assert.AreEqual("カテゴリ名を入力してください", exception.Message);
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.ExistsByNameAsync(It.IsAny<string>()),
+            Times.Never
+        );
+    }
+
+    /// <summary>
+    /// 登録対象の商品カテゴリがnullの場合、InternalExceptionが発生すること
+    /// </summary>
+    [TestMethod(DisplayName = "登録対象の商品カテゴリがnullの場合、InternalExceptionが発生する")]
+    public async Task RegisterCategoryAsync_WhenProductCategoryIsNull_ShouldThrowInternalException()
+    {
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+            await _usecase.RegisterCategoryAsync(null!)
+        );
+
+        // Assert
+        Assert.AreEqual("引数productCategoryがnullです。", exception.Message);
+
+        _unitOfWorkMock.Verify(
+            x => x.BeginAsync(),
+            Times.Never
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.CreateAsync(It.IsAny<ProductCategory>()),
+            Times.Never
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Never
+        );
+    }
+
+    /// <summary>
+    /// 登録直前の重複チェックで同じカテゴリ名が存在する場合、RollbackAsyncが呼ばれ、ExistsExceptionが再スローされること
+    /// </summary>
+    [TestMethod(DisplayName = "登録直前の重複チェックで同じカテゴリ名が存在する場合、RollbackAsyncが呼ばれる")]
+    public async Task RegisterCategoryAsync_WhenCategoryAlreadyExists_ShouldRollbackAndThrowExistsException()
+    {
+        // Arrange
+        var productCategory = new ProductCategory("食品");
+
+        _unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        _productCategoryRepositoryMock
+            .Setup(x => x.ExistsByNameAsync(productCategory.Name))
+            .ReturnsAsync(true);
+
+        _unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<ExistsException>(async () =>
+            await _usecase.RegisterCategoryAsync(productCategory)
+        );
+
+        // Assert
+        Assert.AreEqual("このカテゴリ名は既に登録されています", exception.Message);
+
+        _unitOfWorkMock.Verify(
+            x => x.BeginAsync(),
+            Times.Once
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.ExistsByNameAsync(productCategory.Name),
+            Times.Once
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.CreateAsync(It.IsAny<ProductCategory>()),
+            Times.Never
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never
+        );
+    }
+
+    /// <summary>
+    /// BeginAsyncで例外が発生した場合、RollbackAsyncは呼ばれず、例外が再スローされること
+    /// </summary>
+    [TestMethod(DisplayName = "BeginAsyncで例外が発生した場合、RollbackAsyncは呼ばれない")]
+    public async Task RegisterCategoryAsync_WhenBeginFails_ShouldRethrowExceptionAndNotRollback()
+    {
+        // Arrange
+        var productCategory = new ProductCategory("食品");
+        var expectedException = new Exception("トランザクション開始に失敗しました。");
+
+        _unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .ThrowsAsync(expectedException);
+
+        // Act
+        var actualException = await Assert.ThrowsExactlyAsync<Exception>(async () =>
+            await _usecase.RegisterCategoryAsync(productCategory)
+        );
+
+        // Assert
+        Assert.AreEqual(expectedException.Message, actualException.Message);
+
+        _unitOfWorkMock.Verify(
+            x => x.BeginAsync(),
+            Times.Once
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.ExistsByNameAsync(It.IsAny<string>()),
+            Times.Never
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.CreateAsync(It.IsAny<ProductCategory>()),
+            Times.Never
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Never
+        );
+    }
+
+    /// <summary>
+    /// CommitAsyncで例外が発生した場合、RollbackAsyncが呼ばれ、例外が再スローされること
+    /// </summary>
+    [TestMethod(DisplayName = "CommitAsyncで例外が発生した場合、RollbackAsyncが呼ばれる")]
+    public async Task RegisterCategoryAsync_WhenCommitFails_ShouldRollbackAndRethrowException()
+    {
+        // Arrange
+        var productCategory = new ProductCategory("食品");
+        var expectedException = new Exception("コミットに失敗しました。");
+
+        _unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        _productCategoryRepositoryMock
+            .Setup(x => x.ExistsByNameAsync(productCategory.Name))
+            .ReturnsAsync(false);
+
+        _productCategoryRepositoryMock
+            .Setup(x => x.CreateAsync(productCategory))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock
+            .Setup(x => x.CommitAsync())
+            .ThrowsAsync(expectedException);
+
+        _unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var actualException = await Assert.ThrowsExactlyAsync<Exception>(async () =>
+            await _usecase.RegisterCategoryAsync(productCategory)
+        );
+
+        // Assert
+        Assert.AreEqual(expectedException.Message, actualException.Message);
+
+        _unitOfWorkMock.Verify(
+            x => x.BeginAsync(),
+            Times.Once
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.ExistsByNameAsync(productCategory.Name),
+            Times.Once
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.CreateAsync(productCategory),
+            Times.Once
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Once
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once
+        );
+    }
+
+    /// <summary>
+    /// カテゴリ名がnullの場合、DomainExceptionが発生すること
+    /// </summary>
+    [TestMethod(DisplayName = "カテゴリ名がnullの場合、DomainExceptionが発生する")]
+    public async Task ExistsByCategoryAsync_WhenCategoryNameIsNull_ShouldThrowDomainException()
+    {
+        // Arrange
+        string categoryName = null!;
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<DomainException>(async () =>
+            await _usecase.ExistsByCategoryAsync(categoryName)
+        );
+
+        // Assert
+        Assert.AreEqual("カテゴリ名を入力してください", exception.Message);
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.ExistsByNameAsync(It.IsAny<string>()),
+            Times.Never
+        );
+    }
+
+    /// <summary>
+    /// 登録直前の重複チェックで例外が発生した場合、RollbackAsyncが呼ばれ、例外が再スローされること
+    /// </summary>
+    [TestMethod(DisplayName = "登録直前の重複チェックで例外が発生した場合、RollbackAsyncが呼ばれる")]
+    public async Task RegisterCategoryAsync_WhenExistsCheckFails_ShouldRollbackAndRethrowException()
+    {
+        // Arrange
+        var productCategory = new ProductCategory("食品");
+        var expectedException = new Exception("重複チェックに失敗しました。");
+
+        _unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        _productCategoryRepositoryMock
+            .Setup(x => x.ExistsByNameAsync(productCategory.Name))
+            .ThrowsAsync(expectedException);
+
+        _unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var actualException = await Assert.ThrowsExactlyAsync<Exception>(async () =>
+            await _usecase.RegisterCategoryAsync(productCategory)
+        );
+
+        // Assert
+        Assert.AreEqual(expectedException.Message, actualException.Message);
+
+        _unitOfWorkMock.Verify(
+            x => x.BeginAsync(),
+            Times.Once
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.ExistsByNameAsync(productCategory.Name),
+            Times.Once
+        );
+
+        _productCategoryRepositoryMock.Verify(
+            x => x.CreateAsync(It.IsAny<ProductCategory>()),
+            Times.Never
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never
+        );
+
+        _unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once
         );
     }
 }
