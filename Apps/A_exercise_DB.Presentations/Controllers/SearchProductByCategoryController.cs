@@ -1,5 +1,7 @@
 using A_exercise_DB.Applications.Usecases.Products;
 using Microsoft.AspNetCore.Authorization;
+using Swashbuckle.AspNetCore.Annotations;
+using A_exercise_DB.Domains.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A_exercise_DB.Presentations.Controllers; 
