@@ -1,0 +1,71 @@
+using A_exercise_DB.Domains.Exceptions;
+using A_exercise_DB.Domains.Models;
+using A_exercise_DB.Infrastructures.Adapters;
+using A_exercise_DB.Infrastructures.Entities;
+
+namespace A_exercise_DB.Infrastructures.Tests.Adapters;
+
+[TestClass]
+public class OrdersDetailEntityAdapterTests
+{
+    private OrdersDetailEntityAdapter _adapter = null!;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        _adapter = new OrdersDetailEntityAdapter();
+    }
+
+    [TestMethod]
+    public async Task ConvertAsync_OrdersDetailをOrdersDetailEntityに変換できる()
+    {
+        // Arrange
+        var ordersDetail = new OrdersDetail(3);
+
+        // Act
+        var result = await _adapter.ConvertAsync(ordersDetail);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(ordersDetail.Count, result.Count);
+    }
+
+    [TestMethod]
+    public async Task ConvertAsync_引数がnullの場合InternalExceptionをthrowする()
+    {
+        // Act & Assert
+        var ex = await Assert.ThrowsExactlyAsync<InternalException>(
+            async () => await _adapter.ConvertAsync(null!)
+        );
+
+        Assert.AreEqual("引数domainがnullです。", ex.Message);
+    }
+
+    [TestMethod]
+    public async Task RestoreAsync_OrdersDetailEntityからOrdersDetailを復元できる()
+    {
+        // Arrange
+        var entity = new OrdersDetailEntity
+        {
+            Count = 3
+        };
+
+        // Act
+        var result = await _adapter.RestoreAsync(entity);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(entity.Count, result.Count);
+    }
+
+    [TestMethod]
+    public async Task RestoreAsync_引数がnullの場合InternalExceptionをthrowする()
+    {
+        // Act & Assert
+        var ex = await Assert.ThrowsExactlyAsync<InternalException>(
+            async () => await _adapter.RestoreAsync(null!)
+        );
+
+        Assert.AreEqual("引数targetがnullです。", ex.Message);
+    }
+}
