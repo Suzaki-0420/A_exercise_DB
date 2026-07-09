@@ -24,7 +24,7 @@ public interface IRegisterEmployeeAccountUsecase
     /// <summary>
     /// 担当者アカウントを登録する
     /// </summary>
-    /// <param name="staffAccount">登録対象の担当者アカウント</param>
+    /// <param name="employeeAccount">登録対象の担当者アカウント</param>
     /// <returns>なし</returns>
-    Task RegisterEmployeeAccountAsync(EmployeeAccount staffAccount);
+    Task RegisterEmployeeAccountAsync(EmployeeAccount employeeAccount);
 }
