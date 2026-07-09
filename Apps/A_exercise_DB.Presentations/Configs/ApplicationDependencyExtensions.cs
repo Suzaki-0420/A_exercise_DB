@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using A_exercise_DB.Infrastructures.Contexts;
 using A_exercise_DB.Infrastructures.Adapters;
@@ -101,6 +102,7 @@ public static class ApplicationDependencyExtensions
         services.AddScoped<IPasswordHashingService, PBKDF2PasswordHashingService>();
 
         //services.AddScoped<IRegisterBookUsecase, RegisterBookUsecase>();
+        services.AddScoped<ILoginAdminUsecase, LoginAdminUsecase>();
         services.AddScoped<IDeleteProductUsecase, DeleteProductUsecase>();
         services.AddScoped<IUpdateProductUsecase, UpdateProductUsecase>();
         services.AddScoped<IRegisterCategoryUsecase, RegisterCategoryUsecase>();
@@ -121,6 +123,23 @@ public static class ApplicationDependencyExtensions
     {
         // コントローラをサービスコレクションに登録する
         services.AddControllers();
+
+        services
+            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "FullnessAdminAuth";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+                options.LoginPath = "/admin/login";
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
+            });
+
+        services.AddAuthorization();
 
         // RegisterBookViewModelからドメインオブジェクト:Bookへ変換するアダプタ
         //services.AddScoped<RegisterBookViewModelAdapter>();
