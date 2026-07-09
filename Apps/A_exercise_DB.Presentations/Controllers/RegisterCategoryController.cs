@@ -5,11 +5,11 @@ using A_exercise_DB.Presentations.Adapters;
 using A_exercise_DB.Presentations.ViewModels;
 namespace A_exercise_DB.Presentations.Controllers;
 /// <summary>
-/// UC014: 新規商品カテゴリ登録
+/// UC014: 商品カテゴリ登録
 /// </summary>
 [ApiController]
 [Route("admin/category")]
-[Tags("UC014: 新規商品カテゴリ登録")]
+[Tags("UC014: 商品カテゴリ登録")]
 public class RegisterCategoryController : ControllerBase
 {
     private readonly IRegisterCategoryUsecase _registerCategoryUsecase;
