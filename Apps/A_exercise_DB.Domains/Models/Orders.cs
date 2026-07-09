@@ -29,11 +29,14 @@ public class Orders
     /// 支払い方法
     /// </summary>
     public PaymentMethod PaymentMethod { get; private set; }
-
+    /// <summary>
+    /// 注文明細（リスト）
+    /// </summary>
+    public List<OrdersDetail> OrdersDetails { get; private set; } = new();
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public Orders(Guid orderUuid, DateTime orderDate, int amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod)
+    public Orders(Guid orderUuid, DateTime orderDate, int amountTotal, Customer? customer, OrderStatus? orderStatus, PaymentMethod? paymentMethod, List<OrdersDetail> ordarsDetails)
     {
         ValidateOrderUuid(orderUuid);
         OrderUuid = orderUuid;
@@ -44,13 +47,14 @@ public class Orders
         Customer = customer ?? throw new DomainException("顧客は必須です。");
         OrderStatus = orderStatus ?? throw new DomainException("注文ステータスは必須です。");
         PaymentMethod = paymentMethod ?? throw new DomainException("支払い方法は必須です。");
+        OrdersDetails = ordarsDetails ?? throw new DomainException("注文明細は必須です。");
     }
 
     /// <summary>
     /// ID未定の注文を作成する場合のコンストラクタ
     /// </summary>
-    public Orders(DateTime orderDate, int amountTotal, Customer customer, OrderStatus orderStatus, PaymentMethod paymentMethod)
-        : this(Guid.NewGuid(), orderDate, amountTotal, customer, orderStatus, paymentMethod) { }
+    public Orders(DateTime orderDate, int amountTotal, Customer customer, OrderStatus orderStatus, PaymentMethod paymentMethod, List<OrdersDetail> ordarsDetails)
+        : this(Guid.NewGuid(), orderDate, amountTotal, customer, orderStatus, paymentMethod, ordarsDetails) { }
 
     /// <summary>
     /// 注文識別IDの検証
@@ -82,6 +86,24 @@ public class Orders
             throw new DomainException("合計金額は0以上で入力してください");
 
         return amountTotal;
+    }
+
+    /// <summary>
+    /// 注文ステータスの変更
+    /// </summary>
+    /// <param name="orderStatus">注文ステータス</param>
+    public void ChangeOrderStatus(OrderStatus orderStatus)
+    {
+        OrderStatus = orderStatus ?? throw new DomainException("注文ステータスは必須です。");
+    }
+
+    /// <summary>
+    /// 注文明細の変更
+    /// </summary>
+    /// <param name="orderDetail">注文明細</param>
+    public void AddOrderDetail(OrdersDetail orderDetail)
+    {
+        OrdersDetails.Add(orderDetail ?? throw new DomainException("注文明細は必須です。"));
     }
 
     /// <summary>
