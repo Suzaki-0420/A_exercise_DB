@@ -1,4 +1,4 @@
-namespace A_exercise_DB.Applications.Usecases.EmployeeAccounts;
+namespace A_exercise_DB.Applications.Usecases.Accounts;
 
 /// <summary>
 /// 担当者ログインリクエスト
