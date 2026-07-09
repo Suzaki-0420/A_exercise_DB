@@ -23,6 +23,7 @@ public class PaymentMethodEntityAdapter :
         _ = domain ?? throw new InternalException("引数domainがnullです。");
 
         var entity = new PaymentMethodEntity();
+        entity.Id = domain.Id;
         entity.Name = domain.Name;
 
         return Task.FromResult(entity);
@@ -39,6 +40,7 @@ public class PaymentMethodEntityAdapter :
         _ = target ?? throw new InternalException("引数targetがnullです。");
 
         var domain = new PaymentMethod(
+            target.Id,
             target.Name
         );
 

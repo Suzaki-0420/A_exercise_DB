@@ -89,15 +89,6 @@ public class OrdersFactory
             details
         );
 
-        if (target.OrderDetails is not null)
-        {
-            foreach (var detailEntity in target.OrderDetails)
-            {
-                order.AddOrderDetail(
-                    await _ordersDetailEntityAdapter.RestoreAsync(detailEntity));
-            }
-        }
-
         return order;
     }
 

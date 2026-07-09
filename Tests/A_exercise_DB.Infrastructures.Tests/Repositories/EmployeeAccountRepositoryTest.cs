@@ -236,7 +236,7 @@ public class EmployeeAccountRepositoryTests
         Assert.AreEqual("sato_hanako", result.Name);
         Assert.AreEqual("password", result.Password);
         Assert.IsNotNull(result.Employee);
-        Assert.AreEqual(_employeeUuid, result.Employee.EmployeeUuid);
+        Assert.AreEqual(Guid.Parse("22222222-2222-2222-2222-222222222222"), result.Employee.EmployeeUuid);
     }
 
     [TestMethod(DisplayName = "アカウント名に一致する社員アカウントが存在しない場合nullを返す")]

@@ -71,11 +71,17 @@ public class EmployeeRepositoryTests
         Assert.IsInstanceOfType(employees, typeof(List<Employee>));
         Assert.IsTrue(employees.All(e => e.Department is not null));
 
-        Assert.AreEqual(Guid.Parse("33333333-3333-3333-3333-333333333333"), employees[0].EmployeeUuid);
-        Assert.AreEqual("鈴木 一郎", employees[0].Name);
-        Assert.AreEqual("スズキ イチロウ", employees[0].Kana);
-        Assert.AreEqual(Guid.Parse("6e06cad7-09e6-4eae-adbe-20102ea58efc"), employees[0].Department!.DepartmentUuid);
-        Assert.AreEqual("開発部", employees[0].Department!.Name);
+        Assert.AreEqual(Guid.Parse("11111111-1111-1111-1111-111111111111"), employees[0].EmployeeUuid);
+        Assert.AreEqual("山田 太郎", employees[0].Name);
+        Assert.AreEqual("ヤマダ タロウ", employees[0].Kana);
+        Assert.AreEqual(Guid.Parse("e480fa43-f51c-4738-93dc-fb4fe0ecea42"), employees[0].Department!.DepartmentUuid);
+        Assert.AreEqual("営業部", employees[0].Department!.Name);
+
+        Assert.AreEqual(Guid.Parse("33333333-3333-3333-3333-333333333333"), employees[1].EmployeeUuid);
+        Assert.AreEqual("鈴木 一郎", employees[1].Name);
+        Assert.AreEqual("スズキ イチロウ", employees[1].Kana);
+        Assert.AreEqual(Guid.Parse("6e06cad7-09e6-4eae-adbe-20102ea58efc"), employees[1].Department!.DepartmentUuid);
+        Assert.AreEqual("開発部", employees[1].Department!.Name);
     }
 
     /// <summary>

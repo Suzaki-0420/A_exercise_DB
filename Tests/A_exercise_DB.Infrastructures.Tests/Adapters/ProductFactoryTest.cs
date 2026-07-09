@@ -224,6 +224,7 @@ public class ProductFactoryTests
             Price = 150,
             ProductStock = new ProductStockEntity
             {
+                StockUuid = Guid.NewGuid(),
                 Quantity = 10
             }
         };
@@ -259,6 +260,7 @@ public class ProductFactoryTests
             },
             ProductStock = new ProductStockEntity
             {
+                StockUuid = Guid.NewGuid(),
                 Quantity = 10
             }
         };
