@@ -2,14 +2,14 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using A_exercise_DB.Applications.Security;
 using A_exercise_DB.Applications.Usecases;
-using A_exercise_DB.Applications.Usecases.EmployeeAccounts;
+using A_exercise_DB.Applications.Usecases.Accounts;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace A_exercise_DB.Applications.Tests.Usecases.EmployeeAccounts;
+namespace A_exercise_DB.Applications.Tests.Usecases.Accounts;
 
 /// <summary>
 /// RegisterEmployeeAccountUsecaseの単体テスト

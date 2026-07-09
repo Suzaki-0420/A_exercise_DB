@@ -10,6 +10,8 @@ using A_exercise_DB.Applications.Security;
 using A_exercise_DB.Applications.Usecases;
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Applications.Usecases.Categories;
+using A_exercise_DB.Applications.Usecases.Orders;
+using A_exercise_DB.Applications.Usecases.Accounts;
 using A_exercise_DB.Presentations.Adapters;
 
 namespace A_exercise_DB.Presentations.Configs;
@@ -102,6 +104,8 @@ public static class ApplicationDependencyExtensions
         services.AddScoped<IDeleteProductUsecase, DeleteProductUsecase>();
         services.AddScoped<IUpdateProductUsecase, UpdateProductUsecase>();
         services.AddScoped<IRegisterCategoryUsecase, RegisterCategoryUsecase>();
+        services.AddScoped<IRegisterEmployeeAccountUsecase, RegisterEmployeeAccountUsecase>();
+        services.AddScoped<ISearchOrdersUsecase, SearchOrdersUsecase>();
 
         return services;
     }

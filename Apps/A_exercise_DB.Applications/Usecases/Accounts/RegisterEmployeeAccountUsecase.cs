@@ -3,7 +3,7 @@ using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Repositories;
 
-namespace A_exercise_DB.Applications.Usecases.EmployeeAccounts;
+namespace A_exercise_DB.Applications.Usecases.Accounts;
 
 /// <summary>
 /// 担当者アカウント登録ユースケース

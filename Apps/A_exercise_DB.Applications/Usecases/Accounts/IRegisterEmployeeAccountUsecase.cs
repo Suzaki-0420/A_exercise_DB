@@ -1,6 +1,6 @@
 using A_exercise_DB.Domains.Models;
 
-namespace A_exercise_DB.Applications.Usecases.EmployeeAccounts;
+namespace A_exercise_DB.Applications.Usecases.Accounts;
 
 /// <summary>
 /// BP03-BP05 担当者アカウント登録ユースケースインターフェイス
