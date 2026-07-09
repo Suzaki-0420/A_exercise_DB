@@ -8,7 +8,8 @@ using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Infrastructures.Shared;
 using A_exercise_DB.Applications.Usecases;
 using A_exercise_DB.Applications.Usecases.Products;
-
+using A_exercise_DB.Applications.Usecases.Categories;
+using A_exercise_DB.Presentations.Adapters;
 
 namespace A_exercise_DB.Presentations.Configs;
 /// <summary>
@@ -94,6 +95,7 @@ public static class ApplicationDependencyExtensions
         //services.AddScoped<IRegisterBookUsecase, RegisterBookUsecase>();
         services.AddScoped<IDeleteProductUsecase, DeleteProductUsecase>();
         services.AddScoped<IUpdateProductUsecase, UpdateProductUsecase>();
+        services.AddScoped<IRegisterCategoryUsecase, RegisterCategoryUsecase>();
 
         return services;
     }
@@ -109,7 +111,7 @@ public static class ApplicationDependencyExtensions
 
         // RegisterBookViewModelからドメインオブジェクト:Bookへ変換するアダプタ
         //services.AddScoped<RegisterBookViewModelAdapter>();
-
+        services.AddScoped<RegisterCategoryViewModelAdapter>();
         return services;
     }
 
