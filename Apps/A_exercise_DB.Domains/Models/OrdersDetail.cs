@@ -10,10 +10,6 @@ public class OrdersDetail
     /// </summary>
     public int Id { get; private set; }
     /// <summary>
-    /// 注文
-    /// </summary>
-    public Orders Orders { get; private set; }
-    /// <summary>
     /// 商品
     /// </summary>
     public Product Product { get; private set; }
@@ -25,11 +21,10 @@ public class OrdersDetail
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    public OrdersDetail(int detailId, Orders orders, Product product, int count)
+    public OrdersDetail(int detailId, Product product, int count)
     {
         ValidateDetailId(detailId);
         Id = detailId;
-        Orders = orders ?? throw new DomainException("注文は必須です。");
         Product = product ?? throw new DomainException("商品は必須です。");
         Count = count;
         ValidateCount(count);
@@ -38,9 +33,8 @@ public class OrdersDetail
     /// <summary>
     /// ID未定の注文明細を作成する場合のコンストラクタ
     /// </summary>
-    public OrdersDetail(Orders orders, Product product, int count)
+    public OrdersDetail(Product product, int count)
     {
-        Orders = orders ?? throw new DomainException("注文は必須です。");
         Product = product ?? throw new DomainException("商品は必須です。");
         ValidateCount(count);
         Count = count;
@@ -54,7 +48,6 @@ public class OrdersDetail
         ValidateCount(count);
         Count = count;
     }
-
 
     /// <summary>
     /// 注文明細IDの検証
@@ -88,5 +81,5 @@ public class OrdersDetail
     }
 
     public override string ToString()
-        => $"{Id.ToString() ?? "未登録"}: {Count} / {Orders.OrderUuid} / {Product.Name}";
+        => $"{Id.ToString() ?? "未登録"}: {Count} / {Product.Name}";
 }
