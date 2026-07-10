@@ -1,7 +1,5 @@
 # API一覧
 
-# API一覧
-
 ## UC009 担当者アカウント登録
 
 ### ベースURL
@@ -33,8 +31,12 @@
   "title": "担当者アカウント登録(入力)",
   "employees": [
     {
-      "employeeUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "employeeUuid": "11111111-1111-1111-1111-111111111111",
       "employeeName": "山田 太郎"
+    },
+    {
+      "employeeUuid": "33333333-3333-3333-3333-333333333333",
+      "employeeName": "鈴木 一郎"
     }
   ]
 }
@@ -108,17 +110,20 @@
 
 ```json
 {
-  "employeeUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "accountName": "yamada",
-  "password": "Password123!"
+  "employeeUuid": "11111111-1111-1111-1111-111111111111",
+  "accountName": "yamadatarou",
+  "password": "passyameda"
 }
 ```
 
-※実際のViewModelに合わせて項目を追加してください。
-
 ### レスポンス
 
-入力内容確認用ViewModelを返却します。
+{
+  "employeeUuid": "11111111-1111-1111-1111-111111111111",
+  "employeeName": "山田 太郎",
+  "accountName": "yamadatarou",
+  "password": "********"
+}
 
 ### ステータスコード
 
@@ -144,9 +149,9 @@
 
 ```json
 {
-  "employeeUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "accountName": "yamada",
-  "password": "Password123!"
+  "employeeUuid": "11111111-1111-1111-1111-111111111111",
+  "accountName": "yamadatarou",
+  "password": "passyameda"
 }
 ```
 
@@ -154,9 +159,10 @@
 
 ```json
 {
-  "accountUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "employeeUuid": "11111111-1111-1111-1111-111111111111",
   "employeeName": "山田 太郎",
-  "accountName": "yamada"
+  "accountName": "yamadatarou",
+  "password": "********"
 }
 ```
 
@@ -257,31 +263,31 @@
 
 ```json
 {
-  "name": "赤ペン",
+  "name": "緑ペン",
   "price": 120,
-  "imageUrl": "https://example.com/redpen.png",
-  "categoryUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "stock": 10
+  "stock": 10,
+  "categoryUuid": "e50d978b-b73d-4afb-8e85-ace9cf1e12a7",
+  "categoryName": "文房具"
 }
 ```
-
-※実際の `RegisterViewModel` に合わせて項目を修正してください。
 
 ### レスポンス例（201）
 
 ```json
 {
-  "productUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "name": "赤ペン",
+  "productUuid": "72f394dd-f316-4a76-9c51-0de1af990991",
+  "name": "緑ペン",
   "price": 120,
-  "imageUrl": "https://example.com/redpen.png",
-  "category": {
-    "categoryUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "imageUrl": "",
+  "productCategory": {
+    "categoryUuid": "e50d978b-b73d-4afb-8e85-ace9cf1e12a7",
     "name": "文房具"
   },
-  "stock": {
-    "stock": 10
-  }
+  "productStock": {
+    "stockUuid": "e1f6e34b-4b96-42db-8fee-4c3bd19907cc",
+    "quantity": 10
+  },
+  "deleteFlg": 0
 }
 ```
 
@@ -488,10 +494,10 @@
 
 ```json
 {
-  "name": "赤ペン",
+  "name": "橙ペン",
   "price": 120,
   "stockQuantity": 10,
-  "categoryUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  "categoryUuid": "e50d978b-b73d-4afb-8e85-ace9cf1e12a7"
 }
 ```
 
@@ -503,16 +509,18 @@
 {
   "success": true,
   "data": {
-    "productUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "name": "赤ペン",
+    "productUuid": "72f394dd-f316-4a76-9c51-0de1af990991",
+    "name": "橙ペン",
     "price": 120,
     "stockQuantity": 10,
-    "categoryUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  }
+    "categoryUuid": "e50d978b-b73d-4afb-8e85-ace9cf1e12a7",
+    "imageUrl": null,
+    "updated": true
+  },
+  "errors": []
 }
 ```
 
-※`ProductUpdateCompleteResult` の内容に合わせて修正してください。
 
 ### リクエスト未入力（400）
 
@@ -535,7 +543,6 @@
 }
 ```
 
-※メッセージは `DomainException` の内容によって変わります。
 
 ### 商品が存在しない場合（404）
 
@@ -548,7 +555,6 @@
 }
 ```
 
-※メッセージは `NotFoundException` の内容によって変わります。
 
 ### サーバーエラー（500）
 
@@ -634,7 +640,6 @@
 }
 ```
 
-※メッセージは `DomainException` の内容によって変わります。
 
 ### 商品が存在しない場合（404）
 
@@ -652,7 +657,6 @@
 }
 ```
 
-※メッセージは `NotFoundException` の内容によって変わります。
 
 ### サーバーエラー（500）
 
@@ -731,7 +735,6 @@
 }
 ```
 
-※`message` は `ExistsException` の内容によって変わります。
 
 ### 入力エラー（400）
 
@@ -742,7 +745,7 @@
 }
 ```
 
-※`message` は `DomainException` の内容によって変わります。
+
 
 ### システムエラー（500）
 
@@ -781,20 +784,21 @@
 
 ```json
 {
-  "categoryName": "文房具"
+  "categoryName": "家電"
 }
 ```
-
-※実際の `RegisterCategoryViewModel` の項目に合わせて修正してください。
 
 ### レスポンス例（201）
 
 ```json
+	
+Response body
+Download
 {
-  "message": "商品カテゴリ「文房具」を登録しました",
+  "message": "商品カテゴリ「家電」を登録しました",
   "category": {
-    "categoryUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "name": "文房具"
+    "categoryUuid": "89044602-ed5f-4dd9-851f-3ef142b8353f",
+    "name": "家電"
   }
 }
 ```
@@ -817,7 +821,6 @@
 }
 ```
 
-※`message` は `DomainException` の内容によって変わります。
 
 ### カテゴリ重複（409）
 
@@ -887,19 +890,19 @@
 
 ```json
 {
-  "message": "",
   "orderList": [
     {
-      "orderUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "orderDate": "2026-07-10",
-      "customerAccountName": "yamada",
-      "totalPrice": 2500
+      "orderUuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+      "orderDate": "2026/07/08 16:54:25",
+      "customerAccountName": "hanako",
+      "orderContent": "ワイヤレストラックボール × 1",
+      "orderStatus": "発送済み",
+      "statusUpdateUrl": "/admin/order/status/update/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
     }
-  ]
+  ],
+  "message": null
 }
 ```
-
-※`SearchOrdersResultViewModel` の内容に合わせて修正してください。
 
 注文履歴が存在しない場合
 
@@ -963,19 +966,21 @@
 
 ```json
 {
-  "message": "",
   "orderList": [
     {
-      "orderUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      "orderDate": "2026-07-10",
-      "customerAccountName": "yamada",
-      "totalPrice": 2500
+      "orderUuid": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+      "orderDate": "2026/07/08 16:54:25",
+      "customerAccountName": "hanako",
+      "orderContent": "ワイヤレストラックボール × 1",
+      "orderStatus": "発送済み",
+      "statusUpdateUrl": "/admin/order/status/update/eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
     }
-  ]
+  ],
+  "message": null
 }
 ```
 
-※`SearchOrdersResultViewModel` の内容に合わせて修正してください。
+
 
 ### 入力エラー（400）
 
@@ -986,7 +991,7 @@
 }
 ```
 
-※`DomainException` の内容によってメッセージは変わります。
+
 
 ### システムエラー（500）
 
@@ -1051,23 +1056,39 @@
 
 ```json
 {
-  "orderId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "customerName": "山田 太郎",
-  "currentStatus": "受付",
-  "orderStatuses": [
+  "orderId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+  "orderDate": "2026/07/08 16:54:25",
+  "customerAccountName": "hanako",
+  "orderContent": "ワイヤレストラックボール × 1",
+  "orderStatus": 4,
+  "orderStatusList": [
     {
-      "statusId": 1,
-      "statusName": "受付"
+      "id": 1,
+      "name": "受付"
     },
     {
-      "statusId": 2,
-      "statusName": "発送済"
+      "id": 2,
+      "name": "支払待ち"
+    },
+    {
+      "id": 3,
+      "name": "発送準備中"
+    },
+    {
+      "id": 4,
+      "name": "発送済み"
+    },
+    {
+      "id": 5,
+      "name": "配達完了"
+    },
+    {
+      "id": 6,
+      "name": "キャンセル"
     }
   ]
 }
 ```
-
-※`UpdateOrderStatusInputViewModel` に合わせて修正してください。
 
 ### 注文が存在しない場合（404）
 
@@ -1125,8 +1146,12 @@
 
 ```json
 {
-  "orderId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "newStatusId": 2
+  "orderId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+  "orderDate": "2026/07/08 16:54:25",
+  "customerAccountName": "hanako",
+  "currentStatus": "発送済み",
+  "newStatusId": 1,
+  "newStatus": "キャンセル"
 }
 ```
 
@@ -1134,14 +1159,15 @@
 
 ```json
 {
-  "orderId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "customerName": "山田 太郎",
-  "currentStatus": "受付",
-  "newStatus": "発送済"
+  "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "orderDate": "string",
+  "customerAccountName": "string",
+  "currentStatus": "string",
+  "newStatusId": 0,
+  "newStatus": "string"
 }
 ```
 
-※`UpdateOrderStatusConfirmViewModel` に合わせて修正してください。
 
 ### 入力エラー（400）
 
@@ -1217,13 +1243,15 @@
 
 ```json
 {
-  "message": "注文ステータスを更新しました",
-  "orderId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-  "newStatus": "発送済"
+  "completeMsg": "注文ステータスを更新しました",
+  "orderNumber": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+  "orderStatus": "受付",
+  "updateDate": "2026/07/10 11:48:54",
+  "searchUrl": "/admin/order/search",
+  "homeUrl": "/admin"
 }
 ```
 
-※`UpdateOrderStatusCompleteViewModel` に合わせて修正してください。
 
 ### 入力エラー（400）
 
@@ -1303,12 +1331,11 @@
 
 ```json
 {
-  "accountName": "admin01",
-  "password": "Password123!"
+  "accountName": "yamadatarou",
+  "password": "passyameda"
 }
 ```
 
-※実際の `AdminLoginViewModel` の項目に合わせて修正してください。
 
 ### レスポンス例（200）
 
@@ -1316,50 +1343,35 @@
 {
   "success": true,
   "data": {
-    "accountUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "accountName": "admin01",
+    "accountUuid": "3aa2f6ba-81f0-42fe-8ace-663dbacf3d2a",
+    "accountName": "yamadatarou",
     "employeeName": "山田 太郎"
   },
   "errors": []
 }
 ```
 
-※`AdminLoginResult` の内容に合わせて修正してください。
 
 ### 入力エラー（400）
 
 ```json
 {
-  "success": false,
-  "data": null,
-  "errors": [
-    {
-      "code": "VALIDATION_ERROR",
-      "message": "ログイン情報を入力してください。",
-      "field": "request"
-    }
-  ]
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
+  "errors": {
+    "Password": [
+      "パスワードを入力してください。",
+      "パスワードは5～20文字で入力してください。"
+    ],
+    "AccountName": [
+      "アカウント名を入力してください。",
+      "アカウント名は5～20文字で入力してください。"
+    ]
+  },
+  "traceId": "00-387c4c8e7500c8aff958d9fd00f8b463-0402ffa2cdc0c18a-00"
 }
 ```
-
-または
-
-```json
-{
-  "success": false,
-  "data": null,
-  "errors": [
-    {
-      "code": "VALIDATION_ERROR",
-      "message": "アカウント名は必須です。",
-      "field": null
-    }
-  ]
-}
-```
-
-※`DomainException` の内容によってメッセージは変わります。
-
 ### 認証失敗（401）
 
 ```json
@@ -1375,8 +1387,6 @@
   ]
 }
 ```
-
-※`UnauthorizedAccessException` の内容によってメッセージは変わります。
 
 ### システムエラー（500）
 
@@ -1448,37 +1458,53 @@
 ```json
 [
   {
-    "productUuid": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    "name": "赤ペン",
+    "productUuid": "72f394dd-f316-4a76-9c51-0de1af990991",
+    "name": "橙ペン",
     "price": 120,
-    "imageUrl": "https://example.com/redpen.png",
-    "category": {
-      "categoryUuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "imageUrl": "",
+    "productCategory": {
+      "categoryUuid": "e50d978b-b73d-4afb-8e85-ace9cf1e12a7",
       "name": "文房具"
     },
-    "stock": {
-      "stock": 10
+    "productStock": {
+      "stockUuid": "e1f6e34b-4b96-42db-8fee-4c3bd19907cc",
+      "quantity": 10
     },
-    "sales": 0
+    "deleteFlg": 0
   },
   {
-    "productUuid": "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy",
-    "name": "青ペン",
+    "productUuid": "10000000-0000-0000-0000-000000000002",
+    "name": "水性ボールペン(赤)",
     "price": 120,
-    "imageUrl": "https://example.com/bluepen.png",
-    "category": {
-      "categoryUuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "imageUrl": "",
+    "productCategory": {
+      "categoryUuid": "e50d978b-b73d-4afb-8e85-ace9cf1e12a7",
       "name": "文房具"
     },
-    "stock": {
-      "stock": 8
+    "productStock": {
+      "stockUuid": "20000000-0000-0000-0000-000000000002",
+      "quantity": 65
     },
-    "sales": 2
+    "deleteFlg": 0
+  },
+  {
+    "productUuid": "10000000-0000-0000-0000-000000000001",
+    "name": "水性ボールペン(黒)",
+    "price": 120,
+    "imageUrl": "",
+    "productCategory": {
+      "categoryUuid": "e50d978b-b73d-4afb-8e85-ace9cf1e12a7",
+      "name": "文房具"
+    },
+    "productStock": {
+      "stockUuid": "20000000-0000-0000-0000-000000000001",
+      "quantity": 80
+    },
+    "deleteFlg": 0
   }
 ]
 ```
 
-※実際の `Product` クラスのプロパティに合わせて修正してください。
 
 ### 入力エラー（400）
 
