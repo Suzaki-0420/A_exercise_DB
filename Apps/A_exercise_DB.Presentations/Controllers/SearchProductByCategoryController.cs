@@ -4,14 +4,13 @@ using Swashbuckle.AspNetCore.Annotations;
 using A_exercise_DB.Domains.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace A_exercise_DB.Presentations.Controllers; 
+namespace A_exercise_DB.Presentations.Controllers;
 /// <summary>
 /// ユースケース:[商品をカテゴリー検索をする]を実現するコントローラ
 /// </summary>
 [ApiController]
 [Route("admin/product/category")]
-[Tags("BP006: 商品カテゴリー検索")]
-// [SwaggerTag("商品をカテゴリー検索API")]
+[Tags("UC011: 商品検索(カテゴリ)")]
 public class SearchProductByCategory : ControllerBase
 {
     private readonly ISearchProductByCategoryUsecase _usecase;
@@ -28,7 +27,7 @@ public class SearchProductByCategory : ControllerBase
     /// </summary>
     /// <param name="productCategoryId">検索Id</param>
     /// <returns>検索結果の商品一覧</returns>
-    
+
     // [Authorize]
     [HttpGet]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]

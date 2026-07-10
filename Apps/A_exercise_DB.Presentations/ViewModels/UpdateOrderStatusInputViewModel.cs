@@ -8,11 +8,6 @@ namespace A_exercise_DB.Presentations.ViewModels;
 public class UpdateOrderStatusInputViewModel
 {
     /// <summary>
-    /// タイトル
-    /// </summary>
-    public string Title { get; set; } = "注文ステータス更新(入力)";
-
-    /// <summary>
     /// 注文ID
     /// </summary>
     public Guid OrderId { get; set; }

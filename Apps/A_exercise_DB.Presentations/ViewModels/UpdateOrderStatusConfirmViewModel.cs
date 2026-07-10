@@ -8,11 +8,6 @@ namespace A_exercise_DB.Presentations.ViewModels;
 public class UpdateOrderStatusConfirmViewModel
 {
     /// <summary>
-    /// タイトル
-    /// </summary>
-    public string Title { get; set; } = "注文ステータス更新(確認)";
-
-    /// <summary>
     /// 注文ID
     /// </summary>
     [Required(ErrorMessage = "注文IDは必須です。")]

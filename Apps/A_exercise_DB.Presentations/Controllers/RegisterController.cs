@@ -10,7 +10,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [Route("admin/product")]
-//[SwaggerTag("UC014: 新規商品登録")]
+[Tags("UC010: 新商品登録")]
 public class RegisterProductController : ControllerBase
 {
     private readonly IRegisterProductUsecase _registerProductUsecase;
@@ -138,4 +138,4 @@ public class RegisterProductController : ControllerBase
         var categories = await _registerProductUsecase.GetCategoriesAsync();
         return Ok(categories);
     }
-    }
+}
