@@ -114,6 +114,7 @@ public class OrdersEntityAdapterTests
 
         var detailEntity1 = new OrdersDetailEntity
         {
+            Id = 1,
             Count = 3,
             Product = new ProductEntity
             {
@@ -137,6 +138,7 @@ public class OrdersEntityAdapterTests
 
         var detailEntity2 = new OrdersDetailEntity
         {
+            Id = 2,
             Count = 5,
             Product = new ProductEntity
             {
@@ -281,6 +283,7 @@ public class OrdersEntityAdapterTests
         // Arrange
         var detailEntity = new OrdersDetailEntity
         {
+            Id = 1,
             Count = 3,
             Product = new ProductEntity
             {
@@ -392,6 +395,7 @@ public class OrdersEntityAdapterTests
         {
             new OrdersDetailEntity
             {
+                Id = 1,
                 Count = 3,
                 Product = new ProductEntity
                 {
