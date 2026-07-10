@@ -1,5 +1,4 @@
 using A_exercise_DB.Presentations.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace A_exercise_DB.Presentations.Tests.ViewModels;
 
