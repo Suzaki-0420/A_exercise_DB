@@ -4,6 +4,7 @@ using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A_exercise_DB.Presentations.Controllers;
@@ -13,7 +14,6 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/admin/auth")]
-[Tags("UC017: 担当者ログイン")]
 public class AdminAuthController : ControllerBase
 {
     private readonly ILoginAdminUsecase _loginAdminUsecase;
@@ -33,6 +33,7 @@ public class AdminAuthController : ControllerBase
     /// <param name="request">担当者ログインリクエスト</param>
     /// <returns>担当者ログイン結果</returns>
     [HttpPost("login")]
+    [Tags("UC017: 担当者ログイン")]
     [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status401Unauthorized)]
@@ -82,6 +83,24 @@ public class AdminAuthController : ControllerBase
                     "担当者ログイン中にエラーが発生しました。",
                     null));
         }
+    }
+
+    /// <summary>
+    /// 担当者ログアウトを実行する
+    /// </summary>
+    /// <returns>担当者ログアウト結果</returns>
+    [Authorize]
+    [HttpPost("logout")]
+    [Tags("UC018: 担当者ログアウト")]
+    [ProducesResponseType(typeof(ApiResponse<AdminLogoutResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> LogoutAsync()
+    {
+        await HttpContext.SignOutAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme);
+
+        return Ok(ApiResponse<AdminLogoutResult>.Ok(
+            AdminLogoutResult.CreateLoggedOut()));
     }
 
     /// <summary>
