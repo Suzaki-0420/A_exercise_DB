@@ -15,6 +15,7 @@ public class SearchProductByCategoryControllerTests
     {
         var usecaseMock = new Mock<ISearchProductByCategoryUsecase>();
         var category = new ProductCategory("食品");
+        var categoryId = Guid.Parse("e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
 
         var products = new List<Product>
         {
@@ -37,13 +38,14 @@ public class SearchProductByCategoryControllerTests
             )
         };
         usecaseMock
-            .Setup(u => u.ExecuteAsync(1))
+            .Setup(u => u.ExecuteAsync(categoryId))
             .ReturnsAsync(products);
         var controller = new SearchProductByCategory(usecaseMock.Object);
 
 
+
         // Act（実行）
-        var result = await controller.Search(1);
+        var result = await controller.Search(categoryId);
 
 
         // Assert（確認）
@@ -53,7 +55,7 @@ public class SearchProductByCategoryControllerTests
         Assert.AreEqual(200, okResult.StatusCode);
 
         usecaseMock.Verify(
-            u => u.ExecuteAsync(1),
+            u => u.ExecuteAsync(categoryId),
             Times.Once);
     }
 
@@ -62,18 +64,18 @@ public class SearchProductByCategoryControllerTests
     {
         // Arrange（準備）
         var usecaseMock = new Mock<ISearchProductByCategoryUsecase>();
-
+        var categoryId = Guid.Parse("e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
         var products = new List<Product>();
 
         usecaseMock
-            .Setup(u => u.ExecuteAsync(1))
+            .Setup(u => u.ExecuteAsync(categoryId))
             .ReturnsAsync(products);
 
         var controller = new SearchProductByCategory(usecaseMock.Object);
 
 
         // Act（実行）
-        var result = await controller.Search(1);
+        var result = await controller.Search(categoryId);
 
 
         // Assert（確認）
@@ -83,7 +85,7 @@ public class SearchProductByCategoryControllerTests
         Assert.AreEqual(200, okResult.StatusCode);
 
         usecaseMock.Verify(
-            u => u.ExecuteAsync(1),
+            u => u.ExecuteAsync(categoryId),
             Times.Once);
     }
 }

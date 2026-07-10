@@ -38,9 +38,9 @@ public class SearchProductByCategoryUsecaseTests
                 0
             )
         };
-
+        var categoryId = Guid.Parse("e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
         repositoryMock
-            .Setup(r => r.SelectByProductCategoryIdAsync(1))
+            .Setup(r => r.SelectByProductCategoryIdAsync(categoryId))
             .ReturnsAsync(products);
 
 
@@ -48,7 +48,7 @@ public class SearchProductByCategoryUsecaseTests
 
 
         // Act（実行）
-        var result = await usecase.ExecuteAsync(1);
+        var result = await usecase.ExecuteAsync(categoryId);
 
 
         // Assert（確認）
@@ -61,11 +61,12 @@ public class SearchProductByCategoryUsecaseTests
     {
         var repositoryMock = new Mock<IProductRepository>();
         var products = new List<Product>();
+        var categoryId = Guid.Parse("e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
         repositoryMock
-           .Setup(r => r.SelectByProductCategoryIdAsync(1))
+           .Setup(r => r.SelectByProductCategoryIdAsync(categoryId))
            .ReturnsAsync(products);
         var usecase = new SearchProductByCategoryUsecase(repositoryMock.Object);
-        var result = await usecase.ExecuteAsync(1);
+        var result = await usecase.ExecuteAsync(categoryId);
         Assert.IsNotNull(result);
         Assert.HasCount(0, result);
     }
