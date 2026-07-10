@@ -32,14 +32,14 @@ public class UpdateProductController : ControllerBase
     /// <param name="productUuid">商品識別ID(UUID)</param>
     /// <param name="request">商品修正リクエスト</param>
     /// <returns>商品修正結果</returns>
-    [HttpPut("{productUuid}")]
+    [HttpPut("/admin/product/edit/{productId}")]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateAsync(
-        string productUuid,
+        [FromRoute(Name = "productId")] string productUuid,
         [FromBody] UpdateProductViewModel? request)
     {
         if (request is null)
