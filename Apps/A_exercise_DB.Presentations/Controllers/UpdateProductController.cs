@@ -58,6 +58,8 @@ public class UpdateProductController : ControllerBase
                 request.StockQuantity,
                 request.CategoryUuid,
                 null);
+            Console.WriteLine("コントローラーに渡す数チェック");
+            Console.WriteLine(request.StockQuantity);
 
             var result = await _updateProductUsecase.UpdateAsync(productUuid, updateRequest);
 

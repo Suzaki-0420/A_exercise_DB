@@ -88,6 +88,22 @@ public class Product
 
         ValidatePrice(productPrice);
         Price = productPrice;
+
+
+    }
+    public Product(Guid productUuid, string productName, int productPrice, int deleteFlg)
+    {
+        ValidateProductUuid(productUuid);
+        ProductUuid = productUuid;
+
+        ValidateProductName(productName);
+        Name = productName;
+
+        ValidatePrice(productPrice);
+        Price = productPrice;
+
+        ValidateDeleteFlg(deleteFlg);
+        DeleteFlg = deleteFlg;
     }
     /// <summary>
     /// 商品識別IDの検証

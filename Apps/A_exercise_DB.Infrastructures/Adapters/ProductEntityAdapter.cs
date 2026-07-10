@@ -25,6 +25,7 @@ IConverter<Product, ProductEntity>, IRestorer<Product, ProductEntity>
         entity.ProductUuid = domain.ProductUuid;
         entity.Name = domain.Name;
         entity.Price = domain.Price;
+        entity.DeleteFlg = domain.DeleteFlg;
         return Task.FromResult(entity);
     }
 
@@ -38,7 +39,7 @@ IConverter<Product, ProductEntity>, IRestorer<Product, ProductEntity>
         // 引数targetがnullの場合
         _ = target ?? throw new InternalException("引数targetがnullです。");
         // ProductEntityからドメインオブジェクト:Productを復元する
-        var domain = new Product(target.ProductUuid, target.Name, target.Price);
+        var domain = new Product(target.ProductUuid, target.Name, target.Price, target.DeleteFlg);
         return Task.FromResult(domain);
     }
 }
