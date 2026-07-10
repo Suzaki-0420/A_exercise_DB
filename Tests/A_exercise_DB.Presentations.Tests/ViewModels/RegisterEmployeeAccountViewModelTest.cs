@@ -168,7 +168,7 @@ public class RegisterEmployeeAccountViewModelTest
         // Assert
         AssertValidationError(
             results,
-            "アカウント名は半角英数字で入力してください",
+            "アカウント名は半角英数字で入力し、同じ文字のみの登録はできません",
             nameof(RegisterEmployeeAccountViewModel.AccountName));
     }
 
@@ -285,7 +285,7 @@ public class RegisterEmployeeAccountViewModelTest
         // Assert
         AssertValidationError(
             results,
-            "パスワードは半角英数字で入力してください",
+            "パスワードは半角英数字で入力し、同じ文字のみの登録はできません",
             nameof(RegisterEmployeeAccountViewModel.Password));
     }
 
@@ -348,5 +348,59 @@ public class RegisterEmployeeAccountViewModelTest
                 x.ErrorMessage == errorMessage
                 && x.MemberNames.Contains(memberName)),
             $"期待した検証エラーが見つかりません。ErrorMessage: {errorMessage}, MemberName: {memberName}");
+    }
+
+    [TestMethod]
+    public void AccountName_WhenSameCharacterOnly_ShouldBeInvalid()
+    {
+        // Arrange
+        var model = new RegisterEmployeeAccountViewModel
+        {
+            EmployeeUuid = Guid.NewGuid(),
+            AccountName = "AAAAA",
+            Password = "abcde1"
+        };
+
+        var context = new ValidationContext(model);
+        var results = new List<ValidationResult>();
+
+        // Act
+        var isValid = Validator.TryValidateObject(
+            model,
+            context,
+            results,
+            true);
+
+        // Assert
+        Assert.IsFalse(isValid);
+        Assert.IsTrue(results.Any(r =>
+            r.ErrorMessage == "アカウント名は半角英数字で入力し、同じ文字のみの登録はできません"));
+    }
+
+    [TestMethod]
+    public void Password_WhenSameCharacterOnly_ShouldBeInvalid()
+    {
+        // Arrange
+        var model = new RegisterEmployeeAccountViewModel
+        {
+            EmployeeUuid = Guid.NewGuid(),
+            AccountName = "user01",
+            Password = "11111"
+        };
+
+        var context = new ValidationContext(model);
+        var results = new List<ValidationResult>();
+
+        // Act
+        var isValid = Validator.TryValidateObject(
+            model,
+            context,
+            results,
+            true);
+
+        // Assert
+        Assert.IsFalse(isValid);
+        Assert.IsTrue(results.Any(r =>
+            r.ErrorMessage == "パスワードは半角英数字で入力し、同じ文字のみの登録はできません"));
     }
 }
