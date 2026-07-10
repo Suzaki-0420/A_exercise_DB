@@ -69,5 +69,5 @@ public class ProductCategory
     public override int GetHashCode() => CategoryUuid.GetHashCode();
 
     public override string ToString()
-        => $"{CategoryUuid.ToString() ?? "未登録"}: {Name}";
+        => $"{CategoryUuid}: {Name}";
 }

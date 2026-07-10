@@ -116,5 +116,5 @@ public class Employee
     public override int GetHashCode() => EmployeeUuid.GetHashCode();
 
     public override string ToString()
-        => $"{EmployeeUuid.ToString() ?? "未登録"}: {Name},{Kana} / {Department?.Name}";
+        => $"{EmployeeUuid}: {Name},{Kana} / {Department?.Name}";
 }

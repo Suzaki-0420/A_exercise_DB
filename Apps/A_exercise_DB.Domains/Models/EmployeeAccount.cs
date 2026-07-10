@@ -108,5 +108,5 @@ public class EmployeeAccount
     public override int GetHashCode() => AccountUuid.GetHashCode();
 
     public override string ToString()
-        => $"{AccountUuid.ToString() ?? "未登録"}: {Name} / / {Employee?.Name}";
+        => $"{AccountUuid}: {Name} / / {Employee?.Name}";
 }

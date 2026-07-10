@@ -73,5 +73,5 @@ public class OrderStatus
     public override int GetHashCode() => Id.GetHashCode();
 
     public override string ToString()
-        => $"{Id.ToString() ?? "未登録"}: {Name}";
+        => $"{Id}: {Name}";
 }

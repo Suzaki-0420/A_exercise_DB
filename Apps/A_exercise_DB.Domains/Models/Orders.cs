@@ -119,5 +119,5 @@ public class Orders
     public override int GetHashCode() => OrderUuid.GetHashCode();
 
     public override string ToString()
-        => $"{OrderUuid.ToString() ?? "未登録"}: {OrderDate}, {AmountTotal} / {Customer?.Name} / {OrderStatus?.Name} / {PaymentMethod?.Name}";
+        => $"{OrderUuid}: {OrderDate}, {AmountTotal} / {Customer?.Name} / {OrderStatus?.Name} / {PaymentMethod?.Name}";
 }

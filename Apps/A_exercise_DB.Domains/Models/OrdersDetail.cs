@@ -77,5 +77,5 @@ public class OrdersDetail
     }
 
     public override string ToString()
-        => $"{Id.ToString() ?? "未登録"}: {Count} / {Product.Name}";
+        => $"{Id}: {Count} / {Product.Name}";
 }

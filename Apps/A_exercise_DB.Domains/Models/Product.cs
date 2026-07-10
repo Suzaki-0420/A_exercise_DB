@@ -210,5 +210,5 @@ public class Product
     public override int GetHashCode() => ProductUuid.GetHashCode();
 
     public override string ToString()
-        => $"{ProductUuid.ToString() ?? "未登録"}: {Name},{Price}円,{ImageUrl} / {ProductCategory?.Name} / {DeleteFlg}";
+        => $"{ProductUuid}: {Name},{Price}円,{ImageUrl} / {ProductCategory?.Name} / {DeleteFlg}";
 }

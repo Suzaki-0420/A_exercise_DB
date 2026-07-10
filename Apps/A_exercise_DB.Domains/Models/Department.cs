@@ -69,5 +69,5 @@ public class Department
     public override int GetHashCode() => DepartmentUuid.GetHashCode();
 
     public override string ToString()
-        => $"{DepartmentUuid.ToString() ?? "未登録"}: {Name}";
+        => $"{DepartmentUuid}: {Name}";
 }

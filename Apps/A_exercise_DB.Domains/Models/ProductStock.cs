@@ -65,5 +65,5 @@ public class ProductStock
     public override int GetHashCode() => StockUuid.GetHashCode();
 
     public override string ToString()
-        => $"{StockUuid.ToString() ?? "未登録"}: {Quantity}";
+        => $"{StockUuid}: {Quantity}";
 }
