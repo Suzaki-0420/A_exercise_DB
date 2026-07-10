@@ -92,7 +92,7 @@ public class ProductRepository : IProductRepository
     /// </summary>
     /// <param name="productCategoryId">商品カテゴリID</param>
     /// <returns>Productのリスト</returns>
-    public async Task<List<Product>> SelectByProductCategoryIdAsync(int productCategoryId)
+    public async Task<List<Product>> SelectByProductCategoryIdAsync(Guid productCategoryUuid)
     {
         try
         {
@@ -101,7 +101,7 @@ public class ProductRepository : IProductRepository
                 .AsNoTracking()
                 .Include(p => p.ProductStock)
                 .Include(p => p.ProductCategory)
-                .Where(p => p.ProductCategoryId == productCategoryId && p.DeleteFlg == 0)
+                .Where(p => p.ProductCategory.CategoryUuid == productCategoryUuid && p.DeleteFlg == 0)
                 .ToListAsync();
 
             // List<ProductEntity>からList<Product>を復元する
@@ -112,7 +112,7 @@ public class ProductRepository : IProductRepository
         catch (Exception ex)
         {
             throw new InternalException(
-                $"商品カテゴリID:{productCategoryId}の商品取得時に予期しないエラーが発生しました。",
+                $"商品カテゴリID:{productCategoryUuid}の商品取得時に予期しないエラーが発生しました。",
                 ex
             );
         }

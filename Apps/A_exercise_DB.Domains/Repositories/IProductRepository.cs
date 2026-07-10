@@ -19,7 +19,7 @@ public interface IProductRepository
     /// </summary>
     /// <param name="productCategoryId">商品カテゴリID</param>
     /// <returns>Productのリスト</returns>
-    Task<List<Product>> SelectByProductCategoryIdAsync(int productCategoryId);
+    Task<List<Product>> SelectByProductCategoryIdAsync(Guid productCategoryUuid);
 
     /// <summary>
     /// 指定されたキーワードを商品名に含む商品情報を取得する

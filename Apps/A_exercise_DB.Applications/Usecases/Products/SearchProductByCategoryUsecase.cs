@@ -22,7 +22,7 @@ public class SearchProductByCategoryUsecase : ISearchProductByCategoryUsecase
     /// <param name="productCategoryId">商品カテゴリー</param>
     /// <returns>カテゴリー検索結果</returns>
     // <exception cref="NotFoundException">該当データが存在しない場合にスローされる</exception>
-    public async Task<List<Product>> ExecuteAsync(int productCategoryId)
+    public async Task<List<Product>> ExecuteAsync(Guid productCategoryId)
     {
         var result = await _repository
             .SelectByProductCategoryIdAsync(productCategoryId);
