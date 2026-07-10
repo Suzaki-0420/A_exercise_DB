@@ -43,10 +43,30 @@ public class OrdersEntityAdapterTests
             "クレジットカード"
         );
 
+        var product1 = new Product(
+            Guid.NewGuid(),
+            "りんご",
+            100,
+            "/images/apple.png",
+            null,
+            null,
+            0
+        );
+
+        var product2 = new Product(
+            Guid.NewGuid(),
+            "みかん",
+            200,
+            "/images/orange.png",
+            null,
+            null,
+            0
+        );
+
         var details = new List<OrdersDetail>
         {
-            new OrdersDetail(3),
-            new OrdersDetail(5)
+            new OrdersDetail(product1, 3),
+            new OrdersDetail(product2, 5)
         };
 
         var orders = new Orders(

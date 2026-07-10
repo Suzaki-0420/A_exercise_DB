@@ -17,20 +17,6 @@ public class OrdersDetailEntityAdapterTests
     }
 
     [TestMethod]
-    public async Task ConvertAsync_OrdersDetailをOrdersDetailEntityに変換できる()
-    {
-        // Arrange
-        var ordersDetail = new OrdersDetail(3);
-
-        // Act
-        var result = await _adapter.ConvertAsync(ordersDetail);
-
-        // Assert
-        Assert.IsNotNull(result);
-        Assert.AreEqual(ordersDetail.Count, result.Count);
-    }
-
-    [TestMethod]
     public async Task ConvertAsync_引数がnullの場合InternalExceptionをthrowする()
     {
         // Act & Assert

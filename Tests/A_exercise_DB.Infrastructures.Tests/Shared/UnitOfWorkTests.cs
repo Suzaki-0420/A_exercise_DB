@@ -48,7 +48,7 @@ public class UnitOfWorkTests
     /// <summary>
     /// BeginAsync()を呼び出すとトランザクションが開始されることを検証する
     /// </summary>
-    [TestMethod("トランザクションが開始される")]
+    [TestMethod(DisplayName = "トランザクションが開始される")]
     public async Task BeginAsync_ShouldStartTransaction()
     {
         // トランザクションを開始
@@ -60,7 +60,7 @@ public class UnitOfWorkTests
     /// <summary>
     /// CommitAsync()を呼び出すとトランザクションがコミット・破棄されることを検証する
     /// </summary>
-    [TestMethod("トランザクションがコミットされる")]
+    [TestMethod(DisplayName = "トランザクションがコミットされる")]
     public async Task CommitAsync_ShouldCommitTransaction()
     {
         // トランザクションを開始
@@ -75,7 +75,7 @@ public class UnitOfWorkTests
     /// <summary>
     /// RollbackAsync()を呼び出すとトランザクションがロールバック・破棄されることを検証する
     /// </summary>
-    [TestMethod("トランザクションがロールバックされる")]
+    [TestMethod(DisplayName = "トランザクションがロールバックされる")]
     public async Task RollbackAsync_ShouldRollbackTransaction()
     {
         // トランザクションを開始

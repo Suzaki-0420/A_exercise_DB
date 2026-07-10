@@ -266,31 +266,6 @@ public class OrdersDetailTests
         Assert.AreEqual("合計金額は0以上で入力してください", ex.Message);
     }
 
-    [TestMethod(DisplayName = "注文・商品なしコンストラクタで数量が設定される")]
-    public void Constructor_CountOnly_ShouldSetCount()
-    {
-        // データを用意する
-        var count = 3;
-
-        // インスタンスを生成する
-        var ordersDetail = new OrdersDetail(count);
-
-        // 数量を検証する
-        Assert.AreEqual(count, ordersDetail.Count);
-    }
-
-    [TestMethod(DisplayName = "注文・商品なしコンストラクタで数量が負数の場合、DomainExceptionがスローされる")]
-    public void Constructor_CountOnly_NegativeCount_ShouldThrowDomainException()
-    {
-        var ex = Assert.ThrowsExactly<DomainException>(() =>
-        {
-            _ = new OrdersDetail(-1);
-        });
-
-        // 例外メッセージを検証する
-        Assert.AreEqual("合計金額は0以上で入力してください", ex.Message);
-    }
-
     [TestMethod(DisplayName = "同一インスタンスの場合、等価と判定される")]
     public void Equals_WithSameInstance_ShouldReturnTrue()
     {
@@ -379,16 +354,5 @@ public class OrdersDetailTests
         StringAssert.Contains(result, detailId.ToString());
         StringAssert.Contains(result, count.ToString());
         StringAssert.Contains(result, "商品A");
-    }
-
-    [TestMethod(DisplayName = "OrdersまたはProductが未設定の場合、ToStringで例外になる可能性を確認する")]
-    public void ToString_WithUnsetOrdersOrProduct_ShouldThrowException()
-    {
-        var ordersDetail = new OrdersDetail(3);
-
-        Assert.ThrowsExactly<NullReferenceException>(() =>
-        {
-            _ = ordersDetail.ToString();
-        });
     }
 }

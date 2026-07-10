@@ -463,7 +463,7 @@ public class OrdersTests
         // データを用意する
         var ordersDetails = new List<OrdersDetail>
     {
-        new OrdersDetail(1)
+        CreateOrdersDetail(1, "商品A", 3)
     };
 
         // インスタンスを生成する
@@ -480,7 +480,7 @@ public class OrdersTests
         var orders = CreateOrders();
 
         // 追加する注文明細を用意する
-        var ordersDetail = new OrdersDetail(1);
+        var ordersDetail = CreateOrdersDetail(1, "商品A", 3);
 
         // 注文明細を追加する
         orders.AddOrderDetail(ordersDetail);
@@ -503,5 +503,42 @@ public class OrdersTests
 
         // 例外メッセージを検証する
         Assert.AreEqual("注文明細は必須です。", ex.Message);
+    }
+
+    /// <summary>
+    /// ヘルパー：有効な商品を作成する
+    /// </summary>
+    private Product CreateProduct(string productName = "テスト商品")
+    {
+        var product = new Product(
+            Guid.NewGuid(),
+            productName,
+            1000
+        );
+
+        product.ChangeCategory(
+            new ProductCategory(Guid.NewGuid(), "食品")
+        );
+
+        product.ChangeStock(
+            new ProductStock(Guid.NewGuid(), 10)
+        );
+
+        return product;
+    }
+
+    /// <summary>
+    /// ヘルパー：有効な注文明細を作成する
+    /// </summary>
+    private OrdersDetail CreateOrdersDetail(
+        int detailId = 1,
+        string productName = "テスト商品",
+        int count = 1)
+    {
+        return new OrdersDetail(
+            detailId,
+            CreateProduct(productName),
+            count
+        );
     }
 }

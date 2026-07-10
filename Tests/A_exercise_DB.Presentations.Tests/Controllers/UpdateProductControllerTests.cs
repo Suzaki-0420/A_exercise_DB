@@ -62,7 +62,7 @@ public class UpdateProductControllerTests
         Assert.IsNotNull(response);
         Assert.IsTrue(response.Success);
         Assert.AreEqual(expectedResult, response.Data);
-        Assert.AreEqual(0, response.Errors.Count);
+        Assert.IsEmpty(response.Errors);
 
         _updateProductUsecaseMock.VerifyAll();
     }
@@ -190,7 +190,7 @@ public class UpdateProductControllerTests
         Assert.IsNotNull(response);
         Assert.IsFalse(response.Success);
         Assert.IsNull(response.Data);
-        Assert.AreEqual(1, response.Errors.Count);
+        Assert.HasCount(1, response.Errors);
         Assert.AreEqual(expectedCode, response.Errors[0].Code);
         Assert.AreEqual(expectedMessage, response.Errors[0].Message);
         Assert.AreEqual(expectedField, response.Errors[0].Field);

@@ -243,7 +243,7 @@ public class ProductRepositoryTests
         var products = await _repository.SearchKeywordAsync("存在しない商品");
 
         Assert.IsNotNull(products);
-        Assert.AreEqual(0, products.Count);
+        Assert.IsEmpty(products);
     }
 
     [TestMethod(DisplayName = "SearchKeywordAsyncでDB接続エラー時にInternalExceptionが発生する")]

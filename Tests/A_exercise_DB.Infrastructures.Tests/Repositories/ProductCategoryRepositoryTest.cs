@@ -70,7 +70,7 @@ public class ProductCategoryRepositoryTests
 
         Assert.IsNotNull(categories);
         Assert.IsInstanceOfType(categories, typeof(List<ProductCategory>));
-        Assert.IsTrue(categories.Count > 0);
+        Assert.IsNotEmpty(categories);
         Assert.IsTrue(categories.Any(c => c.CategoryUuid == _categoryUuid));
     }
 

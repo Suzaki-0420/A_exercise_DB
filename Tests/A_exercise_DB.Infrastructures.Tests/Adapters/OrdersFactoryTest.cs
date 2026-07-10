@@ -31,12 +31,11 @@ public class OrdersFactoryTests
 
         var orderStatus = new OrderStatus(1, "注文受付");
         var paymentMethod = new PaymentMethod(2, "クレジットカード");
-
         var details = new List<OrdersDetail>
-        {
-            new OrdersDetail(3),
-            new OrdersDetail(5)
-        };
+{
+    new OrdersDetail(1, CreateProduct("商品A"), 3),
+    new OrdersDetail(2, CreateProduct("商品B"), 5)
+};
 
         var order = new Orders(
             Guid.NewGuid(),
@@ -210,5 +209,24 @@ public class OrdersFactoryTests
                 DeleteFlg = 0
             }
         };
+    }
+
+    private static Product CreateProduct(string productName)
+    {
+        var product = new Product(
+            Guid.NewGuid(),
+            productName,
+            1000
+        );
+
+        product.ChangeCategory(
+            new ProductCategory(Guid.NewGuid(), "食品")
+        );
+
+        product.ChangeStock(
+            new ProductStock(Guid.NewGuid(), 10)
+        );
+
+        return product;
     }
 }

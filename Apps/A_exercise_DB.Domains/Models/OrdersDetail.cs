@@ -41,15 +41,6 @@ public class OrdersDetail
     }
 
     /// <summary>
-    /// 注文・商品なしコンストラクタ
-    /// </summary>
-    public OrdersDetail(int count)
-    {
-        ValidateCount(count);
-        Count = count;
-    }
-
-    /// <summary>
     /// 注文明細IDの検証
     /// </summary>
     private void ValidateDetailId(int detailId)
@@ -78,6 +69,11 @@ public class OrdersDetail
         if (obj is not OrdersDetail other) return false;
 
         return Id == other.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
     }
 
     public override string ToString()
