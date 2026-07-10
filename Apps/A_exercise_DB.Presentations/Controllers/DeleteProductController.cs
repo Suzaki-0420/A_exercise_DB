@@ -30,13 +30,14 @@ public class DeleteProductController : ControllerBase
     /// </summary>
     /// <param name="productUuid">商品識別ID(UUID)</param>
     /// <returns>商品削除結果</returns>
-    [HttpDelete("{productUuid}")]
+    [HttpDelete("/admin/product/delete/{productId}")]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteAsync(string productUuid)
+    public async Task<IActionResult> DeleteAsync(
+        [FromRoute(Name = "productId")] string productUuid)
     {
         try
         {
