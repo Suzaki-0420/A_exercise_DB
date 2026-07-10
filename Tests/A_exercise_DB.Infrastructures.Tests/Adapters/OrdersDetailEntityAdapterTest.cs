@@ -45,9 +45,20 @@ public class OrdersDetailEntityAdapterTests
     public async Task RestoreAsync_OrdersDetailEntityからOrdersDetailを復元できる()
     {
         // Arrange
+        var productUuid = Guid.NewGuid();
+
         var entity = new OrdersDetailEntity
         {
-            Count = 3
+            Id = 1,
+            Count = 3,
+            Product = new ProductEntity
+            {
+                ProductUuid = productUuid,
+                Name = "テスト商品",
+                Price = 1000,
+                ImageUrl = "https://example.com/product.png",
+                DeleteFlg = 0
+            }
         };
 
         // Act
@@ -55,7 +66,12 @@ public class OrdersDetailEntityAdapterTests
 
         // Assert
         Assert.IsNotNull(result);
+        Assert.AreEqual(entity.Id, result.Id);
         Assert.AreEqual(entity.Count, result.Count);
+
+        Assert.IsNotNull(result.Product);
+        Assert.AreEqual(productUuid, result.Product.ProductUuid);
+        Assert.AreEqual("テスト商品", result.Product.Name);
     }
 
     [TestMethod]

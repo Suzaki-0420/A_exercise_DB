@@ -104,8 +104,8 @@ public class OrdersFactoryTests
             },
             OrderDetails = new List<OrdersDetailEntity>
             {
-                new OrdersDetailEntity { Count = 3 },
-                new OrdersDetailEntity { Count = 5 }
+                CreateOrdersDetailEntity(1, 3, "商品A"),
+                CreateOrdersDetailEntity(2, 5, "商品B")
             }
         };
 
@@ -185,7 +185,29 @@ public class OrdersFactoryTests
             },
             OrderDetails = new List<OrdersDetailEntity>
             {
-                new OrdersDetailEntity { Count = count }
+                CreateOrdersDetailEntity(
+                    1,
+                    count,
+                    "テスト商品")
+            }
+        };
+    }
+
+    private static OrdersDetailEntity CreateOrdersDetailEntity(
+        int id,
+        int count,
+        string productName)
+    {
+        return new OrdersDetailEntity
+        {
+            Id = id,
+            Count = count,
+            Product = new ProductEntity
+            {
+                ProductUuid = Guid.NewGuid(),
+                Name = productName,
+                Price = 1000,
+                DeleteFlg = 0
             }
         };
     }
