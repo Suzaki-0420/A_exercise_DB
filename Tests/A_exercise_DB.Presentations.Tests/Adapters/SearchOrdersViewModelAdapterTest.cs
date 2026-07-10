@@ -300,7 +300,6 @@ public class SearchOrdersViewModelAdapterTest
 
         // Assert
         Assert.IsNotNull(actual);
-        Assert.AreEqual("購入履歴検索", actual.Title);
         Assert.IsNull(actual.Message);
         Assert.HasCount(1, actual.OrderList);
 
@@ -328,7 +327,6 @@ public class SearchOrdersViewModelAdapterTest
 
         // Assert
         Assert.IsNotNull(actual);
-        Assert.AreEqual("購入履歴検索", actual.Title);
         Assert.IsEmpty(actual.OrderList);
         Assert.AreEqual("該当する注文が見つかりませんでした", actual.Message);
     }

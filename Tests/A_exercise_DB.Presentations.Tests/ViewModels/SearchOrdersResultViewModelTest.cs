@@ -19,7 +19,6 @@ public class SearchOrdersResultViewModelTest
         var model = new SearchOrdersResultViewModel();
 
         // Assert
-        Assert.AreEqual("購入履歴検索", model.Title);
         Assert.IsNotNull(model.OrderList);
         Assert.IsEmpty(model.OrderList);
         Assert.IsNull(model.Message);
@@ -50,13 +49,11 @@ public class SearchOrdersResultViewModelTest
         // Act
         var model = new SearchOrdersResultViewModel
         {
-            Title = "検索結果",
             OrderList = orderList,
             Message = "1件見つかりました"
         };
 
         // Assert
-        Assert.AreEqual("検索結果", model.Title);
         Assert.AreSame(orderList, model.OrderList);
         Assert.HasCount(1, model.OrderList);
         Assert.AreEqual(orderUuid, model.OrderList[0].OrderUuid);

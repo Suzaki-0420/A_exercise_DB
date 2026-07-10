@@ -77,7 +77,6 @@ public class SearchOrdersControllerTest
 
         var viewModel = okResult.Value as SearchOrdersResultViewModel;
         Assert.IsNotNull(viewModel);
-        Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsNull(viewModel.Message);
         Assert.HasCount(1, viewModel.OrderList);
 
@@ -114,7 +113,6 @@ public class SearchOrdersControllerTest
 
         var viewModel = okResult.Value as SearchOrdersResultViewModel;
         Assert.IsNotNull(viewModel);
-        Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsEmpty(viewModel.OrderList);
         Assert.AreEqual("注文が登録されていません", viewModel.Message);
 
@@ -214,7 +212,6 @@ public class SearchOrdersControllerTest
 
         var viewModel = okResult.Value as SearchOrdersResultViewModel;
         Assert.IsNotNull(viewModel);
-        Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsNull(viewModel.Message);
         Assert.HasCount(1, viewModel.OrderList);
 
@@ -268,7 +265,6 @@ public class SearchOrdersControllerTest
 
         var viewModel = okResult.Value as SearchOrdersResultViewModel;
         Assert.IsNotNull(viewModel);
-        Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsNull(viewModel.Message);
         Assert.HasCount(1, viewModel.OrderList);
 
@@ -298,7 +294,6 @@ public class SearchOrdersControllerTest
 
         var viewModel = okResult.Value as SearchOrdersResultViewModel;
         Assert.IsNotNull(viewModel);
-        Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsEmpty(viewModel.OrderList);
         Assert.AreEqual("該当する注文が見つかりませんでした", viewModel.Message);
 
