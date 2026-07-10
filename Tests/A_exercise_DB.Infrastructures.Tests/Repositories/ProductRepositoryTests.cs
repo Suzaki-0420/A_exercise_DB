@@ -196,10 +196,12 @@ public class ProductRepositoryTests
             .AsNoTracking()
             .SingleAsync(c => c.Name == "文房具");
 
-        var products = await _repository.SelectByProductCategoryIdAsync(categoryEntity.Id);
+        var products = await _repository.SelectByProductCategoryIdAsync(
+        categoryEntity.CategoryUuid,
+        false);
 
         Assert.IsNotNull(products);
-        Assert.IsTrue(products.Count > 0);
+        Assert.IsNotEmpty(products);
         Assert.IsTrue(products.All(p => p.ProductCategory is not null));
         Assert.IsTrue(products.All(p => p.ProductStock is not null));
         Assert.IsTrue(products.All(p => p.DeleteFlg == 0));
@@ -221,7 +223,9 @@ public class ProductRepositoryTests
 
         await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await repository.SelectByProductCategoryIdAsync(1);
+            await repository.SelectByProductCategoryIdAsync(
+            Guid.NewGuid(),
+            false);
         });
     }
     [TestMethod(DisplayName = "キーワードに一致する商品一覧を取得できる")]

@@ -9,13 +9,17 @@ namespace A_exercise_DB.Applications.Tests.Usecases.Products;
 [TestClass]
 public class SearchProductByCategoryUsecaseTests
 {
-    [TestMethod(DisplayName = "カテゴリ別に商品を取得して商品リストを返す")]
-    public async Task GetProductsByCategory_ReturnsProductList()
+    [TestMethod(DisplayName = "カテゴリ別に未削除の商品を取得して商品リストを返す")]
+    public async Task ExecuteAsync_WhenProductsExist_ShouldReturnProductList()
     {
-        // Arrange（準備）
+        // Arrange
         var repositoryMock = new Mock<IProductRepository>();
 
         var category = new ProductCategory("食品");
+        var categoryUuid = Guid.Parse(
+            "e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
+
+        const bool showDeletedOnly = false;
 
         var products = new List<Product>
         {
@@ -26,8 +30,8 @@ public class SearchProductByCategoryUsecaseTests
                 "",
                 category,
                 new ProductStock(10),
-                0
-            ),
+                0),
+
             new Product(
                 Guid.NewGuid(),
                 "みかん",
@@ -35,40 +39,108 @@ public class SearchProductByCategoryUsecaseTests
                 "",
                 category,
                 new ProductStock(5),
-                0
-            )
+                0)
         };
-        var categoryId = Guid.Parse("e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
+
         repositoryMock
-            .Setup(r => r.SelectByProductCategoryIdAsync(categoryId))
+            .Setup(r => r.SelectByProductCategoryIdAsync(
+                categoryUuid,
+                showDeletedOnly))
             .ReturnsAsync(products);
 
+        var usecase =
+            new SearchProductByCategoryUsecase(
+                repositoryMock.Object);
 
-        var usecase = new SearchProductByCategoryUsecase(repositoryMock.Object);
+        // Act
+        var result = await usecase.ExecuteAsync(
+            categoryUuid,
+            showDeletedOnly);
 
-
-        // Act（実行）
-        var result = await usecase.ExecuteAsync(categoryId);
-
-
-        // Assert（確認）
+        // Assert
         Assert.IsNotNull(result);
         Assert.HasCount(2, result);
+        Assert.AreSame(products, result);
+
+        repositoryMock.Verify(
+            r => r.SelectByProductCategoryIdAsync(
+                categoryUuid,
+                showDeletedOnly),
+            Times.Once);
     }
 
-    [TestMethod(DisplayName = "カテゴリ検索をして空のリストを返す")]
-    public async Task ReturnAnEmptyProductList()
+    [TestMethod(DisplayName = "カテゴリ検索で対象商品がない場合、空のリストを返す")]
+    public async Task ExecuteAsync_WhenProductsDoNotExist_ShouldReturnEmptyList()
     {
+        // Arrange
         var repositoryMock = new Mock<IProductRepository>();
+
+        var categoryUuid = Guid.Parse(
+            "e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
+
+        const bool showDeletedOnly = false;
+
         var products = new List<Product>();
-        var categoryId = Guid.Parse("e50d978b-b73d-4afb-8e85-ace9cf1e12a7");
+
         repositoryMock
-           .Setup(r => r.SelectByProductCategoryIdAsync(categoryId))
-           .ReturnsAsync(products);
-        var usecase = new SearchProductByCategoryUsecase(repositoryMock.Object);
-        var result = await usecase.ExecuteAsync(categoryId);
+            .Setup(r => r.SelectByProductCategoryIdAsync(
+                categoryUuid,
+                showDeletedOnly))
+            .ReturnsAsync(products);
+
+        var usecase =
+            new SearchProductByCategoryUsecase(
+                repositoryMock.Object);
+
+        // Act
+        var result = await usecase.ExecuteAsync(
+            categoryUuid,
+            showDeletedOnly);
+
+        // Assert
         Assert.IsNotNull(result);
-        Assert.HasCount(0, result);
+        Assert.IsEmpty(result);
+
+        repositoryMock.Verify(
+            r => r.SelectByProductCategoryIdAsync(
+                categoryUuid,
+                showDeletedOnly),
+            Times.Once);
     }
 
+    [TestMethod(DisplayName = "削除済み商品の検索指定をRepositoryへ渡す")]
+    public async Task ExecuteAsync_WhenShowDeletedOnlyIsTrue_ShouldPassTrueToRepository()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IProductRepository>();
+
+        var categoryUuid = Guid.NewGuid();
+        const bool showDeletedOnly = true;
+
+        var products = new List<Product>();
+
+        repositoryMock
+            .Setup(r => r.SelectByProductCategoryIdAsync(
+                categoryUuid,
+                showDeletedOnly))
+            .ReturnsAsync(products);
+
+        var usecase =
+            new SearchProductByCategoryUsecase(
+                repositoryMock.Object);
+
+        // Act
+        var result = await usecase.ExecuteAsync(
+            categoryUuid,
+            showDeletedOnly);
+
+        // Assert
+        Assert.IsNotNull(result);
+
+        repositoryMock.Verify(
+            r => r.SelectByProductCategoryIdAsync(
+                categoryUuid,
+                true),
+            Times.Once);
+    }
 }
