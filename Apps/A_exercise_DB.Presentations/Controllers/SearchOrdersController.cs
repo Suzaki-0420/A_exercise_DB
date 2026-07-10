@@ -96,21 +96,26 @@ public class SearchOrdersController : ControllerBase
     [ProducesResponseType(typeof(SearchOrdersResultViewModel), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Search([FromQuery] SearchOrdersViewModel model)
+    public async Task<IActionResult> Search(
+        [FromQuery(Name = "orderDate")] string? orderDate,
+        [FromQuery(Name = "customerAccountName")] string? customerAccountName)
     {
+        var model = new SearchOrdersViewModel
+        {
+            OrderDate = orderDate,
+            CustomerAccountName = customerAccountName
+        };
+
         try
         {
-            // ViewModelから検索条件を復元する
-            var orderDate = _adapter.RestoreOrderDate(model);
-            var customerAccountName = _adapter.RestoreCustomerAccountName(model);
+            var restoredOrderDate = _adapter.RestoreOrderDate(model);
+            var restoredCustomerAccountName = _adapter.RestoreCustomerAccountName(model);
 
-            // 購入履歴を検索する
             var orders = await _searchOrdersUsecase.SearchAsync(
-                orderDate,
-                customerAccountName
+                restoredOrderDate,
+                restoredCustomerAccountName
             );
 
-            // 検索結果をViewModelへ変換する
             var viewModel = _adapter.ConvertToResultViewModel(orders);
 
             return Ok(viewModel);
