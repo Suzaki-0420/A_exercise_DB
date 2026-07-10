@@ -1,6 +1,7 @@
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Presentations.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A_exercise_DB.Presentations.Controllers;
@@ -9,6 +10,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// UC012 商品修正API
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/admin/products")]
 [Tags("UC012: 商品修正")]
 public class UpdateProductController : ControllerBase
@@ -33,6 +35,7 @@ public class UpdateProductController : ControllerBase
     [HttpPut("{productUuid}")]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<ProductUpdateCompleteResult>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateAsync(
