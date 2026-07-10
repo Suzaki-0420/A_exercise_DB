@@ -48,26 +48,30 @@ public class RegisterProductController : ControllerBase
     [SwaggerResponse(StatusCodes.Status401Unauthorized, "未認証、またはJWT トークン無効)")]
     [SwaggerResponse(StatusCodes.Status500InternalServerError, "サーバー内部エラー")]
     */
-    public async Task<IActionResult> ValidateProductName([FromQuery] string ProductName)
+    public async Task<IActionResult> ValidateProductName([FromQuery] string productName)
     {
         // カテゴリ名がnullか空白
-        if (string.IsNullOrWhiteSpace(ProductName))
+        if (string.IsNullOrWhiteSpace(productName))
         {
             return BadRequest(new
             { code = "INVALID_Product_NAME", message = "商品名は必須です。" });
         }
-        try
+        var exists =
+        await _registerProductUsecase.ExistsByProductNameAsync(productName);
+
+        if (exists)
         {
-            // 商品名の存在有無を調べる
-            await _registerProductUsecase.ExistsByProductNameAsync(ProductName);
-            return Ok(new { exists = false });
-        }
-        catch (ExistsException ex)
-        {
-            // 商品が既に存在する場合
             return Conflict(new
-            { code = "Product_ALREADY_EXISTS", message = ex.Message });
+            {
+                code = "PRODUCT_ALREADY_EXISTS",
+                message = "同じ商品名の商品が既に存在します。"
+            });
         }
+
+        return Ok(new
+        {
+            exists = false
+        });
     }
 
     /// <summary>
