@@ -112,4 +112,40 @@ public class OrdersRepository : IOrdersRepository
                 ex);
         }
     }
+
+    /// <summary>
+    /// 指定された注文UUIDの注文を取得する
+    /// ステータス更新機能のため追加（赤荻）
+    /// </summary>
+    public async Task<Orders?> FindByUuidAsync(Guid orderUuid)
+    {
+        try
+        {
+            var entity = await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderStatus)
+                .Include(o => o.PaymentMethod)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.ProductStock)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(d => d.Product)
+                        .ThenInclude(p => p.ProductCategory)
+                .SingleOrDefaultAsync(o => o.OrderUuid == orderUuid);
+
+            if (entity is null)
+            {
+                return null;
+            }
+
+            return await _factory.RestoreAsync(entity);
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                $"注文UUID:{orderUuid}の注文取得中に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
 }
