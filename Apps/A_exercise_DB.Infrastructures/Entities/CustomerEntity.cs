@@ -77,8 +77,4 @@ public class CustomerEntity
 
     public List<OrdersEntity> ListOrders { get; set; } = new();
 
-    public override string ToString()
-    {
-        return $"Id={Id},CustomerUuid={CustomerUuid},Name={Name},Address1={Address1},Address2={Address2},PhoneNumber={PhoneNumber},MailAddress={MailAddress},Username={Username},Password={Password},CreatedAt={CreatedAt}";
-    }
 }

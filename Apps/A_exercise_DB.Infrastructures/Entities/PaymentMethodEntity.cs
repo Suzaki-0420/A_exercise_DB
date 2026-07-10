@@ -23,8 +23,4 @@ public class PaymentMethodEntity
 
     public List<OrdersEntity> ListOrders { get; set; } = new();
 
-    public override string ToString()
-    {
-        return $"Id={Id},Name={Name}";
-    }
 }

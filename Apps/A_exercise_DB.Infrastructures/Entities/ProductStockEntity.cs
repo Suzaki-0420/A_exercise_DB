@@ -39,8 +39,4 @@ public class ProductStockEntity
     [ForeignKey("ProductId")]
     public ProductEntity Product { get; set; } = null!;
 
-    public override string ToString()
-    {
-        return $"Id={Id},StockUuid={StockUuid},Quantity={Quantity},ProductId={ProductId}";
-    }
 }

@@ -45,8 +45,4 @@ public class OrdersDetailEntity
     [ForeignKey("ProductId")]
     public ProductEntity Product { get; set; } = null!;
 
-    public override string ToString()
-    {
-        return $"Id={Id},OrderId={OrderId},ProductId={ProductId},Count={Count}";
-    }
 }

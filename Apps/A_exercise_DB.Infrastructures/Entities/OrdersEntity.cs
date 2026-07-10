@@ -74,8 +74,4 @@ public class OrdersEntity
     /// </summary>
     public List<OrdersDetailEntity> OrderDetails { get; set; } = new();
 
-    public override string ToString()
-    {
-        return $"Id={Id},OrderUuid={OrderUuid},OrderDate={OrderDate},AmountTotal={AmountTotal},CustomerId={CustomerId},OrderStatusId={OrderStatusId},PaymentMethodId={PaymentMethodId}";
-    }
 }

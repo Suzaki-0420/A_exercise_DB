@@ -12,17 +12,17 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<CustomerEntity> Customers => Set<CustomerEntity>();
+    //public DbSet<CustomerEntity> Customers => Set<CustomerEntity>();
     public DbSet<ProductStockEntity> ProductStocks => Set<ProductStockEntity>();
     public DbSet<ProductEntity> Products => Set<ProductEntity>();
     public DbSet<ProductCategoryEntity> ProductCategories => Set<ProductCategoryEntity>();
-    public DbSet<PaymentMethodEntity> PaymentMethods => Set<PaymentMethodEntity>();
+    //public DbSet<PaymentMethodEntity> PaymentMethods => Set<PaymentMethodEntity>();
     public DbSet<OrderStatusEntity> OrderStatuses => Set<OrderStatusEntity>();
     public DbSet<OrdersEntity> Orders => Set<OrdersEntity>();
-    public DbSet<OrdersDetailEntity> OrdersDetails => Set<OrdersDetailEntity>();
+    //public DbSet<OrdersDetailEntity> OrdersDetails => Set<OrdersDetailEntity>();
     public DbSet<EmployeeEntity> Employees => Set<EmployeeEntity>();
     public DbSet<EmployeeAccountEntity> EmployeeAccounts => Set<EmployeeAccountEntity>();
-    public DbSet<DepartmentEntity> Departments => Set<DepartmentEntity>();
+    //public DbSet<DepartmentEntity> Departments => Set<DepartmentEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

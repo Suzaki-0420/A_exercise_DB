@@ -28,8 +28,4 @@ public class ProductCategoryEntity
     /// </summary>
     public List<ProductEntity> Products { get; set; } = new();
 
-    public override string ToString()
-    {
-        return $"Id={Id},CategoryUuid={CategoryUuid},Name={Name}";
-    }
 }

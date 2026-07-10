@@ -50,8 +50,4 @@ public class EmployeeEntity
     /// </summary>
     public EmployeeAccountEntity? EmployeeAccount { get; set; }
 
-    public override string ToString()
-    {
-        return $"Id={Id},EmployeeUuid={EmployeeUuid},Name={Name},Kana={Kana},DepartmentId={DepartmentId}";
-    }
 }

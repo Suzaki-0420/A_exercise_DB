@@ -24,8 +24,4 @@ public class OrderStatusEntity
     // Ordersだと単数かリストかわからないのでListをつけた
     public List<OrdersEntity> ListOrders { get; set; } = new();
 
-    public override string ToString()
-    {
-        return $"Id={Id},Name={Name}";
-    }
 }

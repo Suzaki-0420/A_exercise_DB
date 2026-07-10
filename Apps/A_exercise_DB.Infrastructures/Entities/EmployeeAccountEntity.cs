@@ -45,8 +45,4 @@ public class EmployeeAccountEntity
     [ForeignKey("EmployeeId")]
     public EmployeeEntity Employee { get; set; } = null!;
 
-    public override string ToString()
-    {
-        return $"Id={Id},AccountUuid={AccountUuid},Name={Name},Password={Password},EmployeeId={EmployeeId}";
-    }
 }

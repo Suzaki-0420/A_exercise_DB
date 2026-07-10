@@ -33,8 +33,4 @@ public class DepartmentEntity
     /// </summary>
     public List<EmployeeEntity> Employees { get; set; } = new();
 
-    public override string ToString()
-    {
-        return $"Id={Id},DepartmentUuid={DepartmentUuid},Name={Name}";
-    }
 }

@@ -39,8 +39,4 @@ public class ProductEntity
     // 注文明細（1つの商品が多数の明細に入る）
     public List<OrdersDetailEntity> OrderDetails { get; set; } = new();
 
-    public override string ToString()
-    {
-        return $"Id={Id},ProductUuid={ProductUuid},Name={Name},Price={Price},ImageUrl={ImageUrl},ProductCategoryId={ProductCategoryId},DeleteFlg={DeleteFlg}";
-    }
 }
