@@ -498,4 +498,63 @@ public class OrdersEntityAdapterTests
         // Assert
         Assert.AreEqual("引数targetがnullです。", exception.Message);
     }
+
+    [TestMethod(
+    DisplayName = "注文明細が0件の場合、空の注文明細リストを持つ注文を復元できる")]
+    public async Task RestoreAsync_WhenOrderDetailsIsEmpty_ShouldReturnOrderWithEmptyDetails()
+    {
+        // Arrange
+        var entity = CreateValidOrdersEntity();
+
+        entity.OrderDetails = new List<OrdersDetailEntity>();
+
+        var adapter = new OrdersEntityAdapter();
+
+        // Act
+        var result = await adapter.RestoreAsync(entity);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.IsNotNull(result.OrdersDetails);
+        Assert.IsEmpty(result.OrdersDetails);
+    }
+
+
+    private static OrdersEntity CreateValidOrdersEntity()
+    {
+        return new OrdersEntity
+        {
+            OrderUuid = Guid.NewGuid(),
+            OrderDate = new DateTime(2026, 7, 9, 12, 0, 0),
+            AmountTotal = 5000,
+
+            Customer = new CustomerEntity
+            {
+                CustomerUuid = Guid.NewGuid(),
+                Name = "山田太郎",
+                Kana = "ヤマダタロウ",
+                Address1 = "東京都",
+                Address2 = "1-2-3",
+                PhoneNumber = "090-1234-5678",
+                MailAddress = "test@example.com",
+                Username = "yamada",
+                Password = "password",
+                CreatedAt = new DateTime(2026, 7, 9, 10, 0, 0)
+            },
+
+            OrderStatus = new OrderStatusEntity
+            {
+                Id = 1,
+                Name = "注文受付"
+            },
+
+            PaymentMethod = new PaymentMethodEntity
+            {
+                Id = 2,
+                Name = "クレジットカード"
+            },
+
+            OrderDetails = new List<OrdersDetailEntity>()
+        };
+    }
 }
