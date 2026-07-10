@@ -109,6 +109,7 @@ public static class ApplicationDependencyExtensions
         services.AddScoped<IRegisterProductUsecase, RegisterProductUsecase>();
         services.AddScoped<IRegisterEmployeeAccountUsecase, RegisterEmployeeAccountUsecase>();
         services.AddScoped<ISearchOrdersUsecase, SearchOrdersUsecase>();
+        services.AddScoped<IUpdateOrderStatusUsecase, UpdateOrderStatusUsecase>();
 
         services.AddScoped<ISearchProductByCategoryUsecase, SearchProductByCategoryUsecase>();
         services.AddScoped<ISearchProductByKeywordUsecase, SearchProductByKeywordUsecase>();
@@ -148,6 +149,7 @@ public static class ApplicationDependencyExtensions
         services.AddScoped<RegisterCategoryViewModelAdapter>();
         services.AddScoped<SearchOrdersViewModelAdapter>();
         services.AddScoped<RegisterEmployeeAccountViewModelAdapter>();
+        services.AddScoped<UpdateOrderStatusViewModelAdapter>();
         return services;
     }
 
