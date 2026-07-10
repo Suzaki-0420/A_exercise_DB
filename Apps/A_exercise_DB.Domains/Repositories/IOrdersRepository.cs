@@ -9,4 +9,6 @@ public interface IOrdersRepository
         string? customerUsername);
 
     Task<bool> ChangeStatusAsync(Orders order);
+
+    Task<Orders?> FindByUuidAsync(Guid orderUuid);
 }
