@@ -8,8 +8,17 @@
 
           <ExcludeByFile>
             **/obj/**,
-            **/bin/**
+            **/bin/**,
+            **/*.g.cs,
+            **/*.generated.cs,
+            **/Program.cs
           </ExcludeByFile>
+
+          <ExcludeByAttribute>
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute,
+            ExcludeFromCodeCoverageAttribute
+          </ExcludeByAttribute>
         </Configuration>
       </DataCollector>
     </DataCollectors>

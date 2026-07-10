@@ -427,4 +427,51 @@ public class OrdersEntityAdapterTests
         Assert.IsNotNull(result.OrdersDetails[0].Product);
         Assert.AreEqual("りんご", result.OrdersDetails[0].Product.Name);
     }
+
+    [TestMethod(DisplayName = "RestoreAsyncで注文明細がnullの場合、InternalExceptionが発生する")]
+    public async Task RestoreAsync_WhenOrderDetailIsNull_ShouldThrowInternalException()
+    {
+        // Arrange
+        var entity = new OrdersEntity
+        {
+            OrderUuid = Guid.NewGuid(),
+            OrderDate = new DateTime(2026, 7, 9, 12, 0, 0),
+            AmountTotal = 5000,
+            Customer = new CustomerEntity
+            {
+                CustomerUuid = Guid.NewGuid(),
+                Name = "山田太郎",
+                Kana = "ヤマダタロウ",
+                Address1 = "東京都新宿区",
+                Address2 = "1-2-3",
+                PhoneNumber = "090-1234-5678",
+                MailAddress = "test@example.com",
+                Username = "yamada",
+                Password = "password",
+                CreatedAt = new DateTime(2026, 7, 9, 10, 0, 0)
+            },
+            OrderStatus = new OrderStatusEntity
+            {
+                Id = 1,
+                Name = "注文受付"
+            },
+            PaymentMethod = new PaymentMethodEntity
+            {
+                Id = 2,
+                Name = "クレジットカード"
+            },
+            OrderDetails = new List<OrdersDetailEntity>
+        {
+            null!
+        }
+        };
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+            await _adapter.RestoreAsync(entity)
+        );
+
+        // Assert
+        Assert.AreEqual("引数targetがnullです。", exception.Message);
+    }
 }
