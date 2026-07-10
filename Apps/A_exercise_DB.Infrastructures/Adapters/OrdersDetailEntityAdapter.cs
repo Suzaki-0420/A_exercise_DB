@@ -34,16 +34,25 @@ public class OrdersDetailEntityAdapter :
     /// </summary>
     /// <param name="target">EFCore:OrderDetailEntity</param>
     /// <returns>ドメインオブジェクト:OrderDetail</returns>
-    public Task<OrdersDetail> RestoreAsync(OrdersDetailEntity target)
+    public async Task<OrdersDetail> RestoreAsync(OrdersDetailEntity target)
     {
         // 引数targetがnullの場合
         _ = target ?? throw new InternalException("引数targetがnullです。");
 
+        if (target.Product is null)
+        {
+            throw new InternalException("注文明細の商品が取得できていません。");
+        }
+
+        var product = await new ProductEntityAdapter().RestoreAsync(target.Product);
+
         // OrderDetailEntityからドメインオブジェクト:OrderDetailを復元する
         var domain = new OrdersDetail(
+            target.Id,
+            product,
             target.Count
         );
 
-        return Task.FromResult(domain);
+        return domain;
     }
 }
