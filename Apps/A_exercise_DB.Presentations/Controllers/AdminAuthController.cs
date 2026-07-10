@@ -37,6 +37,7 @@ public class AdminAuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse<AdminLoginResult>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> LoginAsync([FromBody] AdminLoginViewModel? request)
     {
@@ -73,6 +74,15 @@ public class AdminAuthController : ControllerBase
                 "AUTHENTICATION_FAILED",
                 ex.Message,
                 null));
+        }
+        catch (AccountLockedException ex)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                ApiResponse<AdminLoginResult>.Fail(
+                    "ACCOUNT_LOCKED",
+                    ex.Message,
+                    null));
         }
         catch (InternalException)
         {
