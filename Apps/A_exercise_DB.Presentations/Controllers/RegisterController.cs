@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Applications.Usecases.Products;
@@ -9,6 +10,8 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// UC014: 新規商品登録
 /// </summary>
 [ApiController]
+[Authorize]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/product")]
 [Tags("UC010: 新商品登録")]
 public class RegisterProductController : ControllerBase

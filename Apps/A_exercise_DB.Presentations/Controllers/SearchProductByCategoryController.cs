@@ -9,6 +9,8 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// ユースケース:[商品をカテゴリー検索をする]を実現するコントローラ
 /// </summary>
 [ApiController]
+[Authorize]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/product/category")]
 [Tags("UC011: 商品カテゴリー検索")]
 public class SearchProductByCategory : ControllerBase
@@ -28,7 +30,6 @@ public class SearchProductByCategory : ControllerBase
     /// <param name="productCategoryId">検索Id</param>
     /// <returns>検索結果の商品一覧</returns>
 
-    // [Authorize]
     [HttpGet]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Search(int productCategoryId)

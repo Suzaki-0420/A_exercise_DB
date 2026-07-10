@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace A_exercise_DB.Presentations.Controllers;
 
 [ApiController]
+[Authorize]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/product/keyword")]
 [Tags("UC019: 商品キーワード検索")]
 /// <summary>
@@ -22,7 +24,6 @@ public class SearchProductByKeywordController : ControllerBase
     /// </summary>
     /// <param name="keyword"></param>
     /// <returns>検索結果の商品一覧</returns>
-    // [Authorize]
     [HttpGet]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]

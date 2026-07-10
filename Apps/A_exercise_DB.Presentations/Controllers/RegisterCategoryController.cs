@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Applications.Usecases.Categories;
@@ -8,6 +9,8 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// UC014: 商品カテゴリ登録
 /// </summary>
 [ApiController]
+[Authorize]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/category")]
 [Tags("UC014: 商品カテゴリ登録")]
 public class RegisterCategoryController : ControllerBase
