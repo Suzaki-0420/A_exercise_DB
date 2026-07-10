@@ -170,4 +170,59 @@ public class DeleteProductUsecaseTests
         unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Never);
         unitOfWorkMock.Verify(u => u.RollbackAsync(), Times.Once);
     }
+
+    //追加
+    [TestMethod(DisplayName = "Commitで例外が発生した場合、Rollbackして例外が再スローされる")]
+    public async Task DeleteAsync_WhenCommitThrowsException_ShouldRollbackAndRethrow()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var expectedException = new InvalidOperationException("Commit error");
+
+        var productRepositoryMock = new Mock<IProductRepository>(MockBehavior.Strict);
+        var unitOfWorkMock = new Mock<IUnitOfWork>(MockBehavior.Strict);
+
+        unitOfWorkMock
+            .Setup(u => u.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        productRepositoryMock
+            .Setup(r => r.DeleteByIdAsync(productUuid.ToString()))
+            .ReturnsAsync(true);
+
+        unitOfWorkMock
+            .Setup(u => u.CommitAsync())
+            .ThrowsAsync(expectedException);
+
+        unitOfWorkMock
+            .Setup(u => u.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        var usecase = new DeleteProductUsecase(
+            productRepositoryMock.Object,
+            unitOfWorkMock.Object);
+
+        // Act
+        var ex = await Assert.ThrowsExactlyAsync<InvalidOperationException>(async () =>
+            await usecase.DeleteAsync(productUuid.ToString()));
+
+        // Assert
+        Assert.AreSame(expectedException, ex);
+
+        unitOfWorkMock.Verify(
+            u => u.BeginAsync(),
+            Times.Once);
+
+        productRepositoryMock.Verify(
+            r => r.DeleteByIdAsync(productUuid.ToString()),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            u => u.CommitAsync(),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            u => u.RollbackAsync(),
+            Times.Once);
+    }
 }
