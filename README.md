@@ -466,7 +466,7 @@
 ### ベースURL
 
 ```
-/api/admin/products
+/admin/products
 ```
 
 ---
@@ -475,7 +475,7 @@
 
 |項目|内容|
 |---|---|
-|エンドポイント|`PUT /api/admin/products/{productUuid}`|
+|エンドポイント|`PUT /admin/products/{productUuid}`|
 |HTTPメソッド|PUT|
 |コントローラー|UpdateProductController|
 |アクションメソッド|UpdateAsync()|
@@ -501,7 +501,6 @@
 }
 ```
 
-※実際の `UpdateProductViewModel` の項目に合わせて修正してください。
 
 ### レスポンス例（200）
 
@@ -585,7 +584,7 @@
 ### ベースURL
 
 ```
-/api/admin/products
+/admin/products
 ```
 
 ---
@@ -594,7 +593,7 @@
 
 |項目|内容|
 |---|---|
-|エンドポイント|`DELETE /api/admin/products/{productUuid}`|
+|エンドポイント|`DELETE /admin/products/{productUuid}`|
 |HTTPメソッド|DELETE|
 |コントローラー|DeleteProductController|
 |アクションメソッド|DeleteAsync()|
@@ -621,8 +620,6 @@
   "errors": []
 }
 ```
-
-※`ProductDeleteCompleteResult` の内容に合わせて修正してください。
 
 ### 入力値エラー（400）
 
@@ -1308,7 +1305,7 @@ Download
 ### ベースURL
 
 ```
-/api/admin/auth
+/admin/auth
 ```
 
 ---
@@ -1317,7 +1314,7 @@ Download
 
 |項目|内容|
 |---|---|
-|エンドポイント|`POST /api/admin/auth/login`|
+|エンドポイント|`POST /admin/auth/login`|
 |HTTPメソッド|POST|
 |コントローラー|AdminAuthController|
 |アクションメソッド|LoginAsync()|
@@ -1417,7 +1414,68 @@ Download
 
 
 
+---
 
+## UC018 担当者ログアウト
+
+### ベースURL
+
+```
+/admin/auth
+```
+
+---
+
+## 1. 担当者ログアウト
+
+|項目|内容|
+|---|---|
+|エンドポイント|`POST /admin/auth/logout`|
+|HTTPメソッド|POST|
+|コントローラー|AdminAuthController|
+|アクションメソッド|LogoutAsync()|
+
+### 概要
+
+ログイン中の担当者をログアウトします。  
+認証Cookieを削除し、ログアウト状態にします。
+
+### リクエスト
+
+なし
+
+※認証済み（ログイン済み）の状態で実行します。
+
+### レスポンス例（200）
+
+```json
+{
+  "success": true,
+  "data": {
+    "loggedOut": true
+  },
+  "errors": []
+}
+```
+
+
+### 未認証（401）
+
+認証されていない状態でアクセスした場合
+
+```json
+{
+  "status": 401,
+  "title": "Unauthorized"
+}
+```
+
+### ステータスコード
+
+|コード|内容|
+|---|---|
+|200|ログアウト成功（認証Cookie削除）|
+|401|未認証（ログインしていない、または認証Cookie無効）|
 
 
 
@@ -1429,7 +1487,7 @@ Download
 ### ベースURL
 
 ```
-/api/products/keyword
+/products/keyword
 ```
 
 ---
@@ -1438,7 +1496,7 @@ Download
 
 |項目|内容|
 |---|---|
-|エンドポイント|`GET /api/products/keyword?keyword={keyword}`|
+|エンドポイント|`GET /products/keyword?keyword={keyword}`|
 |HTTPメソッド|GET|
 |コントローラー|SearchProductByKeywordController|
 |アクションメソッド|Search()|
