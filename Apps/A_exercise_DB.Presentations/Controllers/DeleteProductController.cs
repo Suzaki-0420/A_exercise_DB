@@ -1,5 +1,6 @@
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Domains.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A_exercise_DB.Presentations.Controllers;
@@ -8,6 +9,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// UC013 商品削除API
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/admin/products")]
 [Tags("UC013: 商品削除")]
 public class DeleteProductController : ControllerBase
@@ -31,6 +33,7 @@ public class DeleteProductController : ControllerBase
     [HttpDelete("{productUuid}")]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResponse<ProductDeleteCompleteResult>), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteAsync(string productUuid)
