@@ -485,4 +485,105 @@ public class RegisterCategoryControllerTests
             Times.Once
         );
     }
+
+    [TestMethod(
+    DisplayName = "RegisterでCategoryName以外のModelStateエラーの場合、既定メッセージでBadRequestを返す")]
+    public async Task Register_WhenCategoryNameErrorDoesNotExist_ShouldReturnDefaultMessage()
+    {
+        // Arrange
+        var model = new RegisterCategoryViewModel
+        {
+            CategoryName = "食品"
+        };
+
+        // CategoryName以外のエラーでModelStateを不正にする
+        _controller.ModelState.AddModelError(
+            "OtherField",
+            "別項目の入力エラー");
+
+        // Act
+        var result = await _controller.Register(model);
+
+        // Assert
+        var badRequestResult = result as BadRequestObjectResult;
+
+        Assert.IsNotNull(badRequestResult);
+        Assert.AreEqual(400, badRequestResult.StatusCode);
+
+        var code = GetPropertyValue(
+            badRequestResult.Value!,
+            "code");
+
+        var message = GetPropertyValue(
+            badRequestResult.Value!,
+            "message");
+
+        Assert.AreEqual(
+            "VALIDATION_ERROR",
+            code);
+
+        Assert.AreEqual(
+            "カテゴリ名の入力内容に誤りがあります。",
+            message);
+
+        _registerCategoryUsecaseMock.Verify(
+            x => x.RegisterCategoryAsync(
+                It.IsAny<ProductCategory>()),
+            Times.Never);
+    }
+
+    [TestMethod(
+    DisplayName = "RegisterでCategoryNameにエラーがない場合、既定メッセージでBadRequestを返す")]
+    public async Task Register_WhenCategoryNameHasNoErrors_ShouldReturnDefaultMessage()
+    {
+        // Arrange
+        var model = new RegisterCategoryViewModel
+        {
+            CategoryName = "食品"
+        };
+
+        // CategoryNameのModelStateエントリだけを作る
+        _controller.ModelState.SetModelValue(
+            "CategoryName",
+            "食品",
+            "食品");
+
+        // 別の項目でModelStateを不正にする
+        _controller.ModelState.AddModelError(
+            "OtherField",
+            "別項目の入力エラー");
+
+        // Act
+        var result = await _controller.Register(model);
+
+        // Assert
+        var badRequestResult =
+            result as BadRequestObjectResult;
+
+        Assert.IsNotNull(badRequestResult);
+        Assert.AreEqual(
+            400,
+            badRequestResult.StatusCode);
+
+        var code = GetPropertyValue(
+            badRequestResult.Value!,
+            "code");
+
+        var message = GetPropertyValue(
+            badRequestResult.Value!,
+            "message");
+
+        Assert.AreEqual(
+            "VALIDATION_ERROR",
+            code);
+
+        Assert.AreEqual(
+            "カテゴリ名の入力内容に誤りがあります。",
+            message);
+
+        _registerCategoryUsecaseMock.Verify(
+            x => x.RegisterCategoryAsync(
+                It.IsAny<ProductCategory>()),
+            Times.Never);
+    }
 }
