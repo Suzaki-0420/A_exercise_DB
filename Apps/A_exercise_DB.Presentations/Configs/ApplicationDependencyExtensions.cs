@@ -100,6 +100,7 @@ public static class ApplicationDependencyExtensions
         services.AddScoped<IPasswordHasher<EmployeeAccount>, PasswordHasher<EmployeeAccount>>();
         // PBKDF2アルゴリズムを利用したパスワードハッシュ化・検証機能
         services.AddScoped<IPasswordHashingService, PBKDF2PasswordHashingService>();
+        services.AddSingleton<ILoginAttemptTracker, InMemoryLoginAttemptTracker>();
 
         //services.AddScoped<IRegisterBookUsecase, RegisterBookUsecase>();
         services.AddScoped<ILoginAdminUsecase, LoginAdminUsecase>();
