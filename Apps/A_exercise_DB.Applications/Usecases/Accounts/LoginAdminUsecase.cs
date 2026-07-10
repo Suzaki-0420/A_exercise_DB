@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using A_exercise_DB.Applications.Security;
 using A_exercise_DB.Domains.Exceptions;
@@ -14,12 +15,15 @@ public class LoginAdminUsecase : ILoginAdminUsecase
     private const int MaxLength = 20;
     private const string AuthenticationFailedMessage =
         "アカウント名またはパスワードが正しくありません。";
+    private const string AccountLockedMessage =
+        "ログインに5回失敗したため、10分間ログインできません。";
 
     private static readonly Regex HalfWidthAlphanumericRegex =
         new("^[a-zA-Z0-9]+$", RegexOptions.Compiled);
 
     private readonly IEmployeeAccountRepository _employeeAccountRepository;
     private readonly IPasswordHashingService _passwordHashingService;
+    private readonly ILoginAttemptTracker _loginAttemptTracker;
 
     /// <summary>
     /// コンストラクタ
@@ -29,9 +33,27 @@ public class LoginAdminUsecase : ILoginAdminUsecase
     public LoginAdminUsecase(
         IEmployeeAccountRepository employeeAccountRepository,
         IPasswordHashingService passwordHashingService)
+        : this(
+            employeeAccountRepository,
+            passwordHashingService,
+            new InMemoryLoginAttemptTracker())
+    {
+    }
+
+    /// <summary>
+    /// コンストラクタ
+    /// </summary>
+    /// <param name="employeeAccountRepository">社員アカウントRepository</param>
+    /// <param name="passwordHashingService">パスワード検証サービス</param>
+    /// <param name="loginAttemptTracker">ログイン失敗回数管理</param>
+    public LoginAdminUsecase(
+        IEmployeeAccountRepository employeeAccountRepository,
+        IPasswordHashingService passwordHashingService,
+        ILoginAttemptTracker loginAttemptTracker)
     {
         _employeeAccountRepository = employeeAccountRepository;
         _passwordHashingService = passwordHashingService;
+        _loginAttemptTracker = loginAttemptTracker;
     }
 
     /// <inheritdoc />
@@ -39,23 +61,44 @@ public class LoginAdminUsecase : ILoginAdminUsecase
     {
         ValidateRequest(request);
 
+        if (_loginAttemptTracker.IsLocked(request.AccountName))
+        {
+            throw new AccountLockedException(AccountLockedMessage);
+        }
+
         var employeeAccount = await _employeeAccountRepository.FindByNameAsync(
             request.AccountName);
 
         if (employeeAccount is null)
         {
-            throw new UnauthorizedAccessException(AuthenticationFailedMessage);
+            ThrowAuthenticationFailure(request.AccountName);
         }
 
         if (!_passwordHashingService.Verify(employeeAccount.Password, request.Password))
         {
-            throw new UnauthorizedAccessException(AuthenticationFailedMessage);
+            ThrowAuthenticationFailure(request.AccountName);
         }
+
+        _loginAttemptTracker.Reset(request.AccountName);
 
         return new AdminLoginResult(
             employeeAccount.AccountUuid,
             employeeAccount.Name,
             employeeAccount.Employee?.Name ?? string.Empty);
+    }
+
+    /// <summary>
+    /// 認証失敗を記録して対応する例外をスローする
+    /// </summary>
+    [DoesNotReturn]
+    private void ThrowAuthenticationFailure(string accountName)
+    {
+        if (_loginAttemptTracker.RecordFailure(accountName))
+        {
+            throw new AccountLockedException(AccountLockedMessage);
+        }
+
+        throw new UnauthorizedAccessException(AuthenticationFailedMessage);
     }
 
     /// <summary>
