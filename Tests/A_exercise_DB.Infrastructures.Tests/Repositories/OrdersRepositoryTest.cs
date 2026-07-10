@@ -111,18 +111,25 @@ public class OrdersRepositoryTests
             new DateTime(2099, 1, 1),
             "存在しない顧客");
 
-        Assert.AreEqual(0, result.Count);
+        Assert.IsEmpty(result);
     }
 
     [TestMethod(DisplayName = "購入履歴検索中にDB接続エラーが発生した場合InternalExceptionが発生する")]
     public async Task SearchByDateOrNameAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
     {
+        // Arrange
         _dbContext.Dispose();
 
-        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
             await _repository.SearchByDateOrNameAsync(null, null);
         });
+
+        // Assert
+        Assert.AreEqual(
+            "購入履歴検索中に予期しないエラーが発生しました。",
+            exception.Message);
     }
 
     [TestMethod(DisplayName = "注文ステータスを正常に変更できる")]
@@ -224,6 +231,7 @@ public class OrdersRepositoryTests
     [TestMethod(DisplayName = "注文ステータス変更中にDB接続エラーが発生した場合InternalExceptionが発生する")]
     public async Task ChangeStatusAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
     {
+        // Arrange
         var entity = await _dbContext.Orders
             .Include(o => o.Customer)
             .Include(o => o.OrderStatus)
@@ -239,10 +247,68 @@ public class OrdersRepositoryTests
 
         _dbContext.Dispose();
 
-        await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
             await _repository.ChangeStatusAsync(order);
         });
+
+        // Assert
+        Assert.AreEqual(
+            $"Id:{order.OrderUuid}の注文ステータス変更中に予期しないエラーが発生しました。",
+            exception.Message);
     }
+
+    [TestMethod(DisplayName = "指定された注文UUIDの注文を取得できる")]
+    public async Task FindByUuidAsync_WhenOrderExists_ShouldReturnOrder()
+    {
+        // Arrange
+        var orderUuid = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+
+        // Act
+        var result = await _repository.FindByUuidAsync(orderUuid);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(orderUuid, result.OrderUuid);
+        Assert.IsNotNull(result.Customer);
+        Assert.IsNotNull(result.OrderStatus);
+        Assert.IsNotNull(result.PaymentMethod);
+        Assert.IsNotNull(result.OrdersDetails);
+    }
+
+    [TestMethod(DisplayName = "指定された注文UUIDの注文が存在しない場合nullを返す")]
+    public async Task FindByUuidAsync_WhenOrderDoesNotExist_ShouldReturnNull()
+    {
+        // Arrange
+        var orderUuid = Guid.Parse("99999999-9999-9999-9999-999999999999");
+
+        // Act
+        var result = await _repository.FindByUuidAsync(orderUuid);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod(DisplayName = "注文取得中にDB接続エラーが発生した場合InternalExceptionが発生する")]
+    public async Task FindByUuidAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        // Arrange
+        var orderUuid = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+
+        _dbContext.Dispose();
+
+        // Act
+        var exception = await Assert.ThrowsExactlyAsync<InternalException>(async () =>
+        {
+            await _repository.FindByUuidAsync(orderUuid);
+        });
+
+        // Assert
+        Assert.AreEqual(
+            $"注文UUID:{orderUuid}の注文取得中に予期しないエラーが発生しました。",
+            exception.Message);
+    }
+
 
 }

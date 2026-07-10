@@ -486,7 +486,7 @@ public class OrdersTests
         orders.AddOrderDetail(ordersDetail);
 
         // 注文明細が追加されていることを検証する
-        Assert.AreEqual(1, orders.OrdersDetails.Count);
+        Assert.HasCount(1, orders.OrdersDetails);
         Assert.AreEqual(ordersDetail, orders.OrdersDetails[0]);
     }
 

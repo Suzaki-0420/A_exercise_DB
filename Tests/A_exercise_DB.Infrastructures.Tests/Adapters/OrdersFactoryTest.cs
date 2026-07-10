@@ -66,7 +66,7 @@ public class OrdersFactoryTests
         Assert.AreEqual(paymentMethod.Name, result.PaymentMethod.Name);
 
         Assert.IsNotNull(result.OrderDetails);
-        Assert.AreEqual(2, result.OrderDetails.Count);
+        Assert.HasCount(2, result.OrderDetails);
         Assert.AreEqual(3, result.OrderDetails[0].Count);
         Assert.AreEqual(5, result.OrderDetails[1].Count);
     }
@@ -125,7 +125,7 @@ public class OrdersFactoryTests
         Assert.AreEqual(entity.PaymentMethod.Name, result.PaymentMethod.Name);
 
         Assert.IsNotNull(result.OrdersDetails);
-        Assert.AreEqual(2, result.OrdersDetails.Count);
+        Assert.HasCount(2, result.OrdersDetails);
         Assert.AreEqual(3, result.OrdersDetails[0].Count);
         Assert.AreEqual(5, result.OrdersDetails[1].Count);
     }
@@ -142,7 +142,7 @@ public class OrdersFactoryTests
         var results = await _factory.RestoreAsync(entities);
 
         Assert.IsNotNull(results);
-        Assert.AreEqual(2, results.Count);
+        Assert.HasCount(2, results);
 
         Assert.AreEqual(entities[0].OrderUuid, results[0].OrderUuid);
         Assert.AreEqual(entities[0].OrderStatus.Name, results[0].OrderStatus.Name);

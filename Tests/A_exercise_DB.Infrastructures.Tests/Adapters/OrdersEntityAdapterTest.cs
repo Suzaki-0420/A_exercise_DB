@@ -114,12 +114,48 @@ public class OrdersEntityAdapterTests
 
         var detailEntity1 = new OrdersDetailEntity
         {
-            Count = 3
+            Count = 3,
+            Product = new ProductEntity
+            {
+                ProductUuid = Guid.NewGuid(),
+                Name = "りんご",
+                Price = 100,
+                ImageUrl = "/images/apple.png",
+                DeleteFlg = 0,
+                ProductCategory = new ProductCategoryEntity
+                {
+                    CategoryUuid = Guid.NewGuid(),
+                    Name = "食品"
+                },
+                ProductStock = new ProductStockEntity
+                {
+                    StockUuid = Guid.NewGuid(),
+                    Quantity = 10
+                }
+            }
         };
 
         var detailEntity2 = new OrdersDetailEntity
         {
-            Count = 5
+            Count = 5,
+            Product = new ProductEntity
+            {
+                ProductUuid = Guid.NewGuid(),
+                Name = "みかん",
+                Price = 200,
+                ImageUrl = "/images/orange.png",
+                DeleteFlg = 0,
+                ProductCategory = new ProductCategoryEntity
+                {
+                    CategoryUuid = Guid.NewGuid(),
+                    Name = "食品"
+                },
+                ProductStock = new ProductStockEntity
+                {
+                    StockUuid = Guid.NewGuid(),
+                    Quantity = 20
+                }
+            }
         };
 
         var entity = new OrdersEntity
@@ -167,9 +203,17 @@ public class OrdersEntityAdapterTests
         Assert.AreEqual(paymentMethodEntity.Name, result.PaymentMethod.Name);
 
         Assert.IsNotNull(result.OrdersDetails);
-        Assert.AreEqual(2, result.OrdersDetails.Count);
+        Assert.HasCount(2, result.OrdersDetails);
         Assert.AreEqual(detailEntity1.Count, result.OrdersDetails[0].Count);
         Assert.AreEqual(detailEntity2.Count, result.OrdersDetails[1].Count);
+
+        Assert.IsNotNull(result.OrdersDetails[0].Product);
+        Assert.AreEqual("りんご", result.OrdersDetails[0].Product.Name);
+        Assert.AreEqual(100, result.OrdersDetails[0].Product.Price);
+
+        Assert.IsNotNull(result.OrdersDetails[1].Product);
+        Assert.AreEqual("みかん", result.OrdersDetails[1].Product.Name);
+        Assert.AreEqual(200, result.OrdersDetails[1].Product.Price);
     }
 
     [TestMethod]
@@ -216,7 +260,7 @@ public class OrdersEntityAdapterTests
         Assert.AreEqual(entity.OrderDate, result.OrderDate);
         Assert.AreEqual(entity.AmountTotal, result.AmountTotal);
         Assert.IsNotNull(result.OrdersDetails);
-        Assert.AreEqual(0, result.OrdersDetails.Count);
+        Assert.IsEmpty(result.OrdersDetails);
     }
 
     [TestMethod]
@@ -228,5 +272,159 @@ public class OrdersEntityAdapterTests
         );
 
         Assert.AreEqual("引数targetがnullです。", ex.Message);
+    }
+
+    //追加
+    [TestMethod(DisplayName = "RestoreAsyncで注文明細に商品情報がある場合、商品情報も復元できる")]
+    public async Task RestoreAsync_WhenOrderDetailsHaveProduct_ShouldRestoreProduct()
+    {
+        // Arrange
+        var detailEntity = new OrdersDetailEntity
+        {
+            Count = 3,
+            Product = new ProductEntity
+            {
+                ProductUuid = Guid.NewGuid(),
+                Name = "りんご",
+                Price = 100,
+                ImageUrl = "/images/apple.png",
+                DeleteFlg = 0,
+                ProductCategory = new ProductCategoryEntity
+                {
+                    CategoryUuid = Guid.NewGuid(),
+                    Name = "食品"
+                },
+                ProductStock = new ProductStockEntity
+                {
+                    StockUuid = Guid.NewGuid(),
+                    Quantity = 10
+                }
+            }
+        };
+
+        var entity = new OrdersEntity
+        {
+            OrderUuid = Guid.NewGuid(),
+            OrderDate = new DateTime(2026, 7, 9, 12, 0, 0),
+            AmountTotal = 5000,
+            Customer = new CustomerEntity
+            {
+                CustomerUuid = Guid.NewGuid(),
+                Name = "山田太郎",
+                Kana = "ヤマダタロウ",
+                Address1 = "東京都新宿区",
+                Address2 = "1-2-3",
+                PhoneNumber = "090-1234-5678",
+                MailAddress = "test@example.com",
+                Username = "yamada",
+                Password = "password",
+                CreatedAt = new DateTime(2026, 7, 9, 10, 0, 0)
+            },
+            OrderStatus = new OrderStatusEntity
+            {
+                Id = 1,
+                Name = "注文受付"
+            },
+            PaymentMethod = new PaymentMethodEntity
+            {
+                Id = 2,
+                Name = "クレジットカード"
+            },
+            OrderDetails = new List<OrdersDetailEntity>
+        {
+            detailEntity
+        }
+        };
+
+        // Act
+        var result = await _adapter.RestoreAsync(entity);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.HasCount(1, result.OrdersDetails);
+        Assert.AreEqual(3, result.OrdersDetails[0].Count);
+        Assert.IsNotNull(result.OrdersDetails[0].Product);
+        Assert.AreEqual("りんご", result.OrdersDetails[0].Product.Name);
+        Assert.AreEqual(100, result.OrdersDetails[0].Product.Price);
+        Assert.AreEqual("/images/apple.png", result.OrdersDetails[0].Product.ImageUrl);
+        Assert.AreEqual(0, result.OrdersDetails[0].Product.DeleteFlg);
+
+        Assert.IsNotNull(result.OrdersDetails[0].Product.ProductCategory);
+        Assert.AreEqual("食品", result.OrdersDetails[0].Product.ProductCategory!.Name);
+
+        Assert.IsNotNull(result.OrdersDetails[0].Product.ProductStock);
+        Assert.AreEqual(10, result.OrdersDetails[0].Product.ProductStock!.Quantity);
+    }
+
+    [TestMethod(DisplayName = "RestoreAsyncで注文明細が1件ある場合、注文明細を復元できる")]
+    public async Task RestoreAsync_WhenOrderDetailsHasOneItem_ShouldRestoreOrderDetail()
+    {
+        // Arrange
+        var entity = new OrdersEntity
+        {
+            OrderUuid = Guid.NewGuid(),
+            OrderDate = new DateTime(2026, 7, 9, 12, 0, 0),
+            AmountTotal = 5000,
+            Customer = new CustomerEntity
+            {
+                CustomerUuid = Guid.NewGuid(),
+                Name = "山田太郎",
+                Kana = "ヤマダタロウ",
+                Address1 = "東京都新宿区",
+                Address2 = "1-2-3",
+                PhoneNumber = "090-1234-5678",
+                MailAddress = "test@example.com",
+                Username = "yamada",
+                Password = "password",
+                CreatedAt = new DateTime(2026, 7, 9, 10, 0, 0)
+            },
+            OrderStatus = new OrderStatusEntity
+            {
+                Id = 1,
+                Name = "注文受付"
+            },
+            PaymentMethod = new PaymentMethodEntity
+            {
+                Id = 2,
+                Name = "クレジットカード"
+            },
+            OrderDetails = new List<OrdersDetailEntity>
+        {
+            new OrdersDetailEntity
+            {
+                Count = 3,
+                Product = new ProductEntity
+                {
+                    ProductUuid = Guid.NewGuid(),
+                    Name = "りんご",
+                    Price = 100,
+                    ImageUrl = "/images/apple.png",
+                    DeleteFlg = 0,
+                    ProductCategory = new ProductCategoryEntity
+                    {
+                        CategoryUuid = Guid.NewGuid(),
+                        Name = "食品"
+                    },
+                    ProductStock = new ProductStockEntity
+                    {
+                        StockUuid = Guid.NewGuid(),
+                        Quantity = 10
+                    }
+                }
+            }
+        }
+        };
+
+        Assert.HasCount(1, entity.OrderDetails);
+
+        // Act
+        var result = await _adapter.RestoreAsync(entity);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.HasCount(1, result.OrdersDetails);
+        Assert.AreEqual(3, result.OrdersDetails[0].Count);
+        Assert.IsNotNull(result.OrdersDetails[0].Product);
+        Assert.AreEqual("りんご", result.OrdersDetails[0].Product.Name);
     }
 }
