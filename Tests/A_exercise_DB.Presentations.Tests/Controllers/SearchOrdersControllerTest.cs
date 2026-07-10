@@ -80,6 +80,7 @@ public class SearchOrdersControllerTest
         Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsNull(viewModel.Message);
         Assert.HasCount(1, viewModel.OrderList);
+
         Assert.AreEqual(orderUuid, viewModel.OrderList[0].OrderUuid);
         Assert.AreEqual("2026/07/09 10:30:45", viewModel.OrderList[0].OrderDate);
         Assert.AreEqual("yamada01", viewModel.OrderList[0].CustomerAccountName);
@@ -116,10 +117,14 @@ public class SearchOrdersControllerTest
         Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsEmpty(viewModel.OrderList);
         Assert.AreEqual("注文が登録されていません", viewModel.Message);
+
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(null, null),
+            Times.Once);
     }
 
     /// <summary>
-    /// GetでInternalExceptionが発生した場合、500を返すこと
+    /// GetでInternalExceptionが発生した場合、InternalServerErrorを返すこと
     /// </summary>
     [TestMethod(DisplayName = "Get_InternalExceptionが発生した場合はInternalServerErrorを返す")]
     public async Task Get_WhenInternalExceptionThrown_ReturnsInternalServerError()
@@ -138,10 +143,14 @@ public class SearchOrdersControllerTest
         Assert.AreEqual(500, objectResult.StatusCode);
         Assert.AreEqual("ORDER_DATA_FETCH_ERROR", GetPropertyValue<string>(objectResult.Value!, "code"));
         Assert.AreEqual("注文情報の取得に失敗しました", GetPropertyValue<string>(objectResult.Value!, "message"));
+
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(null, null),
+            Times.Once);
     }
 
     /// <summary>
-    /// Getで予期しない例外が発生した場合、500を返すこと
+    /// Getで予期しない例外が発生した場合、InternalServerErrorを返すこと
     /// </summary>
     [TestMethod(DisplayName = "Get_予期しない例外が発生した場合はInternalServerErrorを返す")]
     public async Task Get_WhenExceptionThrown_ReturnsInternalServerError()
@@ -160,22 +169,20 @@ public class SearchOrdersControllerTest
         Assert.AreEqual(500, objectResult.StatusCode);
         Assert.AreEqual("SYSTEM_ERROR", GetPropertyValue<string>(objectResult.Value!, "code"));
         Assert.AreEqual("注文情報の取得に失敗しました", GetPropertyValue<string>(objectResult.Value!, "message"));
+
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(null, null),
+            Times.Once);
     }
 
     /// <summary>
-    /// Searchで購入履歴を検索できること
+    /// Searchで購入日と顧客アカウント名を条件に購入履歴を検索できること
     /// </summary>
-    [TestMethod(DisplayName = "Search_購入日または顧客アカウント名で購入履歴を検索できる")]
-    public async Task Search_ReturnsOk()
+    [TestMethod(DisplayName = "Search_購入日と顧客アカウント名で購入履歴を検索できる")]
+    public async Task Search_WithOrderDateAndCustomerAccountName_ReturnsOk()
     {
         // Arrange
         var orderUuid = Guid.NewGuid();
-
-        var model = new SearchOrdersViewModel
-        {
-            OrderDate = "2026-07-09",
-            CustomerAccountName = " yamada01 "
-        };
 
         var orders = new List<OrdersModel>
         {
@@ -198,7 +205,7 @@ public class SearchOrdersControllerTest
             .ReturnsAsync(orders);
 
         // Act
-        var result = await _controller.Search(model);
+        var result = await _controller.Search("2026-07-09", " yamada01 ");
 
         // Assert
         var okResult = result as OkObjectResult;
@@ -210,16 +217,63 @@ public class SearchOrdersControllerTest
         Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsNull(viewModel.Message);
         Assert.HasCount(1, viewModel.OrderList);
+
         Assert.AreEqual(orderUuid, viewModel.OrderList[0].OrderUuid);
         Assert.AreEqual("2026/07/09 10:30:45", viewModel.OrderList[0].OrderDate);
         Assert.AreEqual("yamada01", viewModel.OrderList[0].CustomerAccountName);
         Assert.AreEqual("食品 × 2、飲料 × 3", viewModel.OrderList[0].OrderContent);
         Assert.AreEqual("発送準備中", viewModel.OrderList[0].OrderStatus);
+        Assert.AreEqual($"/admin/order/status/update/{orderUuid}", viewModel.OrderList[0].StatusUpdateUrl);
 
         _searchOrdersUsecaseMock.Verify(
             x => x.SearchAsync(
                 new DateTime(2026, 7, 9),
                 "yamada01"),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// Searchで検索条件なしの場合、購入履歴を検索できること
+    /// </summary>
+    [TestMethod(DisplayName = "Search_検索条件なしで購入履歴を検索できる")]
+    public async Task Search_WithoutConditions_ReturnsOk()
+    {
+        // Arrange
+        var orderUuid = Guid.NewGuid();
+
+        var orders = new List<OrdersModel>
+        {
+            CreateOrder(
+                orderUuid,
+                new DateTime(2026, 7, 9, 10, 30, 45),
+                "sato01",
+                "注文受付",
+                new List<OrdersDetail>
+                {
+                    CreateOrdersDetail("書籍", 1)
+                })
+        };
+
+        _searchOrdersUsecaseMock
+            .Setup(x => x.SearchAsync(null, null))
+            .ReturnsAsync(orders);
+
+        // Act
+        var result = await _controller.Search(null, null);
+
+        // Assert
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(200, okResult.StatusCode);
+
+        var viewModel = okResult.Value as SearchOrdersResultViewModel;
+        Assert.IsNotNull(viewModel);
+        Assert.AreEqual("購入履歴検索", viewModel.Title);
+        Assert.IsNull(viewModel.Message);
+        Assert.HasCount(1, viewModel.OrderList);
+
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(null, null),
             Times.Once);
     }
 
@@ -230,18 +284,12 @@ public class SearchOrdersControllerTest
     public async Task Search_WhenOrdersIsEmpty_ReturnsOkWithMessage()
     {
         // Arrange
-        var model = new SearchOrdersViewModel
-        {
-            OrderDate = null,
-            CustomerAccountName = null
-        };
-
         _searchOrdersUsecaseMock
             .Setup(x => x.SearchAsync(null, null))
             .ReturnsAsync(new List<OrdersModel>());
 
         // Act
-        var result = await _controller.Search(model);
+        var result = await _controller.Search(null, null);
 
         // Assert
         var okResult = result as OkObjectResult;
@@ -253,6 +301,10 @@ public class SearchOrdersControllerTest
         Assert.AreEqual("購入履歴検索", viewModel.Title);
         Assert.IsEmpty(viewModel.OrderList);
         Assert.AreEqual("該当する注文が見つかりませんでした", viewModel.Message);
+
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(null, null),
+            Times.Once);
     }
 
     /// <summary>
@@ -261,15 +313,8 @@ public class SearchOrdersControllerTest
     [TestMethod(DisplayName = "Search_購入日の形式が不正な場合はBadRequestを返す")]
     public async Task Search_WhenOrderDateIsInvalid_ReturnsBadRequest()
     {
-        // Arrange
-        var model = new SearchOrdersViewModel
-        {
-            OrderDate = "invalid-date",
-            CustomerAccountName = "yamada01"
-        };
-
         // Act
-        var result = await _controller.Search(model);
+        var result = await _controller.Search("invalid-date", "yamada01");
 
         // Assert
         var badRequestResult = result as BadRequestObjectResult;
@@ -290,12 +335,6 @@ public class SearchOrdersControllerTest
     public async Task Search_WhenDomainExceptionThrown_ReturnsBadRequest()
     {
         // Arrange
-        var model = new SearchOrdersViewModel
-        {
-            OrderDate = "2026-07-09",
-            CustomerAccountName = "yamada01"
-        };
-
         _searchOrdersUsecaseMock
             .Setup(x => x.SearchAsync(
                 new DateTime(2026, 7, 9),
@@ -303,7 +342,7 @@ public class SearchOrdersControllerTest
             .ThrowsAsync(new DomainException("検索条件が不正です。"));
 
         // Act
-        var result = await _controller.Search(model);
+        var result = await _controller.Search("2026-07-09", "yamada01");
 
         // Assert
         var badRequestResult = result as BadRequestObjectResult;
@@ -311,21 +350,21 @@ public class SearchOrdersControllerTest
         Assert.AreEqual(400, badRequestResult.StatusCode);
         Assert.AreEqual("VALIDATION_ERROR", GetPropertyValue<string>(badRequestResult.Value!, "code"));
         Assert.AreEqual("検索条件が不正です。", GetPropertyValue<string>(badRequestResult.Value!, "message"));
+
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(
+                new DateTime(2026, 7, 9),
+                "yamada01"),
+            Times.Once);
     }
 
     /// <summary>
-    /// SearchでInternalExceptionが発生した場合、500を返すこと
+    /// SearchでInternalExceptionが発生した場合、InternalServerErrorを返すこと
     /// </summary>
     [TestMethod(DisplayName = "Search_InternalExceptionが発生した場合はInternalServerErrorを返す")]
     public async Task Search_WhenInternalExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
-        var model = new SearchOrdersViewModel
-        {
-            OrderDate = "2026-07-09",
-            CustomerAccountName = "yamada01"
-        };
-
         _searchOrdersUsecaseMock
             .Setup(x => x.SearchAsync(
                 new DateTime(2026, 7, 9),
@@ -333,7 +372,7 @@ public class SearchOrdersControllerTest
             .ThrowsAsync(new InternalException("注文情報の取得に失敗しました。"));
 
         // Act
-        var result = await _controller.Search(model);
+        var result = await _controller.Search("2026-07-09", "yamada01");
 
         // Assert
         var objectResult = result as ObjectResult;
@@ -341,21 +380,21 @@ public class SearchOrdersControllerTest
         Assert.AreEqual(500, objectResult.StatusCode);
         Assert.AreEqual("ORDER_DATA_FETCH_ERROR", GetPropertyValue<string>(objectResult.Value!, "code"));
         Assert.AreEqual("注文情報の取得に失敗しました", GetPropertyValue<string>(objectResult.Value!, "message"));
+
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(
+                new DateTime(2026, 7, 9),
+                "yamada01"),
+            Times.Once);
     }
 
     /// <summary>
-    /// Searchで予期しない例外が発生した場合、500を返すこと
+    /// Searchで予期しない例外が発生した場合、InternalServerErrorを返すこと
     /// </summary>
     [TestMethod(DisplayName = "Search_予期しない例外が発生した場合はInternalServerErrorを返す")]
     public async Task Search_WhenExceptionThrown_ReturnsInternalServerError()
     {
         // Arrange
-        var model = new SearchOrdersViewModel
-        {
-            OrderDate = "2026-07-09",
-            CustomerAccountName = "yamada01"
-        };
-
         _searchOrdersUsecaseMock
             .Setup(x => x.SearchAsync(
                 new DateTime(2026, 7, 9),
@@ -363,7 +402,7 @@ public class SearchOrdersControllerTest
             .ThrowsAsync(new InvalidOperationException("DB接続エラーです。"));
 
         // Act
-        var result = await _controller.Search(model);
+        var result = await _controller.Search("2026-07-09", "yamada01");
 
         // Assert
         var objectResult = result as ObjectResult;
@@ -371,23 +410,12 @@ public class SearchOrdersControllerTest
         Assert.AreEqual(500, objectResult.StatusCode);
         Assert.AreEqual("SYSTEM_ERROR", GetPropertyValue<string>(objectResult.Value!, "code"));
         Assert.AreEqual("注文情報の取得に失敗しました", GetPropertyValue<string>(objectResult.Value!, "message"));
-    }
 
-    /// <summary>
-    /// Searchでmodelがnullの場合、InternalServerErrorを返すこと
-    /// </summary>
-    [TestMethod(DisplayName = "Search_modelがnullの場合はInternalServerErrorを返す")]
-    public async Task Search_WhenModelIsNull_ReturnsInternalServerError()
-    {
-        // Act
-        var result = await _controller.Search(null!);
-
-        // Assert
-        var objectResult = result as ObjectResult;
-        Assert.IsNotNull(objectResult);
-        Assert.AreEqual(500, objectResult.StatusCode);
-        Assert.AreEqual("ORDER_DATA_FETCH_ERROR", GetPropertyValue<string>(objectResult.Value!, "code"));
-        Assert.AreEqual("注文情報の取得に失敗しました", GetPropertyValue<string>(objectResult.Value!, "message"));
+        _searchOrdersUsecaseMock.Verify(
+            x => x.SearchAsync(
+                new DateTime(2026, 7, 9),
+                "yamada01"),
+            Times.Once);
     }
 
     /// <summary>
