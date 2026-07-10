@@ -32,10 +32,10 @@ public class SearchProductByCategory : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Search(Guid productCategoryId)
+    public async Task<IActionResult> Search(Guid productCategoryUuid, bool showDeletedOnly)
     {
         // 商品キーワード検索する
-        var result = await _usecase.ExecuteAsync(productCategoryId);
+        var result = await _usecase.ExecuteAsync(productCategoryUuid, showDeletedOnly);
         return Ok(result);
     }
 }

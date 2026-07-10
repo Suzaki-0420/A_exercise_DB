@@ -91,17 +91,20 @@ public class ProductRepository : IProductRepository
     /// 削除フラグを立てたものが表示されないように.Whereで条件付けしてます
     /// </summary>
     /// <param name="productCategoryId">商品カテゴリID</param>
+    /// <param name="productCategoryId">商品カテゴリID</param>
     /// <returns>Productのリスト</returns>
-    public async Task<List<Product>> SelectByProductCategoryIdAsync(Guid productCategoryUuid)
+    public async Task<List<Product>> SelectByProductCategoryIdAsync(Guid productCategoryUuid, bool showDeletedOnly)
     {
         try
         {
+            var deleteFlg = showDeletedOnly ? 1 : 0;
+
             // 引数の商品カテゴリIDで商品と在庫・カテゴリを取得する
             var entities = await _context.Products
                 .AsNoTracking()
                 .Include(p => p.ProductStock)
                 .Include(p => p.ProductCategory)
-                .Where(p => p.ProductCategory.CategoryUuid == productCategoryUuid && p.DeleteFlg == 0)
+                .Where(p => p.ProductCategory.CategoryUuid == productCategoryUuid && p.DeleteFlg == deleteFlg)
                 .ToListAsync();
 
             // List<ProductEntity>からList<Product>を復元する
