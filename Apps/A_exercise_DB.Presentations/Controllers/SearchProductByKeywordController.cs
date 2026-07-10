@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace A_exercise_DB.Presentations.Controllers;
 
 [ApiController]
-[Route("api/products/keyword")]
+[Route("admin/product/keyword")]
 [Tags("UC019: 商品キーワード検索")]
 /// <summary>
 /// ユースケース:[商品をキーワード検索する]を実現するコントローラ
