@@ -111,6 +111,7 @@ public class ProductRepositoryTests
         }
 
         _dbContext.Products.Remove(deleteTarget);
+        await _dbContext.SaveChangesAsync();
     }
 
     [TestMethod(DisplayName = "商品カテゴリが存在しない場合InternalExceptionが発生する")]

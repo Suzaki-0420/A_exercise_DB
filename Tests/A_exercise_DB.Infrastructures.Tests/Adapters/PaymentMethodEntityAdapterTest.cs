@@ -49,6 +49,7 @@ public class PaymentMethodEntityAdapterTests
         // Arrange
         var entity = new PaymentMethodEntity
         {
+            Id = 1,
             Name = "クレジットカード"
         };
 
