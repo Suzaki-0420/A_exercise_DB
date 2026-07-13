@@ -12,7 +12,8 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// BP015: 購入履歴検索画面
 /// </summary>
 [ApiController]
-[Authorize]
+[AllowAnonymous]
+//[Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/order/search")]
 [Tags("UC015: 購入履歴検索")]
