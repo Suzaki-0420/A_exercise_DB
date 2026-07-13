@@ -399,4 +399,135 @@ public class LoginAdminUsecaseTests
                 request.Password),
             Times.Once);
     }
+
+    [TestMethod(DisplayName = "ロック中の場合、Repositoryを呼ばずAccountLockedExceptionがスローされる")]
+    public async Task LoginAsync_WhenAccountIsLocked_ShouldThrowAccountLockedException()
+    {
+        var request = new AdminLoginRequest("admin01", "pass01");
+        var repositoryMock = new Mock<IEmployeeAccountRepository>(MockBehavior.Strict);
+        var passwordHashingServiceMock = new Mock<IPasswordHashingService>(MockBehavior.Strict);
+        var loginAttemptTrackerMock = new Mock<ILoginAttemptTracker>(MockBehavior.Strict);
+
+        loginAttemptTrackerMock
+            .Setup(t => t.IsLocked(request.AccountName))
+            .Returns(true);
+
+        var usecase = new LoginAdminUsecase(
+            repositoryMock.Object,
+            passwordHashingServiceMock.Object,
+            loginAttemptTrackerMock.Object);
+
+        var ex = await Assert.ThrowsExactlyAsync<AccountLockedException>(async () =>
+            await usecase.LoginAsync(request));
+
+        Assert.AreEqual(
+            "ログインに5回失敗したため、10分間ログインできません。",
+            ex.Message);
+        repositoryMock.Verify(
+            r => r.FindByNameAsync(It.IsAny<string>()),
+            Times.Never);
+        passwordHashingServiceMock.Verify(
+            s => s.Verify(It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+        loginAttemptTrackerMock.Verify(
+            t => t.RecordFailure(It.IsAny<string>()),
+            Times.Never);
+        loginAttemptTrackerMock.Verify(
+            t => t.Reset(It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [TestMethod(DisplayName = "5回目の認証失敗の場合、AccountLockedExceptionがスローされる")]
+    public async Task LoginAsync_WhenFifthAuthenticationFailure_ShouldThrowAccountLockedException()
+    {
+        var request = new AdminLoginRequest("admin01", "pass01");
+        var employee = new Employee(
+            Guid.NewGuid(),
+            "山田 太郎",
+            "ヤマダ タロウ");
+        var employeeAccount = new EmployeeAccount(
+            Guid.NewGuid(),
+            request.AccountName,
+            "hashed-password",
+            employee);
+        var repositoryMock = new Mock<IEmployeeAccountRepository>(MockBehavior.Strict);
+        var passwordHashingServiceMock = new Mock<IPasswordHashingService>(MockBehavior.Strict);
+        var loginAttemptTrackerMock = new Mock<ILoginAttemptTracker>(MockBehavior.Strict);
+
+        loginAttemptTrackerMock
+            .Setup(t => t.IsLocked(request.AccountName))
+            .Returns(false);
+        repositoryMock
+            .Setup(r => r.FindByNameAsync(request.AccountName))
+            .ReturnsAsync(employeeAccount);
+        passwordHashingServiceMock
+            .Setup(s => s.Verify(employeeAccount.Password, request.Password))
+            .Returns(false);
+        loginAttemptTrackerMock
+            .Setup(t => t.RecordFailure(request.AccountName))
+            .Returns(true);
+
+        var usecase = new LoginAdminUsecase(
+            repositoryMock.Object,
+            passwordHashingServiceMock.Object,
+            loginAttemptTrackerMock.Object);
+
+        var ex = await Assert.ThrowsExactlyAsync<AccountLockedException>(async () =>
+            await usecase.LoginAsync(request));
+
+        Assert.AreEqual(
+            "ログインに5回失敗したため、10分間ログインできません。",
+            ex.Message);
+        loginAttemptTrackerMock.Verify(
+            t => t.RecordFailure(request.AccountName),
+            Times.Once);
+        loginAttemptTrackerMock.Verify(
+            t => t.Reset(It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [TestMethod(DisplayName = "ログイン成功時に失敗記録がリセットされる")]
+    public async Task LoginAsync_WhenLoginSucceeds_ShouldResetLoginFailures()
+    {
+        var request = new AdminLoginRequest("admin01", "pass01");
+        var employee = new Employee(
+            Guid.NewGuid(),
+            "山田 太郎",
+            "ヤマダ タロウ");
+        var employeeAccount = new EmployeeAccount(
+            Guid.NewGuid(),
+            request.AccountName,
+            "hashed-password",
+            employee);
+        var repositoryMock = new Mock<IEmployeeAccountRepository>(MockBehavior.Strict);
+        var passwordHashingServiceMock = new Mock<IPasswordHashingService>(MockBehavior.Strict);
+        var loginAttemptTrackerMock = new Mock<ILoginAttemptTracker>(MockBehavior.Strict);
+
+        loginAttemptTrackerMock
+            .Setup(t => t.IsLocked(request.AccountName))
+            .Returns(false);
+        repositoryMock
+            .Setup(r => r.FindByNameAsync(request.AccountName))
+            .ReturnsAsync(employeeAccount);
+        passwordHashingServiceMock
+            .Setup(s => s.Verify(employeeAccount.Password, request.Password))
+            .Returns(true);
+        loginAttemptTrackerMock
+            .Setup(t => t.Reset(request.AccountName));
+
+        var usecase = new LoginAdminUsecase(
+            repositoryMock.Object,
+            passwordHashingServiceMock.Object,
+            loginAttemptTrackerMock.Object);
+
+        var result = await usecase.LoginAsync(request);
+
+        Assert.AreEqual(employeeAccount.AccountUuid, result.AccountUuid);
+        loginAttemptTrackerMock.Verify(
+            t => t.Reset(request.AccountName),
+            Times.Once);
+        loginAttemptTrackerMock.Verify(
+            t => t.RecordFailure(It.IsAny<string>()),
+            Times.Never);
+    }
 }
