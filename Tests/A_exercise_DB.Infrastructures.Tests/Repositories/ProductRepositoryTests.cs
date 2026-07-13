@@ -228,23 +228,45 @@ public class ProductRepositoryTests
             false);
         });
     }
-    [TestMethod(DisplayName = "キーワードに一致する商品一覧を取得できる")]
+    [TestMethod(DisplayName = "（削除済み）キーワードに一致する商品一覧を取得できる")]
     public async Task SearchKeywordAsync_WhenProductsExist_ShouldReturnProducts()
     {
-        var products = await _repository.SearchKeywordAsync("ボールペン");
+        var products = await _repository.SearchKeywordAsync("ボールペン", true);
+
+        Assert.IsNotNull(products);
+
+        Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
+        Assert.IsTrue(products.All(p => p.DeleteFlg == 1));
+        Assert.HasCount(1, products);
+        Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
+    }
+
+    [TestMethod(DisplayName = "（売りもの）キーワードに一致する商品一覧を取得できる")]
+    public async Task SearchKeywordAsync_WhenProductsExist_ShouldReturnProducts_false()
+    {
+        var products = await _repository.SearchKeywordAsync("ボールペン", false);
 
         Assert.IsNotNull(products);
 
         Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
         Assert.IsTrue(products.All(p => p.DeleteFlg == 0));
-        Assert.HasCount(2, products);
+        Assert.HasCount(1, products);
         Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
     }
 
-    [TestMethod(DisplayName = "キーワードに一致する商品が存在しない場合は空リストを返す")]
+    [TestMethod(DisplayName = "(削除済み）キーワードに一致する商品が存在しない場合は空リストを返す")]
     public async Task SearchKeywordAsync_WhenProductsDoNotExist_ShouldReturnEmptyList()
     {
-        var products = await _repository.SearchKeywordAsync("存在しない商品");
+        var products = await _repository.SearchKeywordAsync("存在しない商品", true);
+
+        Assert.IsNotNull(products);
+        Assert.IsEmpty(products);
+    }
+
+    [TestMethod(DisplayName = "（売り物）キーワードに一致する商品が存在しない場合は空リストを返す")]
+    public async Task SearchKeywordAsync_WhenProductsDoNotExist_ShouldReturnEmptyList_false()
+    {
+        var products = await _repository.SearchKeywordAsync("存在しない商品", false);
 
         Assert.IsNotNull(products);
         Assert.IsEmpty(products);
@@ -267,7 +289,7 @@ public class ProductRepositoryTests
 
         await Assert.ThrowsExactlyAsync<InternalException>(async () =>
         {
-            await repository.SearchKeywordAsync("ボールペン");
+            await repository.SearchKeywordAsync("ボールペン", true);
         });
     }
 

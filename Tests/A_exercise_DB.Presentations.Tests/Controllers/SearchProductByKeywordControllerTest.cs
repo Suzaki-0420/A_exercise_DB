@@ -37,6 +37,7 @@ public class SearchProductByKeywordControllerTests
     {
         // Arrange
         var category = new ProductCategory(Guid.NewGuid(), "文房具");
+        const bool showDeletedOnly = false;
 
         var expectedProducts = new List<Product>
         {
@@ -60,11 +61,11 @@ public class SearchProductByKeywordControllerTests
         };
 
         _usecaseMock!
-            .Setup(x => x.ExecuteAsync("ペン"))
+            .Setup(x => x.ExecuteAsync("ペン", showDeletedOnly))
             .ReturnsAsync(expectedProducts);
 
         // Act
-        var result = await _controller!.Search("ペン");
+        var result = await _controller!.Search("ペン", showDeletedOnly);
 
         // Assert
         var ok = result as OkObjectResult;
@@ -78,7 +79,7 @@ public class SearchProductByKeywordControllerTests
         CollectionAssert.AreEqual(expectedProducts, products);
 
         _usecaseMock.Verify(
-            x => x.ExecuteAsync("ペン"),
+            x => x.ExecuteAsync("ペン", showDeletedOnly),
             Times.Once);
     }
 
@@ -88,8 +89,9 @@ public class SearchProductByKeywordControllerTests
     [TestMethod(DisplayName = "キーワードがnullの場合、400 BadRequestを返す")]
     public async Task Search_ShouldReturnBadRequest_WhenKeywordIsNull()
     {
+        const bool showDeletedOnly = false;
         // Act
-        var result = await _controller!.Search(null);
+        var result = await _controller!.Search(null, showDeletedOnly);
 
         // Assert
         var badRequest = result as BadRequestObjectResult;
@@ -98,7 +100,7 @@ public class SearchProductByKeywordControllerTests
         Assert.AreEqual(StatusCodes.Status400BadRequest, badRequest.StatusCode);
 
         _usecaseMock!.Verify(
-            x => x.ExecuteAsync(It.IsAny<string>()),
+            x => x.ExecuteAsync(It.IsAny<string>(), showDeletedOnly),
             Times.Never);
     }
 
@@ -108,8 +110,9 @@ public class SearchProductByKeywordControllerTests
     [TestMethod(DisplayName = "キーワードが空文字の場合、400 BadRequestを返す")]
     public async Task Search_ShouldReturnBadRequest_WhenKeywordIsEmpty()
     {
+        const bool showDeletedOnly = false;
         // Act
-        var result = await _controller!.Search("");
+        var result = await _controller!.Search("", showDeletedOnly);
 
         // Assert
         var badRequest = result as BadRequestObjectResult;
@@ -118,7 +121,7 @@ public class SearchProductByKeywordControllerTests
         Assert.AreEqual(StatusCodes.Status400BadRequest, badRequest.StatusCode);
 
         _usecaseMock!.Verify(
-            x => x.ExecuteAsync(It.IsAny<string>()),
+            x => x.ExecuteAsync(It.IsAny<string>(), showDeletedOnly),
             Times.Never);
     }
 
@@ -128,8 +131,9 @@ public class SearchProductByKeywordControllerTests
     [TestMethod(DisplayName = "キーワードが空白のみの場合、400 BadRequestを返す")]
     public async Task Search_ShouldReturnBadRequest_WhenKeywordIsWhiteSpace()
     {
+        const bool showDeletedOnly = false;
         // Act
-        var result = await _controller!.Search("   ");
+        var result = await _controller!.Search("   ", showDeletedOnly);
 
         // Assert
         var badRequest = result as BadRequestObjectResult;
@@ -138,7 +142,7 @@ public class SearchProductByKeywordControllerTests
         Assert.AreEqual(StatusCodes.Status400BadRequest, badRequest.StatusCode);
 
         _usecaseMock!.Verify(
-            x => x.ExecuteAsync(It.IsAny<string>()),
+            x => x.ExecuteAsync(It.IsAny<string>(), showDeletedOnly),
             Times.Never);
     }
 }
