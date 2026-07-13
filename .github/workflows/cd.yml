@@ -1,9 +1,13 @@
 # GitHub Actionsの画面に表示されるワークフロー名
 name: .NET CS_WebApp CD
 
-# pushしたときに実行
+# ワークフローが実行される条件（トリガー）の定義
+# 【修正後】CIワークフローが「完了」した時に実行
 on:
-  push:
+  workflow_run:
+    workflows: [".NET CS_WebApp CI"] # ※ci.ymlの「name:」で指定している名前と完全に一致させる必要がある
+    types:
+      - completed
     branches:
       - main
 
