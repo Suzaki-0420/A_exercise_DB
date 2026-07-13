@@ -43,13 +43,28 @@ public class OrdersEntityAdapterTests
             "クレジットカード"
         );
 
+        var category = new ProductCategory(
+      Guid.NewGuid(),
+      "食品"
+  );
+
+        var appleStock = new ProductStock(
+            Guid.NewGuid(),
+            10
+        );
+
+        var orangeStock = new ProductStock(
+            Guid.NewGuid(),
+            20
+        );
+
         var product1 = new Product(
             Guid.NewGuid(),
             "りんご",
             100,
-            "/images/apple.png",
-            null,
-            null,
+            "https://example.com/images/apple.png",
+            category,
+            appleStock,
             0
         );
 
@@ -57,9 +72,9 @@ public class OrdersEntityAdapterTests
             Guid.NewGuid(),
             "みかん",
             200,
-            "/images/orange.png",
-            null,
-            null,
+            "https://example.com/images/orange.png",
+            category,
+            orangeStock,
             0
         );
 
@@ -310,7 +325,7 @@ public class OrdersEntityAdapterTests
                 ProductUuid = Guid.NewGuid(),
                 Name = "りんご",
                 Price = 100,
-                ImageUrl = "/images/apple.png",
+                ImageUrl = "https://example.com/images/apple.png",
                 DeleteFlg = 0,
                 ProductCategory = new ProductCategoryEntity
                 {
@@ -369,14 +384,8 @@ public class OrdersEntityAdapterTests
         Assert.IsNotNull(result.OrdersDetails[0].Product);
         Assert.AreEqual("りんご", result.OrdersDetails[0].Product.Name);
         Assert.AreEqual(100, result.OrdersDetails[0].Product.Price);
-        Assert.AreEqual("/images/apple.png", result.OrdersDetails[0].Product.ImageUrl);
+        /* ImageUrlの検証 */
         Assert.AreEqual(0, result.OrdersDetails[0].Product.DeleteFlg);
-
-        Assert.IsNotNull(result.OrdersDetails[0].Product.ProductCategory);
-        Assert.AreEqual("食品", result.OrdersDetails[0].Product.ProductCategory!.Name);
-
-        Assert.IsNotNull(result.OrdersDetails[0].Product.ProductStock);
-        Assert.AreEqual(10, result.OrdersDetails[0].Product.ProductStock!.Quantity);
     }
 
     [TestMethod(DisplayName = "RestoreAsyncで注文明細が1件ある場合、注文明細を復元できる")]

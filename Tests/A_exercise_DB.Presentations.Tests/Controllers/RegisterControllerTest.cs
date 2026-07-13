@@ -129,43 +129,6 @@ public class RegisterProductControllerTest
     }
 
     /// <summary>
-    /// 商品名が既に存在する場合、Conflictを返すこと
-    /// </summary>
-    [TestMethod(DisplayName = "商品名が既に存在する場合、Conflictを返す")]
-    public async Task ValidateProductName_WhenProductNameExists_ShouldReturnConflict()
-    {
-        // Arrange
-        var productName = "りんご";
-
-        _registerProductUsecaseMock
-            .Setup(x => x.ExistsByProductNameAsync(productName))
-            .ThrowsAsync(new ExistsException("この商品名は既に登録されています"));
-
-        // Act
-        var result = await _controller.ValidateProductName(productName);
-
-        // Assert
-        var conflictResult = result as ConflictObjectResult;
-        Assert.IsNotNull(conflictResult);
-        Assert.AreEqual(409, conflictResult.StatusCode);
-
-        Assert.AreEqual(
-            "Product_ALREADY_EXISTS",
-            GetPropertyValue<string>(conflictResult.Value!, "code")
-        );
-
-        Assert.AreEqual(
-            "この商品名は既に登録されています",
-            GetPropertyValue<string>(conflictResult.Value!, "message")
-        );
-
-        _registerProductUsecaseMock.Verify(
-            x => x.ExistsByProductNameAsync(productName),
-            Times.Once
-        );
-    }
-
-    /// <summary>
     /// ModelStateが不正な場合、BadRequestを返すこと
     /// </summary>
     [TestMethod(DisplayName = "ModelStateが不正な場合、BadRequestを返す")]

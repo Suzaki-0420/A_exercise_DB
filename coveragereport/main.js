@@ -290,7 +290,7 @@ var assemblies = [
   {
     "name": "A_exercise_DB.Applications",
     "classes": [
-      { "name": "A_exercise_DB.Applications.Security.InMemoryLoginAttemptTracker", "rp": "A_exercise_DB.Applications_InMemoryLoginAttemptTracker.html", "cl": 26, "ucl": 17, "cal": 43, "tl": 84, "cb": 4, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "A_exercise_DB.Applications.Security.InMemoryLoginAttemptTracker", "rp": "A_exercise_DB.Applications_InMemoryLoginAttemptTracker.html", "cl": 41, "ucl": 2, "cal": 43, "tl": 84, "cb": 16, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Applications.Security.PBKDF2PasswordHashingService", "rp": "A_exercise_DB.Applications_PBKDF2PasswordHashingService.html", "cl": 47, "ucl": 0, "cal": 47, "tl": 95, "cb": 10, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Applications.Usecases.Accounts.AdminLoginRequest", "rp": "A_exercise_DB.Applications_AdminLoginRequest.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Applications.Usecases.Accounts.AdminLoginResult", "rp": "A_exercise_DB.Applications_AdminLoginResult.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -327,7 +327,7 @@ var assemblies = [
       { "name": "A_exercise_DB.Domains.Models.OrdersDetail", "rp": "A_exercise_DB.Domains_OrdersDetail.html", "cl": 29, "ucl": 3, "cal": 32, "tl": 81, "cb": 12, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Domains.Models.OrderStatus", "rp": "A_exercise_DB.Domains_OrderStatus.html", "cl": 29, "ucl": 0, "cal": 29, "tl": 77, "cb": 10, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Domains.Models.PaymentMethod", "rp": "A_exercise_DB.Domains_PaymentMethod.html", "cl": 29, "ucl": 0, "cal": 29, "tl": 75, "cb": 10, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "A_exercise_DB.Domains.Models.Product", "rp": "A_exercise_DB.Domains_Product.html", "cl": 83, "ucl": 0, "cal": 83, "tl": 214, "cb": 35, "tb": 36, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "A_exercise_DB.Domains.Models.Product", "rp": "A_exercise_DB.Domains_Product.html", "cl": 94, "ucl": 0, "cal": 94, "tl": 230, "cb": 35, "tb": 36, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Domains.Models.ProductCategory", "rp": "A_exercise_DB.Domains_ProductCategory.html", "cl": 25, "ucl": 0, "cal": 25, "tl": 73, "cb": 10, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Domains.Models.ProductStock", "rp": "A_exercise_DB.Domains_ProductStock.html", "cl": 24, "ucl": 0, "cal": 24, "tl": 69, "cb": 8, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
@@ -345,7 +345,7 @@ var assemblies = [
       { "name": "A_exercise_DB.Infrastructures.Adapters.OrderStatusEntityAdapter", "rp": "A_exercise_DB.Infrastructures_OrderStatusEntityAdapter.html", "cl": 15, "ucl": 0, "cal": 15, "tl": 51, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Infrastructures.Adapters.PaymentMethodEntityAdapter", "rp": "A_exercise_DB.Infrastructures_PaymentMethodEntityAdapter.html", "cl": 15, "ucl": 0, "cal": 15, "tl": 49, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Infrastructures.Adapters.ProductCategoryEntityAdapter", "rp": "A_exercise_DB.Infrastructures_ProductCategoryEntityAdapter.html", "cl": 12, "ucl": 0, "cal": 12, "tl": 43, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "A_exercise_DB.Infrastructures.Adapters.ProductEntityAdapter", "rp": "A_exercise_DB.Infrastructures_ProductEntityAdapter.html", "cl": 13, "ucl": 0, "cal": 13, "tl": 44, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "A_exercise_DB.Infrastructures.Adapters.ProductEntityAdapter", "rp": "A_exercise_DB.Infrastructures_ProductEntityAdapter.html", "cl": 14, "ucl": 0, "cal": 14, "tl": 45, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Infrastructures.Adapters.ProductFactory", "rp": "A_exercise_DB.Infrastructures_ProductFactory.html", "cl": 59, "ucl": 0, "cal": 59, "tl": 127, "cb": 20, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Infrastructures.Adapters.ProductStockEntityAdapter", "rp": "A_exercise_DB.Infrastructures_ProductStockEntityAdapter.html", "cl": 12, "ucl": 0, "cal": 12, "tl": 43, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Infrastructures.Contexts.AppDbContext", "rp": "A_exercise_DB.Infrastructures_AppDbContext.html", "cl": 133, "ucl": 0, "cal": 133, "tl": 172, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -377,7 +377,7 @@ var assemblies = [
       { "name": "A_exercise_DB.Presentations.Controllers.SearchProductByCategory", "rp": "A_exercise_DB.Presentations_SearchProductByCategory.html", "cl": 8, "ucl": 0, "cal": 8, "tl": 41, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Presentations.Controllers.SearchProductByKeywordController", "rp": "A_exercise_DB.Presentations_SearchProductByKeywordController.html", "cl": 12, "ucl": 0, "cal": 12, "tl": 42, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Presentations.Controllers.UpdateOrderStatusController", "rp": "A_exercise_DB.Presentations_UpdateOrderStatusController.html", "cl": 144, "ucl": 0, "cal": 144, "tl": 238, "cb": 8, "tb": 8, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "A_exercise_DB.Presentations.Controllers.UpdateProductController", "rp": "A_exercise_DB.Presentations_UpdateProductController.html", "cl": 41, "ucl": 0, "cal": 41, "tl": 90, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "A_exercise_DB.Presentations.Controllers.UpdateProductController", "rp": "A_exercise_DB.Presentations_UpdateProductController.html", "cl": 43, "ucl": 0, "cal": 43, "tl": 92, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -391,12 +391,6 @@ var riskHotspotMetrics = [
 ];
 
 var riskHotspots = [
-  {
-    "assembly": "A_exercise_DB.Applications", "class": "A_exercise_DB.Applications.Security.InMemoryLoginAttemptTracker", "reportPath": "A_exercise_DB.Applications_InMemoryLoginAttemptTracker.html", "methodName": "CreateNextState(A_exercise_DB.Applications.Security.InMemoryLoginAttemptTracker/LoginAttemptState,System.DateTimeOffset)", "methodShortName": "CreateNextState(...)", "fileIndex": 0, "line": 66,
-    "metrics": [
-      { "value": 72, "exceeded": true },
-      { "value": 8, "exceeded": false },
-    ]},
   {
     "assembly": "A_exercise_DB.Applications", "class": "A_exercise_DB.Applications.Usecases.Products.UpdateProductUsecase", "reportPath": "A_exercise_DB.Applications_UpdateProductUsecase.html", "methodName": "ValidateRequest(A_exercise_DB.Applications.Usecases.Products.ProductUpdateRequest)", "methodShortName": "ValidateRequest(...)", "fileIndex": 0, "line": 105,
     "metrics": [
