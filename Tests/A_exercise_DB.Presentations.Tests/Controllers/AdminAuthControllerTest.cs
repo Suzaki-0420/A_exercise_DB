@@ -3,6 +3,7 @@ using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Presentations.Controllers;
 using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -316,5 +317,58 @@ public class AdminAuthControllerTest
                 It.IsAny<AuthenticationProperties?>()),
             Times.Never
         );
+    }
+
+    /// <summary>
+    /// ログアウトに成功した場合、認証Cookieを破棄してOkを返すこと
+    /// </summary>
+    [TestMethod(DisplayName = "ログアウトに成功した場合、認証Cookieを破棄してOkを返す")]
+    public async Task LogoutAsync_ShouldSignOutAndReturnOk()
+    {
+        // Arrange
+        _authenticationServiceMock
+            .Setup(x => x.SignOutAsync(
+                It.IsAny<HttpContext>(),
+                "Cookies",
+                It.IsAny<AuthenticationProperties?>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.LogoutAsync();
+
+        // Assert
+        var okResult = result as OkObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(200, okResult.StatusCode);
+
+        var response = okResult.Value as ApiResponse<AdminLogoutResult>;
+        Assert.IsNotNull(response);
+        Assert.IsTrue(response.Success);
+        Assert.IsNotNull(response.Data);
+        Assert.IsTrue(response.Data.LoggedOut);
+        Assert.IsEmpty(response.Errors);
+
+        _authenticationServiceMock.Verify(
+            x => x.SignOutAsync(
+                It.IsAny<HttpContext>(),
+                "Cookies",
+                It.IsAny<AuthenticationProperties?>()),
+            Times.Once
+        );
+    }
+
+    /// <summary>
+    /// ログアウトAPIに認証が必要であること
+    /// </summary>
+    [TestMethod(DisplayName = "ログアウトAPIにAuthorize属性が設定されている")]
+    public void LogoutAsync_ShouldRequireAuthorization()
+    {
+        var method = typeof(AdminAuthController).GetMethod(
+            nameof(AdminAuthController.LogoutAsync));
+
+        Assert.IsNotNull(method);
+        Assert.IsNotNull(method.GetCustomAttributes(
+            typeof(AuthorizeAttribute),
+            inherit: true).SingleOrDefault());
     }
 }
