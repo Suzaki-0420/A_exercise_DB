@@ -1,40 +1,142 @@
-# GitHub Actionsの画面上に表示されるワークフローの名前
+# GitHub Actionsの画面に表示されるワークフロー名
 name: .NET CS_WebApp CD
 
-# ワークフローが実行される条件（トリガー）の定義
-# 【修正後】CIワークフローが「完了」した時に実行
+# CIが完了したときに実行
 on:
   workflow_run:
-    workflows: [".NET CS_WebApp CI"] # ※ci.ymlの「name:」で指定している名前と完全に一致させる必要がある
+    workflows:
+      - ".NET CS_WebApp CI"
     types:
       - completed
     branches:
       - main
 
-# 実行するジョブ（作業のまとまり）の定義
+# リポジトリの読み取りだけを許可
+permissions:
+  contents: read
+
 jobs:
-  deploy: # ジョブの識別名（任意の名前）
-    # GitHub側が用意する使い捨ての仮想環境（Runner）のOSを指定
+  deploy:
+    # CIが成功した場合のみデプロイ
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     runs-on: ubuntu-latest
-    
-    # ジョブ内で順番に実行される手順（ステップ）のリスト
+
+    env:
+      # 実際のcsprojの場所に合わせて修正
+      PROJECT_PATH: Apps/A_exercise_DB.Presentations/A_exercise_DB.Presentations.csproj
+
+      # Azure VM上の配置先
+      APP_DIR: /home/azureuser/apps/a-exercise-db
+
+      # Azure VMに登録したsystemdサービス名
+      SERVICE_NAME: a-exercise-db
+
+      # SSH接続情報
+      AZURE_HOST: ${{ secrets.AZURE_HOST }}
+      AZURE_USER: ${{ secrets.AZURE_USER }}
+      SSH_PORT: "22"
+
     steps:
-      - name: 運用環境へのSSH疎通確認
-        # サードパーティ製（コミュニティ作成）のSSH接続アクションを利用
-        uses: appleboy/ssh-action@v1.0.3
-        
-        # 上記のアクションに渡すパラメータ（引数）の定義
+      # CIでテストされたコミットを取得
+      - name: Checkout tested commit
+        uses: actions/checkout@v4
         with:
-          # GitHub Secretsから認証情報を安全に取得し、環境に展開（注入）する
-          host: ${{ secrets.AZURE_HOST }}         # 接続先サーバーのIPアドレス
-          username: ${{ secrets.AZURE_USER }}     # ログインユーザー名（ubuntu）
-          key: ${{ secrets.TRAININGSERVER_KEY }}      # 秘密鍵（PEM）のテキストデータ
-          
-          # SSH接続が成功した後に、リモートサーバー上で実行されるシェルコマンド
-          # （「|」は複数行の文字列を記述するためのYAMLの記法）
-          script: |
-            echo "=== SSH Connection Successful ===" 
-            echo "--- System Information ---"
-            uname -a # サーバーのOSやカーネル情報を出力し、Linuxであることを確認
-            echo "--- Current User ---"
-            whoami   # 実行ユーザーを出力し、指定したユーザーでログインできたか確認
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # .NET SDKを準備
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # 依存関係を復元
+      - name: Restore
+        run: dotnet restore "${PROJECT_PATH}"
+
+      # Azureへ配置するファイルを作成
+      - name: Publish
+        run: |
+          dotnet publish "${PROJECT_PATH}" \
+            --configuration Release \
+            --output publish \
+            --no-restore
+
+      # Secretに登録した秘密鍵をSSH用ファイルとして準備
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.TRAININGSERVER_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "${SSH_PRIVATE_KEY}" \
+            | tr -d '\r' \
+            > ~/.ssh/id_rsa
+
+          chmod 600 ~/.ssh/id_rsa
+
+          ssh-keyscan \
+            -p "${SSH_PORT}" \
+            -H "${AZURE_HOST}" \
+            >> ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      # まずSSH接続だけ確認
+      - name: Check SSH connection
+        run: |
+          ssh \
+            -i ~/.ssh/id_rsa \
+            -p "${SSH_PORT}" \
+            "${AZURE_USER}@${AZURE_HOST}" \
+            "echo 'SSH connection successful' && hostname"
+
+      # publish結果を圧縮
+      - name: Create deployment archive
+        run: |
+          tar \
+            -czf backend.tar.gz \
+            -C publish \
+            .
+
+      # Azure VMへ転送
+      - name: Upload backend
+        run: |
+          scp \
+            -i ~/.ssh/id_rsa \
+            -P "${SSH_PORT}" \
+            backend.tar.gz \
+            "${AZURE_USER}@${AZURE_HOST}:/tmp/backend.tar.gz"
+
+      # Azure VM上で配置・再起動
+      - name: Deploy backend
+        run: |
+          ssh \
+            -i ~/.ssh/id_rsa \
+            -p "${SSH_PORT}" \
+            "${AZURE_USER}@${AZURE_HOST}" \
+            "
+              set -e
+
+              mkdir -p '${APP_DIR}'
+
+              sudo systemctl stop '${SERVICE_NAME}' || true
+
+              find '${APP_DIR}' \
+                -mindepth 1 \
+                -maxdepth 1 \
+                -exec rm -rf {} +
+
+              tar \
+                -xzf /tmp/backend.tar.gz \
+                -C '${APP_DIR}'
+
+              rm /tmp/backend.tar.gz
+
+              sudo systemctl start '${SERVICE_NAME}'
+
+              sudo systemctl \
+                --no-pager \
+                --full \
+                status '${SERVICE_NAME}'
+            "
