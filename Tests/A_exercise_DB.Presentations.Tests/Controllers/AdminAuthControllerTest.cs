@@ -231,6 +231,51 @@ public class AdminAuthControllerTest
     }
 
     /// <summary>
+    /// AccountLockedExceptionが発生した場合、Forbiddenを返すこと
+    /// </summary>
+    [TestMethod(DisplayName = "AccountLockedExceptionが発生した場合、Forbiddenを返す")]
+    public async Task LoginAsync_WhenAccountLockedExceptionThrown_ShouldReturnForbidden()
+    {
+        // Arrange
+        var request = new AdminLoginViewModel
+        {
+            AccountName = "admin01",
+            Password = "pass01"
+        };
+
+        _loginAdminUsecaseMock
+            .Setup(x => x.LoginAsync(It.IsAny<AdminLoginRequest>()))
+            .ThrowsAsync(new AccountLockedException(
+                "ログインに5回失敗したため、10分間ログインできません。"));
+
+        // Act
+        var result = await _controller.LoginAsync(request);
+
+        // Assert
+        var objectResult = result as ObjectResult;
+        Assert.IsNotNull(objectResult);
+        Assert.AreEqual(403, objectResult.StatusCode);
+
+        var response = objectResult.Value as ApiResponse<AdminLoginResult>;
+        Assert.IsNotNull(response);
+        Assert.IsFalse(response.Success);
+        Assert.HasCount(1, response.Errors);
+        Assert.AreEqual("ACCOUNT_LOCKED", response.Errors[0].Code);
+        Assert.AreEqual(
+            "ログインに5回失敗したため、10分間ログインできません。",
+            response.Errors[0].Message);
+
+        _authenticationServiceMock.Verify(
+            x => x.SignInAsync(
+                It.IsAny<HttpContext>(),
+                It.IsAny<string?>(),
+                It.IsAny<System.Security.Claims.ClaimsPrincipal>(),
+                It.IsAny<AuthenticationProperties?>()),
+            Times.Never
+        );
+    }
+
+    /// <summary>
     /// InternalExceptionが発生した場合、InternalServerErrorを返すこと
     /// </summary>
     [TestMethod(DisplayName = "InternalExceptionが発生した場合、InternalServerErrorを返す")]
