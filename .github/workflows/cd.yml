@@ -1,11 +1,11 @@
 # GitHub Actionsの画面に表示されるワークフロー名
 name: .NET CS_WebApp CD
 
-# ワークフローが実行される条件（トリガー）の定義
-# 【修正後】CIワークフローが「完了」した時に実行
+# CIワークフローがmainブランチで完了したときに実行
 on:
   workflow_run:
-    workflows: [".NET CS_WebApp CI"] # ※ci.ymlの「name:」で指定している名前と完全に一致させる必要がある
+    workflows:
+      - ".NET CS_WebApp CI"
     types:
       - completed
     branches:
@@ -23,14 +23,14 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # 実際のcsprojの場所に合わせて修正
+      # 実際のcsprojの場所
       PROJECT_PATH: Apps/A_exercise_DB.Presentations/A_exercise_DB.Presentations.csproj
 
       # Azure VM上の配置先
       APP_DIR: /home/azureuser/apps/a-exercise-db
 
       # Azure VMに登録したsystemdサービス名
-      SERVICE_NAME: a-exercise-db
+      SERVICE_NAME: a-exercise-api
 
       # SSH接続情報
       AZURE_HOST: ${{ secrets.AZURE_HOST }}
@@ -62,6 +62,15 @@ jobs:
             --output publish \
             --no-restore
 
+      # PublishされたDLL名などを確認
+      - name: Show published files
+        run: |
+          find publish \
+            -maxdepth 1 \
+            -type f \
+            -printf '%f\n' \
+            | sort
+
       # Secretに登録した秘密鍵をSSH用ファイルとして準備
       - name: Setup SSH
         env:
@@ -82,7 +91,7 @@ jobs:
 
           chmod 600 ~/.ssh/known_hosts
 
-      # まずSSH接続だけ確認
+      # SSH接続を確認
       - name: Check SSH connection
         run: |
           ssh \
@@ -91,7 +100,7 @@ jobs:
             "${AZURE_USER}@${AZURE_HOST}" \
             "echo 'SSH connection successful' && hostname"
 
-      # publish結果を圧縮
+      # Publish結果を圧縮
       - name: Create deployment archive
         run: |
           tar \
@@ -108,7 +117,7 @@ jobs:
             backend.tar.gz \
             "${AZURE_USER}@${AZURE_HOST}:/tmp/backend.tar.gz"
 
-      # Azure VM上で配置・再起動
+      # Azure VM上で配置・サービス再起動
       - name: Deploy backend
         run: |
           ssh \
@@ -118,25 +127,38 @@ jobs:
             "
               set -e
 
+              echo 'Create application directory'
               mkdir -p '${APP_DIR}'
 
-              sudo systemctl stop '${SERVICE_NAME}' || true
+              echo 'Stop existing service'
+              sudo systemctl stop '${SERVICE_NAME}.service' || true
 
+              echo 'Remove old application files'
               find '${APP_DIR}' \
                 -mindepth 1 \
                 -maxdepth 1 \
                 -exec rm -rf {} +
 
+              echo 'Extract new application files'
               tar \
                 -xzf /tmp/backend.tar.gz \
                 -C '${APP_DIR}'
 
-              rm /tmp/backend.tar.gz
+              echo 'Remove deployment archive'
+              rm -f /tmp/backend.tar.gz
 
-              sudo systemctl start '${SERVICE_NAME}'
+              echo 'Reload systemd settings'
+              sudo systemctl daemon-reload
 
+              echo 'Enable service auto-start'
+              sudo systemctl enable '${SERVICE_NAME}.service'
+
+              echo 'Restart application service'
+              sudo systemctl restart '${SERVICE_NAME}.service'
+
+              echo 'Show application service status'
               sudo systemctl \
                 --no-pager \
                 --full \
-                status '${SERVICE_NAME}'
+                status '${SERVICE_NAME}.service'
             "
