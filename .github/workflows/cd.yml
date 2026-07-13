@@ -1,13 +1,9 @@
 # GitHub Actionsの画面に表示されるワークフロー名
 name: .NET CS_WebApp CD
 
-# CIが完了したときに実行
+# pushしたときに実行
 on:
-  workflow_run:
-    workflows:
-      - ".NET CS_WebApp CI"
-    types:
-      - completed
+  push:
     branches:
       - main
 
