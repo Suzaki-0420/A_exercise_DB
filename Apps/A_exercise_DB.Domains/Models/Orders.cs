@@ -40,10 +40,13 @@ public class Orders
     {
         ValidateOrderUuid(orderUuid);
         OrderUuid = orderUuid;
+
         ValidateOrderDate(orderDate);
         OrderDate = orderDate;
-        AmountTotal = amountTotal;
+
         ValidateAmountTotal(amountTotal);
+        AmountTotal = amountTotal;
+
         Customer = customer ?? throw new DomainException("顧客は必須です。");
         OrderStatus = orderStatus ?? throw new DomainException("注文ステータスは必須です。");
         PaymentMethod = paymentMethod ?? throw new DomainException("支払い方法は必須です。");
@@ -119,5 +122,5 @@ public class Orders
     public override int GetHashCode() => OrderUuid.GetHashCode();
 
     public override string ToString()
-        => $"{OrderUuid}: {OrderDate}, {AmountTotal} / {Customer?.Name} / {OrderStatus?.Name} / {PaymentMethod?.Name}";
+        => $"{OrderUuid}: {OrderDate}, {AmountTotal} / {Customer.Name} / {OrderStatus.Name} / {PaymentMethod.Name}";
 }

@@ -355,4 +355,18 @@ public class OrdersDetailTests
         StringAssert.Contains(result, count.ToString());
         StringAssert.Contains(result, "商品A");
     }
+
+    [TestMethod(DisplayName = "GetHashCodeは注文明細IDのハッシュコードを返す")]
+    public void GetHashCode_WithValidId_ShouldReturnIdHashCode()
+    {
+        // Arrange
+        const int detailId = 1;
+        var ordersDetail = CreateOrdersDetail(detailId: detailId);
+
+        // Act
+        var result = ordersDetail.GetHashCode();
+
+        // Assert
+        Assert.AreEqual(detailId.GetHashCode(), result);
+    }
 }

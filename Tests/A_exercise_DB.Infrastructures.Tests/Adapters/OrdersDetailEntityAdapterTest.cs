@@ -70,4 +70,26 @@ public class OrdersDetailEntityAdapterTests
 
         Assert.AreEqual("引数targetがnullです。", ex.Message);
     }
+
+    [TestMethod]
+    public async Task RestoreAsync_Productがnullの場合InternalExceptionをthrowする()
+    {
+        // Arrange
+        var entity = new OrdersDetailEntity
+        {
+            Id = 1,
+            Count = 3,
+            Product = null
+        };
+
+        // Act
+        var ex = await Assert.ThrowsExactlyAsync<InternalException>(
+            async () => await _adapter.RestoreAsync(entity)
+        );
+
+        // Assert
+        Assert.AreEqual(
+            "注文明細の商品が取得できていません。",
+            ex.Message);
+    }
 }

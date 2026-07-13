@@ -39,7 +39,7 @@ public class Department
     /// <summary>
     /// 部署識別IDの検証
     /// </summary>
-    private void ValidateDepartmentUuid(Guid? deptUuid)
+    private void ValidateDepartmentUuid(Guid deptUuid)
     {
         if (deptUuid == Guid.Empty)
             throw new DomainException("部署識別IDが不正です");
