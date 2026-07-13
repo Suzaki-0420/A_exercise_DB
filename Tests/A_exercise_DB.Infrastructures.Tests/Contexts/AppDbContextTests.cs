@@ -99,4 +99,37 @@ public class AddDbContextTests
             Assert.Fail($"DbSetに対する基本的なクエリ実行に失敗: {ex.Message}");
         }
     }
+
+    [TestMethod(
+    DisplayName = "BuildAppProviderで追加のサービス設定を実行できる")]
+    public void BuildAppProvider_WhenConfigureServicesIsSpecified_ShouldInvokeAction()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false)
+            .Build();
+
+        var configureServicesWasCalled = false;
+
+        // Act
+        using var provider =
+            ApplicationDependencyExtensions.BuildAppProvider(
+                config,
+                services =>
+                {
+                    configureServicesWasCalled = true;
+                    services.AddSingleton<TestService>();
+                });
+
+        // Assert
+        Assert.IsTrue(configureServicesWasCalled);
+
+        var service = provider.GetService<TestService>();
+
+        Assert.IsNotNull(service);
+    }
+    private sealed class TestService
+    {
+    }
 }

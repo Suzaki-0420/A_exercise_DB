@@ -77,4 +77,54 @@ public class ProductRegisterViewModelAdapterTest
         // Assert
         Assert.AreEqual("商品カテゴリ識別IDが不正です", exception.Message);
     }
+
+    [TestMethod(DisplayName = "CategoryNameがnullの場合、DomainExceptionが発生する")]
+    public async Task RestoreAsync_WhenCategoryNameIsNull_ShouldThrowDomainException()
+    {
+        // Arrange
+        var viewModel = new RegisterViewModel
+        {
+            Name = "りんご",
+            Price = 100,
+            Stock = 10,
+            CategoryUuid = Guid.NewGuid(),
+            CategoryName = null
+        };
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                async () => await _adapter.RestoreAsync(viewModel)
+            );
+
+        // Assert
+        Assert.AreEqual(
+            "商品カテゴリ名は必須です",
+            exception.Message);
+    }
+
+    [TestMethod(DisplayName = "Nameがnullの場合、DomainExceptionが発生する")]
+    public async Task RestoreAsync_WhenNameIsNull_ShouldThrowDomainException()
+    {
+        // Arrange
+        var viewModel = new RegisterViewModel
+        {
+            Name = null,
+            Price = 100,
+            Stock = 10,
+            CategoryUuid = Guid.NewGuid(),
+            CategoryName = "食品"
+        };
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                async () => await _adapter.RestoreAsync(viewModel)
+            );
+
+        // Assert
+        Assert.AreEqual(
+            "商品名は必須です",
+            exception.Message);
+    }
 }

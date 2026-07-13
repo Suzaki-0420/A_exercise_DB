@@ -93,9 +93,11 @@ public class RegisterProductController : ControllerBase
         // サーバーサイドバリデーション
         if (!ModelState.IsValid)
         {
-            var message = ModelState.Values.SelectMany(v => v.Errors)
+            var message = ModelState.Values
+                .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
-                .FirstOrDefault() ?? "商品名の入力内容に誤りがあります。";
+                .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m))
+                ?? "商品名の入力内容に誤りがあります。";
 
             return BadRequest(new
             {
@@ -106,7 +108,7 @@ public class RegisterProductController : ControllerBase
 
         try
         {
-            if (!model.CategoryUuid.HasValue || model.CategoryUuid == Guid.Empty)
+            if (model.CategoryUuid.GetValueOrDefault() == Guid.Empty)
             {
                 return BadRequest(new
                 {

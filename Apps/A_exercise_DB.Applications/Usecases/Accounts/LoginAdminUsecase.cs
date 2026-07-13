@@ -71,12 +71,12 @@ public class LoginAdminUsecase : ILoginAdminUsecase
 
         if (employeeAccount is null)
         {
-            ThrowAuthenticationFailure(request.AccountName);
+            throw CreateAuthenticationFailure(request.AccountName);
         }
 
         if (!_passwordHashingService.Verify(employeeAccount.Password, request.Password))
         {
-            ThrowAuthenticationFailure(request.AccountName);
+            throw CreateAuthenticationFailure(request.AccountName);
         }
 
         _loginAttemptTracker.Reset(request.AccountName);
@@ -88,19 +88,34 @@ public class LoginAdminUsecase : ILoginAdminUsecase
     }
 
     /// <summary>
-    /// 認証失敗を記録して対応する例外をスローする
+    /// 認証失敗を記録して、対応する例外を生成する
     /// </summary>
-    [DoesNotReturn]
-    private void ThrowAuthenticationFailure(string accountName)
+    private Exception CreateAuthenticationFailure(string accountName)
     {
         if (_loginAttemptTracker.RecordFailure(accountName))
         {
-            throw new AccountLockedException(AccountLockedMessage);
+            return new AccountLockedException(AccountLockedMessage);
         }
 
-        throw new UnauthorizedAccessException(AuthenticationFailedMessage);
+        return new UnauthorizedAccessException(
+            AuthenticationFailedMessage);
     }
 
+    /*
+        /// <summary>
+        /// 認証失敗を記録して対応する例外をスローする
+        /// </summary>
+        [DoesNotReturn]
+        private void ThrowAuthenticationFailure(string accountName)
+        {
+            if (_loginAttemptTracker.RecordFailure(accountName))
+            {
+                throw new AccountLockedException(AccountLockedMessage);
+            }
+
+            throw new UnauthorizedAccessException(AuthenticationFailedMessage);
+        }
+    */
     /// <summary>
     /// 担当者ログインリクエストを検証する
     /// </summary>

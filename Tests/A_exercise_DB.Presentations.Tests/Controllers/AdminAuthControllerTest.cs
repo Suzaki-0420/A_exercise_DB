@@ -371,4 +371,38 @@ public class AdminAuthControllerTest
             typeof(AuthorizeAttribute),
             inherit: true).SingleOrDefault());
     }
+
+    /// <summary>
+    /// ログアウトに成功した場合、認証Cookieを削除してOkを返すこと
+    /// </summary>
+    [TestMethod(DisplayName = "ログアウトに成功した場合、認証Cookieを削除してOkを返す")]
+    public async Task LogoutAsync_WhenLogoutSucceeds_ShouldSignOutAndReturnOk()
+    {
+        // Arrange
+        _authenticationServiceMock
+            .Setup(x => x.SignOutAsync(
+                It.IsAny<HttpContext>(),
+                "Cookies",
+                It.IsAny<AuthenticationProperties?>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.LogoutAsync();
+
+        // Assert
+        var okResult = result as OkObjectResult;
+
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(StatusCodes.Status200OK, okResult.StatusCode);
+        Assert.IsNotNull(okResult.Value);
+
+        _authenticationServiceMock.Verify(
+            x => x.SignOutAsync(
+                It.Is<HttpContext>(context =>
+                    context == _controller.HttpContext),
+                "Cookies",
+                It.Is<AuthenticationProperties?>(properties =>
+                    properties == null)),
+            Times.Once);
+    }
 }

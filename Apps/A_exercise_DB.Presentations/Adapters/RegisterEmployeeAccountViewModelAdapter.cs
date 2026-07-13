@@ -22,12 +22,18 @@ public class RegisterEmployeeAccountViewModelAdapter
         _ = model ?? throw new InternalException("引数modelがnullです。");
         _ = employee ?? throw new InternalException("引数employeeがnullです。");
 
-        if (model.EmployeeUuid is null || model.EmployeeUuid == Guid.Empty)
+        if (model.EmployeeUuid is null)
         {
             throw new DomainException("社員名を選択してください");
         }
 
-        if (employee.EmployeeUuid != model.EmployeeUuid.Value)
+        if (model.EmployeeUuid.Value == Guid.Empty)
+        {
+            throw new DomainException("社員名を選択してください");
+        }
+        var employeeUuid = model.EmployeeUuid.Value;
+
+        if (employee.EmployeeUuid != employeeUuid)
         {
             throw new DomainException("選択された社員が不正です");
         }

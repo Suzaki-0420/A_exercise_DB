@@ -296,7 +296,12 @@ public class RegisterEmployeeAccountController : ControllerBase
     /// <returns>社員</returns>
     private async Task<Domains.Models.Employee> FindUnregisteredEmployeeAsync(Guid? employeeUuid)
     {
-        if (employeeUuid is null || employeeUuid == Guid.Empty)
+        if (employeeUuid is null)
+        {
+            throw new DomainException("社員名を選択してください");
+        }
+
+        if (employeeUuid.Value == Guid.Empty)
         {
             throw new DomainException("社員名を選択してください");
         }

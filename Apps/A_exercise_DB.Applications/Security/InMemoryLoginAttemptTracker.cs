@@ -32,7 +32,7 @@ public sealed class InMemoryLoginAttemptTracker : ILoginAttemptTracker
             return false;
         }
 
-        if (state.LockedUntil > _timeProvider.GetUtcNow())
+        if (state.LockedUntil.Value > _timeProvider.GetUtcNow())
         {
             return true;
         }

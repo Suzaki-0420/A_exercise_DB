@@ -916,4 +916,24 @@ public class ProductTests
 
         Assert.AreEqual("削除フラグが不正です", ex.Message);
     }
+
+    [TestMethod(DisplayName = "ToStringで商品カテゴリがnullの場合も文字列化できる")]
+    public void ToString_WhenProductCategoryIsNull_ShouldReturnString()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+
+        var product = new Product(
+            productUuid,
+            "商品A",
+            1000);
+
+        // Act
+        var result = product.ToString();
+
+        // Assert
+        Assert.AreEqual(
+            $"{productUuid}: 商品A,1000円, /  / 0",
+            result);
+    }
 }

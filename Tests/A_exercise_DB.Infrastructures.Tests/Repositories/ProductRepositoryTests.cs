@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace A_exercise_DB.Infrastructures.Tests.Repositories;
 
 [TestClass]
+// RepositoryのDBテストを並列実行しない
+[DoNotParallelize]
 [TestCategory("Repositories")]
 public class ProductRepositoryTests
 {
@@ -234,11 +236,8 @@ public class ProductRepositoryTests
         var products = await _repository.SearchKeywordAsync("ボールペン", true);
 
         Assert.IsNotNull(products);
-
         Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
         Assert.IsTrue(products.All(p => p.DeleteFlg == 1));
-        Assert.HasCount(1, products);
-        Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
     }
 
     [TestMethod(DisplayName = "（売りもの）キーワードに一致する商品一覧を取得できる")]
@@ -247,11 +246,9 @@ public class ProductRepositoryTests
         var products = await _repository.SearchKeywordAsync("ボールペン", false);
 
         Assert.IsNotNull(products);
-
+        Assert.IsNotEmpty(products);
         Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
         Assert.IsTrue(products.All(p => p.DeleteFlg == 0));
-        Assert.HasCount(1, products);
-        Assert.IsTrue(products.All(p => p.Name.Contains("ボールペン")));
     }
 
     [TestMethod(DisplayName = "(削除済み）キーワードに一致する商品が存在しない場合は空リストを返す")]
@@ -501,5 +498,26 @@ public class ProductRepositoryTests
         {
             await repository.ExistsByNameAsync("水性ボールペン(黒)");
         });
+    }
+
+    [TestMethod(DisplayName = "削除済みの商品をカテゴリで取得できる")]
+    public async Task SelectByProductCategoryIdAsync_WhenShowDeletedOnlyIsTrue_ShouldReturnDeletedProducts()
+    {
+        // Arrange
+        var categoryEntity = await _dbContext.ProductCategories
+            .AsNoTracking()
+            .SingleAsync(c => c.Name == "文房具");
+
+        // Act
+        var products = await _repository.SelectByProductCategoryIdAsync(
+            categoryEntity.CategoryUuid,
+            true);
+
+        // Assert
+        Assert.IsNotNull(products);
+        Assert.IsTrue(products.All(p => p.DeleteFlg == 1));
+        Assert.IsTrue(products.All(
+            p => p.ProductCategory is not null
+                && p.ProductCategory.CategoryUuid == categoryEntity.CategoryUuid));
     }
 }

@@ -5,6 +5,7 @@ using A_exercise_DB.Presentations.Adapters;
 using A_exercise_DB.Presentations.Controllers;
 using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Moq;
 
 namespace A_exercise_DB.Presentations.Tests.Controllers;
@@ -556,5 +557,80 @@ public class RegisterProductControllerTest
         }
 
         return (T)property.GetValue(target)!;
+    }
+
+    [TestMethod(DisplayName = "商品名が既に存在する場合、Conflictを返す")]
+    public async Task ValidateProductName_WhenProductNameExists_ShouldReturnConflict()
+    {
+        // Arrange
+        var productName = "りんご";
+
+        _registerProductUsecaseMock
+            .Setup(x => x.ExistsByProductNameAsync(productName))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.ValidateProductName(productName);
+
+        // Assert
+        var conflictResult = result as ConflictObjectResult;
+        Assert.IsNotNull(conflictResult);
+        Assert.AreEqual(409, conflictResult.StatusCode);
+
+        Assert.AreEqual(
+            "PRODUCT_ALREADY_EXISTS",
+            GetPropertyValue<string>(conflictResult.Value!, "code")
+        );
+
+        Assert.AreEqual(
+            "同じ商品名の商品が既に存在します。",
+            GetPropertyValue<string>(conflictResult.Value!, "message")
+        );
+
+        _registerProductUsecaseMock.Verify(
+            x => x.ExistsByProductNameAsync(productName),
+            Times.Once
+        );
+    }
+
+    [TestMethod(DisplayName = "ModelStateのエラーメッセージが空の場合、既定メッセージを返す")]
+    public async Task Register_WhenModelStateErrorMessageIsEmpty_ShouldReturnDefaultMessage()
+    {
+        // Arrange
+        var model = new RegisterViewModel();
+
+        _controller.ModelState.AddModelError("Name", "");
+
+        // Act
+        var result = await _controller.Register(model);
+
+        // Assert
+        var badRequestResult = result as BadRequestObjectResult;
+        Assert.IsNotNull(badRequestResult);
+        Assert.AreEqual(400, badRequestResult.StatusCode);
+
+        Assert.AreEqual(
+            "VALIDATION_ERROR",
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "code")
+        );
+
+        Assert.AreEqual(
+            "商品名の入力内容に誤りがあります。",
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "message")
+        );
+
+        _registerProductUsecaseMock.Verify(
+            x => x.GetCategoryByIdAsync(It.IsAny<string>()),
+            Times.Never
+        );
+
+        _registerProductUsecaseMock.Verify(
+            x => x.RegisterProductAsync(It.IsAny<Product>()),
+            Times.Never
+        );
     }
 }
