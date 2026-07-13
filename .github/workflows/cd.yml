@@ -26,9 +26,9 @@ jobs:
         # 上記のアクションに渡すパラメータ（引数）の定義
         with:
           # GitHub Secretsから認証情報を安全に取得し、環境に展開（注入）する
-          host: ${{ secrets.ACTIONS_AZURE_HOST }}         # 接続先サーバーのIPアドレス
-          username: ${{ secrets.ACTIONS_AZURE_USER }}     # ログインユーザー名（ubuntu）
-          key: ${{ secrets.ACTIONS_AZURE_SECRET }}      # 秘密鍵（PEM）のテキストデータ
+          host: ${{ secrets.AZURE_HOST }}         # 接続先サーバーのIPアドレス
+          username: ${{ secrets.AZURE_USER }}     # ログインユーザー名（ubuntu）
+          key: ${{ secrets.TRAININGSERVER_KEY }}      # 秘密鍵（PEM）のテキストデータ
           
           # SSH接続が成功した後に、リモートサーバー上で実行されるシェルコマンド
           # （「|」は複数行の文字列を記述するためのYAMLの記法）
