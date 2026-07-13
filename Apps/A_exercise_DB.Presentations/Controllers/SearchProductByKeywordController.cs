@@ -27,7 +27,7 @@ public class SearchProductByKeywordController : ControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(List<Product>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Search([FromQuery] string? keyword)
+    public async Task<IActionResult> Search([FromQuery] string? keyword, bool showDeletedOnly)
     {
         // 未入力チェック
         if (string.IsNullOrWhiteSpace(keyword))
@@ -36,7 +36,7 @@ public class SearchProductByKeywordController : ControllerBase
             new { code = "INVALID_KEYWORD", message = "検索キーワードを入力してください。" });
         }
         // 商品キーワード検索する
-        var result = await _usecase.ExecuteAsync(keyword.Trim());
+        var result = await _usecase.ExecuteAsync(keyword.Trim(), showDeletedOnly);
         return Ok(result);
     }
 }

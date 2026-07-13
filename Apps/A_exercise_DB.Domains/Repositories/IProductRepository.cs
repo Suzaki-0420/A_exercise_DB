@@ -26,7 +26,7 @@ public interface IProductRepository
     /// </summary>
     /// <param name="keyword">検索キーワード</param>
     /// <returns>Productのリスト</returns>
-    Task<List<Product>> SearchKeywordAsync(string keyword);
+    Task<List<Product>> SearchKeywordAsync(string keyword, bool showDeletedOnly);
 
     /// <summary>
     /// 商品を更新する

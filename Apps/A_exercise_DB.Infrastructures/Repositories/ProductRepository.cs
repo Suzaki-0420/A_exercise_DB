@@ -61,17 +61,19 @@ public class ProductRepository : IProductRepository
     /// </summary>
     /// <param name="keyword">検索キーワード</param>
     /// <returns>Productのリスト</returns>
-    public async Task<List<Product>> SearchKeywordAsync(string keyword)
+    public async Task<List<Product>> SearchKeywordAsync(string keyword, bool showDeletedOnly)
     {
         try
         {
+            var deleteFlg = showDeletedOnly ? 1 : 0;
+
             var entities = await _context.Products
                 .AsNoTracking()
                 .Include(p => p.ProductStock)
                 .Include(p => p.ProductCategory)
                 .Where(p =>
                     EF.Functions.Like(p.Name, $"%{keyword}%")
-                    && p.DeleteFlg == 0)
+                    && p.DeleteFlg == deleteFlg)
                 .ToListAsync();
 
             var products = await _factory.RestoreAsync(entities);

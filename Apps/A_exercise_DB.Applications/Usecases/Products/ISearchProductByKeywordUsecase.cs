@@ -10,5 +10,5 @@ public interface ISearchProductByKeywordUsecase
     /// </summary>
     /// <param name="keyword">商品キーワード</param>
     /// <returns>キーワード検索結果</returns>
-    Task<List<Product>> ExecuteAsync(string keyword);
+    Task<List<Product>> ExecuteAsync(string keyword, bool showDeletedOnly);
 }
