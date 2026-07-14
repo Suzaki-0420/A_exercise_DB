@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using A_exercise_DB.Applications.Interfaces;
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Applications.Usecases;
 using A_exercise_DB.Domains.Exceptions;
@@ -19,6 +20,8 @@ public class RegisterProductUsecaseTest
 {
     private Mock<IProductCategoryRepository> _productCategoryRepositoryMock = null!;
     private Mock<IProductRepository> _productRepositoryMock = null!;
+    private Mock<IImageUploadUsecase> _imageUploadUsecaseMock = null!;
+    private Mock<IImageStorage> _imageStorageMock = null!;
     private Mock<IUnitOfWork> _unitOfWorkMock = null!;
     private RegisterProductUsecase _usecase = null!;
 
@@ -30,11 +33,15 @@ public class RegisterProductUsecaseTest
     {
         _productCategoryRepositoryMock = new Mock<IProductCategoryRepository>();
         _productRepositoryMock = new Mock<IProductRepository>();
+        _imageUploadUsecaseMock = new Mock<IImageUploadUsecase>();
+        _imageStorageMock = new Mock<IImageStorage>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
 
         _usecase = new RegisterProductUsecase(
             _productCategoryRepositoryMock.Object,
             _productRepositoryMock.Object,
+            _imageUploadUsecaseMock.Object,
+            _imageStorageMock.Object,
             _unitOfWorkMock.Object);
     }
 
