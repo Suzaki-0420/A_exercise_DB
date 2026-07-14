@@ -143,4 +143,117 @@ public class SearchProductByCategoryUsecaseTests
                 true),
             Times.Once);
     }
+
+    [TestMethod(DisplayName = "商品カテゴリIDがnullの場合、全商品リストを返す")]
+    public async Task ExecuteAsync_WhenProductCategoryIdIsNull_ShouldReturnAllProducts()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IProductRepository>();
+
+        Guid? categoryUuid = null;
+        const bool showDeletedOnly = false;
+
+        var category = new ProductCategory("食品");
+
+        var products = new List<Product>
+    {
+        new Product(
+            Guid.NewGuid(),
+            "りんご",
+            100,
+            "",
+            category,
+            new ProductStock(10),
+            0),
+
+        new Product(
+            Guid.NewGuid(),
+            "みかん",
+            200,
+            "",
+            category,
+            new ProductStock(5),
+            0)
+    };
+
+        repositoryMock
+            .Setup(r => r.FindAllAsync())
+            .ReturnsAsync(products);
+
+        var usecase =
+            new SearchProductByCategoryUsecase(
+                repositoryMock.Object);
+
+        // Act
+        var result = await usecase.ExecuteAsync(
+            categoryUuid,
+            showDeletedOnly);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.HasCount(2, result);
+        Assert.AreSame(products, result);
+
+        repositoryMock.Verify(
+            r => r.FindAllAsync(),
+            Times.Once);
+
+        repositoryMock.Verify(
+            r => r.SelectByProductCategoryIdAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<bool>()),
+            Times.Never);
+    }
+
+    [TestMethod(DisplayName = "商品カテゴリIDが空のGuidの場合、全商品リストを返す")]
+    public async Task ExecuteAsync_WhenProductCategoryIdIsEmpty_ShouldReturnAllProducts()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IProductRepository>();
+
+        var categoryUuid = Guid.Empty;
+        const bool showDeletedOnly = true;
+
+        var category = new ProductCategory("食品");
+
+        var products = new List<Product>
+    {
+        new Product(
+            Guid.NewGuid(),
+            "りんご",
+            100,
+            "",
+            category,
+            new ProductStock(10),
+            0)
+    };
+
+        repositoryMock
+            .Setup(r => r.FindAllAsync())
+            .ReturnsAsync(products);
+
+        var usecase =
+            new SearchProductByCategoryUsecase(
+                repositoryMock.Object);
+
+        // Act
+        var result = await usecase.ExecuteAsync(
+            categoryUuid,
+            showDeletedOnly);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.HasCount(1, result);
+        Assert.AreSame(products, result);
+
+        repositoryMock.Verify(
+            r => r.FindAllAsync(),
+            Times.Once);
+
+        repositoryMock.Verify(
+            r => r.SelectByProductCategoryIdAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<bool>()),
+            Times.Never);
+    }
 }

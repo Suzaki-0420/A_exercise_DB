@@ -15,7 +15,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [AllowAnonymous]
-//[Authorize]
+[Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/order/status/update")]
 [Tags("UC016: 注文ステータス更新")]

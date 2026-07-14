@@ -12,7 +12,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [AllowAnonymous]
-// [Authorize]
+[Authorize]
 [Route("api/admin/products")]
 [Tags("UC012: 商品修正")]
 public class UpdateProductController : ControllerBase

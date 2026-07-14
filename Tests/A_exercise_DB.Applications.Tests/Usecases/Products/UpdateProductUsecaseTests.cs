@@ -5,6 +5,7 @@ using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Repositories;
 using Moq;
+using A_exercise_DB.Applications.Params;
 
 namespace A_exercise_DB.Applications.Tests.Usecases.Products;
 
@@ -278,6 +279,446 @@ public class UpdateProductUsecaseTests
         productRepositoryMock.Verify(r => r.UpdateByIdAsync(It.IsAny<Product>()), Times.Once);
         unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Never);
         unitOfWorkMock.Verify(u => u.RollbackAsync(), Times.Once);
+    }
+
+    /// <summary>
+    /// 画像ファイル名が空白の場合、DomainExceptionがスローされること
+    /// </summary>
+    [TestMethod(DisplayName = "画像ファイル名が空白の場合、RollbackしてDomainExceptionがスローされる")]
+    public async Task UpdateAsync_WhenImageFileNameIsWhiteSpace_ShouldRollbackAndThrowDomainException()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var categoryUuid = Guid.NewGuid();
+        var category = new ProductCategory(categoryUuid, "文具");
+
+        using var imageContent =
+            new MemoryStream([1, 2, 3]);
+
+        var request = CreateValidRequest(categoryUuid) with
+        {
+            ImageContent = imageContent,
+            ImageFileName = " ",
+            ImageContentType = "image/png",
+            ImageLength = imageContent.Length
+        };
+
+        var productRepositoryMock =
+            new Mock<IProductRepository>(MockBehavior.Strict);
+
+        var categoryRepositoryMock =
+            new Mock<IProductCategoryRepository>(MockBehavior.Strict);
+
+        var imageUploadUsecaseMock =
+            new Mock<IImageUploadUsecase>(MockBehavior.Strict);
+
+        var imageStorageMock =
+            new Mock<IImageStorage>();
+
+        var unitOfWorkMock =
+            new Mock<IUnitOfWork>(MockBehavior.Strict);
+
+        unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        productRepositoryMock
+            .Setup(x => x.FindByIdAsync(productUuid))
+            .ReturnsAsync(
+                CreateExistingProduct(
+                    productUuid,
+                    category,
+                    request.ImageUrl!));
+
+        categoryRepositoryMock
+            .Setup(x => x.FindByIdAsync(categoryUuid.ToString()))
+            .ReturnsAsync(category);
+
+        unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        var usecase = new UpdateProductUsecase(
+            productRepositoryMock.Object,
+            categoryRepositoryMock.Object,
+            imageUploadUsecaseMock.Object,
+            imageStorageMock.Object,
+            unitOfWorkMock.Object);
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                async () =>
+                    await usecase.UpdateAsync(
+                        productUuid.ToString(),
+                        request));
+
+        // Assert
+        Assert.AreEqual(
+            "画像ファイル名が指定されていません。",
+            exception.Message);
+
+        imageUploadUsecaseMock.Verify(
+            x => x.ExecuteAsync(It.IsAny<ImageUploadParam>()),
+            Times.Never);
+
+        productRepositoryMock.Verify(
+            x => x.UpdateByIdAsync(It.IsAny<Product>()),
+            Times.Never);
+
+        unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never);
+
+        unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// 画像のContent-Typeが空白の場合、DomainExceptionがスローされること
+    /// </summary>
+    [TestMethod(DisplayName = "画像のContent-Typeが空白の場合、RollbackしてDomainExceptionがスローされる")]
+    public async Task UpdateAsync_WhenImageContentTypeIsWhiteSpace_ShouldRollbackAndThrowDomainException()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var categoryUuid = Guid.NewGuid();
+        var category = new ProductCategory(categoryUuid, "文具");
+
+        using var imageContent =
+            new MemoryStream([1, 2, 3]);
+
+        var request = CreateValidRequest(categoryUuid) with
+        {
+            ImageContent = imageContent,
+            ImageFileName = "new-image.png",
+            ImageContentType = " ",
+            ImageLength = imageContent.Length
+        };
+
+        var productRepositoryMock =
+            new Mock<IProductRepository>(MockBehavior.Strict);
+
+        var categoryRepositoryMock =
+            new Mock<IProductCategoryRepository>(MockBehavior.Strict);
+
+        var imageUploadUsecaseMock =
+            new Mock<IImageUploadUsecase>(MockBehavior.Strict);
+
+        var imageStorageMock =
+            new Mock<IImageStorage>();
+
+        var unitOfWorkMock =
+            new Mock<IUnitOfWork>(MockBehavior.Strict);
+
+        unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        productRepositoryMock
+            .Setup(x => x.FindByIdAsync(productUuid))
+            .ReturnsAsync(
+                CreateExistingProduct(
+                    productUuid,
+                    category,
+                    request.ImageUrl!));
+
+        categoryRepositoryMock
+            .Setup(x => x.FindByIdAsync(categoryUuid.ToString()))
+            .ReturnsAsync(category);
+
+        unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        var usecase = new UpdateProductUsecase(
+            productRepositoryMock.Object,
+            categoryRepositoryMock.Object,
+            imageUploadUsecaseMock.Object,
+            imageStorageMock.Object,
+            unitOfWorkMock.Object);
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                async () =>
+                    await usecase.UpdateAsync(
+                        productUuid.ToString(),
+                        request));
+
+        // Assert
+        Assert.AreEqual(
+            "画像のContent-Typeが指定されていません。",
+            exception.Message);
+
+        imageUploadUsecaseMock.Verify(
+            x => x.ExecuteAsync(It.IsAny<ImageUploadParam>()),
+            Times.Never);
+
+        productRepositoryMock.Verify(
+            x => x.UpdateByIdAsync(It.IsAny<Product>()),
+            Times.Never);
+
+        unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never);
+
+        unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// 新しい画像を指定した場合、新しい画像URLで商品が更新されること
+    /// </summary>
+    [TestMethod(DisplayName = "新しい画像を指定した場合、新しい画像URLで商品が更新される")]
+    public async Task UpdateAsync_WhenNewImageIsSpecified_ShouldUpdateProductWithNewImageUrl()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var categoryUuid = Guid.NewGuid();
+        var category = new ProductCategory(categoryUuid, "文具");
+
+        const string oldImageUrl =
+            "https://example.com/images/old-image.png";
+
+        const string newImageUrl =
+            "https://example.com/images/new-image.png";
+
+        using var imageContent =
+            new MemoryStream([1, 2, 3, 4]);
+
+        var request = CreateValidRequest(categoryUuid) with
+        {
+            ImageContent = imageContent,
+            ImageFileName = "new-image.png",
+            ImageContentType = "image/png",
+            ImageLength = imageContent.Length
+        };
+
+        var productRepositoryMock =
+            new Mock<IProductRepository>(MockBehavior.Strict);
+
+        var categoryRepositoryMock =
+            new Mock<IProductCategoryRepository>(MockBehavior.Strict);
+
+        var imageUploadUsecaseMock =
+            new Mock<IImageUploadUsecase>(MockBehavior.Strict);
+
+        var imageStorageMock =
+            new Mock<IImageStorage>();
+
+        var unitOfWorkMock =
+            new Mock<IUnitOfWork>(MockBehavior.Strict);
+
+        unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        productRepositoryMock
+            .Setup(x => x.FindByIdAsync(productUuid))
+            .ReturnsAsync(
+                CreateExistingProduct(
+                    productUuid,
+                    category,
+                    oldImageUrl));
+
+        categoryRepositoryMock
+            .Setup(x => x.FindByIdAsync(categoryUuid.ToString()))
+            .ReturnsAsync(category);
+
+        imageUploadUsecaseMock
+            .Setup(x => x.ExecuteAsync(
+                It.Is<ImageUploadParam>(p =>
+                    ReferenceEquals(
+                        p.Content,
+                        imageContent) &&
+                    p.FileName == "new-image.png" &&
+                    p.ContentType == "image/png" &&
+                    p.Length == imageContent.Length)))
+            .ReturnsAsync(newImageUrl);
+
+        productRepositoryMock
+            .Setup(x => x.UpdateByIdAsync(
+                It.Is<Product>(p =>
+                    p.ProductUuid == productUuid &&
+                    p.Name == request.Name &&
+                    p.Price == request.Price &&
+                    p.ImageUrl == newImageUrl &&
+                    p.ProductCategory != null &&
+                    p.ProductCategory.CategoryUuid ==
+                        categoryUuid &&
+                    p.ProductStock != null &&
+                    p.ProductStock.Quantity ==
+                        request.StockQuantity &&
+                    p.DeleteFlg == 0)))
+            .ReturnsAsync(true);
+
+        unitOfWorkMock
+            .Setup(x => x.CommitAsync())
+            .Returns(Task.CompletedTask);
+
+        var usecase = new UpdateProductUsecase(
+            productRepositoryMock.Object,
+            categoryRepositoryMock.Object,
+            imageUploadUsecaseMock.Object,
+            imageStorageMock.Object,
+            unitOfWorkMock.Object);
+
+        // Act
+        var result =
+            await usecase.UpdateAsync(
+                productUuid.ToString(),
+                request);
+
+        // Assert
+        Assert.AreEqual(productUuid, result.ProductUuid);
+        Assert.AreEqual(request.Name, result.Name);
+        Assert.AreEqual(request.Price, result.Price);
+        Assert.AreEqual(
+            request.StockQuantity,
+            result.StockQuantity);
+        Assert.AreEqual(categoryUuid, result.CategoryUuid);
+        Assert.AreEqual(newImageUrl, result.ImageUrl);
+        Assert.IsTrue(result.Updated);
+
+        imageUploadUsecaseMock.Verify(
+            x => x.ExecuteAsync(
+                It.IsAny<ImageUploadParam>()),
+            Times.Once);
+
+        productRepositoryMock.Verify(
+            x => x.UpdateByIdAsync(It.IsAny<Product>()),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Never);
+
+        imageStorageMock.Verify(
+            x => x.DeleteAsync(It.IsAny<string>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// Repositoryの更新結果がfalseの場合、保存した画像を削除してRollbackすること
+    /// </summary>
+    [TestMethod(DisplayName = "Repositoryの更新結果がfalseの場合、新しい画像を削除してRollbackする")]
+    public async Task UpdateAsync_WhenUpdateReturnsFalse_ShouldDeleteNewImageAndRollback()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var categoryUuid = Guid.NewGuid();
+        var category = new ProductCategory(categoryUuid, "文具");
+
+        const string oldImageUrl =
+            "https://example.com/images/old-image.png";
+
+        const string newImageUrl =
+            "https://example.com/images/new-image.png";
+
+        using var imageContent =
+            new MemoryStream([1, 2, 3, 4]);
+
+        var request = CreateValidRequest(categoryUuid) with
+        {
+            ImageContent = imageContent,
+            ImageFileName = "new-image.png",
+            ImageContentType = "image/png",
+            ImageLength = imageContent.Length
+        };
+
+        var productRepositoryMock =
+            new Mock<IProductRepository>(MockBehavior.Strict);
+
+        var categoryRepositoryMock =
+            new Mock<IProductCategoryRepository>(MockBehavior.Strict);
+
+        var imageUploadUsecaseMock =
+            new Mock<IImageUploadUsecase>(MockBehavior.Strict);
+
+        var imageStorageMock =
+            new Mock<IImageStorage>();
+
+        var unitOfWorkMock =
+            new Mock<IUnitOfWork>(MockBehavior.Strict);
+
+        unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        productRepositoryMock
+            .Setup(x => x.FindByIdAsync(productUuid))
+            .ReturnsAsync(
+                CreateExistingProduct(
+                    productUuid,
+                    category,
+                    oldImageUrl));
+
+        categoryRepositoryMock
+            .Setup(x => x.FindByIdAsync(categoryUuid.ToString()))
+            .ReturnsAsync(category);
+
+        imageUploadUsecaseMock
+            .Setup(x => x.ExecuteAsync(
+                It.IsAny<ImageUploadParam>()))
+            .ReturnsAsync(newImageUrl);
+
+        productRepositoryMock
+            .Setup(x => x.UpdateByIdAsync(
+                It.Is<Product>(p =>
+                    p.ImageUrl == newImageUrl)))
+            .ReturnsAsync(false);
+
+        unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        var usecase = new UpdateProductUsecase(
+            productRepositoryMock.Object,
+            categoryRepositoryMock.Object,
+            imageUploadUsecaseMock.Object,
+            imageStorageMock.Object,
+            unitOfWorkMock.Object);
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<NotFoundException>(
+                async () =>
+                    await usecase.UpdateAsync(
+                        productUuid.ToString(),
+                        request));
+
+        // Assert
+        Assert.AreEqual(
+            "更新対象の商品が見つかりません。",
+            exception.Message);
+
+        imageUploadUsecaseMock.Verify(
+            x => x.ExecuteAsync(
+                It.IsAny<ImageUploadParam>()),
+            Times.Once);
+
+        productRepositoryMock.Verify(
+            x => x.UpdateByIdAsync(It.IsAny<Product>()),
+            Times.Once);
+
+        imageStorageMock.Verify(
+            x => x.DeleteAsync(newImageUrl),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never);
+
+        unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once);
     }
 
     private static ProductUpdateRequest CreateValidRequest(Guid categoryUuid)

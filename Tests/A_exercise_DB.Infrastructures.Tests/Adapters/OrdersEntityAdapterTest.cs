@@ -156,7 +156,7 @@ public class OrdersEntityAdapterTests
                 ProductUuid = Guid.NewGuid(),
                 Name = "りんご",
                 Price = 100,
-                ImageUrl = "/images/apple.png",
+                ImageUrl = "https://example.com/test1.png",
                 DeleteFlg = 0,
                 ProductCategory = new ProductCategoryEntity
                 {
@@ -180,7 +180,7 @@ public class OrdersEntityAdapterTests
                 ProductUuid = Guid.NewGuid(),
                 Name = "みかん",
                 Price = 200,
-                ImageUrl = "/images/orange.png",
+                ImageUrl = "https://example.com/test2.png",
                 DeleteFlg = 0,
                 ProductCategory = new ProductCategoryEntity
                 {
@@ -431,7 +431,7 @@ public class OrdersEntityAdapterTests
                     ProductUuid = Guid.NewGuid(),
                     Name = "りんご",
                     Price = 100,
-                    ImageUrl = "/images/apple.png",
+                    ImageUrl = "https://example.com/images/product.png",
                     DeleteFlg = 0,
                     ProductCategory = new ProductCategoryEntity
                     {

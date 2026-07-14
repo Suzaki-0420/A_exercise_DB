@@ -10,7 +10,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 [AllowAnonymous]
-//[Authorize]
+[Authorize]
 [Route("api/admin/products")]
 [Tags("UC013: 商品削除")]
 public class DeleteProductController : ControllerBase

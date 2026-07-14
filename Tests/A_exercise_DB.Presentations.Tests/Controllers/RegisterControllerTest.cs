@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using Microsoft.AspNetCore.Http;
 
 namespace A_exercise_DB.Presentations.Tests.Controllers;
 
@@ -253,6 +254,9 @@ public class RegisterProductControllerTest
     /// <summary>
     /// 商品登録に成功した場合、Createdを返すこと
     /// </summary>
+    /// <summary>
+    /// 商品登録に成功した場合、Createdを返すこと
+    /// </summary>
     [TestMethod(DisplayName = "商品登録に成功した場合、Createdを返す")]
     public async Task Register_WhenRegisterSucceeds_ShouldReturnCreated()
     {
@@ -281,7 +285,8 @@ public class RegisterProductControllerTest
         product.ChangeStock(new ProductStock(10));
 
         _registerProductUsecaseMock
-            .Setup(x => x.ExistsByProductNameAsync("りんご"))
+            .Setup(x =>
+                x.ExistsByProductNameAsync("りんご"))
             .ReturnsAsync(false);
 
         _registerProductUsecaseMock
@@ -290,7 +295,8 @@ public class RegisterProductControllerTest
             .ReturnsAsync(product);
 
         // Act
-        var result = await _controller.Register(model);
+        var result =
+            await _controller.Register(model);
 
         // Assert
         var createdResult = result as ObjectResult;
@@ -307,7 +313,10 @@ public class RegisterProductControllerTest
         Assert.AreEqual(10, returnedProduct.ProductStock!.Quantity);
 
         _registerProductUsecaseMock.Verify(
-            x => x.ExistsByProductNameAsync("りんご"),
+            x =>
+                x.ExistsByProductNameAsync(
+                    "りんご"
+                ),
             Times.Once
         );
 
@@ -323,7 +332,6 @@ public class RegisterProductControllerTest
             Times.Once
         );
     }
-
     /// <summary>
     /// カテゴリが存在しない場合、NotFoundを返すこと
     /// </summary>
@@ -352,21 +360,33 @@ public class RegisterProductControllerTest
             .ThrowsAsync(new NotFoundException("カテゴリーが存在しません。"));
 
         // Act
-        var result = await _controller.Register(model);
+        var result =
+            await _controller.Register(model);
 
         // Assert
-        var notFoundResult = result as NotFoundObjectResult;
+        var notFoundResult =
+            result as NotFoundObjectResult;
+
         Assert.IsNotNull(notFoundResult);
-        Assert.AreEqual(404, notFoundResult.StatusCode);
+        Assert.AreEqual(
+            StatusCodes.Status404NotFound,
+            notFoundResult.StatusCode
+        );
 
         Assert.AreEqual(
             "CATEGORY_NOT_FOUND",
-            GetPropertyValue<string>(notFoundResult.Value!, "code")
+            GetPropertyValue<string>(
+                notFoundResult.Value!,
+                "code"
+            )
         );
 
         Assert.AreEqual(
             "カテゴリーが存在しません。",
-            GetPropertyValue<string>(notFoundResult.Value!, "message")
+            GetPropertyValue<string>(
+                notFoundResult.Value!,
+                "message"
+            )
         );
 
         _registerProductUsecaseMock.Verify(
@@ -375,7 +395,6 @@ public class RegisterProductControllerTest
             Times.Once
         );
     }
-
     /// <summary>
     /// 商品名が既に存在する場合、Conflictを返すこと
     /// </summary>
@@ -399,7 +418,8 @@ public class RegisterProductControllerTest
             .ReturnsAsync(true);
 
         // Act
-        var result = await _controller.Register(model);
+        var result =
+            await _controller.Register(model);
 
         // Assert
         var conflictResult = result as ConflictObjectResult;
@@ -427,7 +447,6 @@ public class RegisterProductControllerTest
             Times.Never
         );
     }
-
     /// <summary>
     /// ドメインルール違反の場合、BadRequestを返すこと
     /// </summary>
@@ -456,27 +475,51 @@ public class RegisterProductControllerTest
             .ThrowsAsync(new DomainException("商品価格が不正です。"));
 
         // Act
-        var result = await _controller.Register(model);
+        var result =
+            await _controller.Register(model);
 
         // Assert
-        var badRequestResult = result as BadRequestObjectResult;
+        var badRequestResult =
+            result as BadRequestObjectResult;
+
         Assert.IsNotNull(badRequestResult);
-        Assert.AreEqual(400, badRequestResult.StatusCode);
+        Assert.AreEqual(
+            StatusCodes.Status400BadRequest,
+            badRequestResult.StatusCode
+        );
 
         Assert.AreEqual(
             "DOMAIN_RULE_VIOLATION",
-            GetPropertyValue<string>(badRequestResult.Value!, "code")
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "code"
+            )
         );
 
         Assert.AreEqual(
             "商品価格が不正です。",
-            GetPropertyValue<string>(badRequestResult.Value!, "message")
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "message"
+            )
         );
 
         _registerProductUsecaseMock.Verify(
             x => x.RegisterProductAsync(
                 It.IsAny<ProductRegisterParam>()),
             Times.Once
+        );
+
+        Assert.AreEqual(
+            1,
+            _registerProductUsecaseMock
+                .Invocations
+                .Count(invocation =>
+                    invocation.Method.Name ==
+                    nameof(
+                        IRegisterProductUsecase
+                            .RegisterProductAsync
+                    ))
         );
     }
 

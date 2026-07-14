@@ -6,6 +6,7 @@ using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Microsoft.AspNetCore.Http;
 
 namespace A_exercise_DB.Presentations.Tests.Controllers;
 
@@ -171,6 +172,128 @@ public class UpdateProductControllerTests
         Assert.IsNotNull(authorizeAttribute);
     }
 
+
+    [TestMethod(
+    DisplayName =
+        "新しい画像が指定された場合、画像情報をUsecaseへ渡してStreamを破棄する")]
+    public async Task UpdateAsync_WithImage_ShouldPassImageAndDisposeStream()
+    {
+        // Arrange
+        var productUuid =
+            Guid.NewGuid();
+
+        var categoryUuid =
+            Guid.NewGuid();
+
+        var imageBytes =
+            new byte[]
+            {
+            1,
+            2,
+            3,
+            4
+            };
+
+        var imageStream =
+            new TrackingMemoryStream(imageBytes);
+
+        var imageMock =
+            new Mock<IFormFile>();
+
+        imageMock
+            .Setup(x => x.OpenReadStream())
+            .Returns(imageStream);
+
+        imageMock
+            .SetupGet(x => x.FileName)
+            .Returns("product.png");
+
+        imageMock
+            .SetupGet(x => x.ContentType)
+            .Returns("image/png");
+
+        imageMock
+            .SetupGet(x => x.Length)
+            .Returns(imageBytes.Length);
+
+        var request =
+            CreateValidViewModel(categoryUuid);
+
+        request.Image =
+            imageMock.Object;
+
+        var expectedResult =
+            new ProductUpdateCompleteResult(
+                productUuid,
+                request.Name,
+                request.Price,
+                request.StockQuantity,
+                categoryUuid,
+                "https://example.com/product.png",
+                true);
+
+        _updateProductUsecaseMock
+            .Setup(x => x.UpdateAsync(
+                productUuid.ToString(),
+                It.Is<ProductUpdateRequest>(
+                    updateRequest =>
+                        updateRequest.Name ==
+                            request.Name &&
+                        updateRequest.Price ==
+                            request.Price &&
+                        updateRequest.StockQuantity ==
+                            request.StockQuantity &&
+                        updateRequest.CategoryUuid ==
+                            request.CategoryUuid &&
+                        updateRequest.ImageUrl == null &&
+                        ReferenceEquals(
+                            updateRequest.ImageContent,
+                            imageStream) &&
+                        updateRequest.ImageFileName ==
+                            "product.png" &&
+                        updateRequest.ImageContentType ==
+                            "image/png" &&
+                        updateRequest.ImageLength ==
+                            imageBytes.Length)))
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        var actionResult =
+            await _controller.UpdateAsync(
+                productUuid.ToString(),
+                request);
+
+        // Assert
+        var okResult =
+            actionResult as OkObjectResult;
+
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(
+            StatusCodes.Status200OK,
+            okResult.StatusCode);
+
+        var response =
+            okResult.Value
+                as ApiResponse<
+                    ProductUpdateCompleteResult>;
+
+        Assert.IsNotNull(response);
+        Assert.IsTrue(response.Success);
+        Assert.AreEqual(
+            expectedResult,
+            response.Data);
+        Assert.IsEmpty(response.Errors);
+
+        Assert.IsTrue(
+            imageStream.IsDisposed);
+
+        imageMock.Verify(
+            x => x.OpenReadStream(),
+            Times.Once);
+
+        _updateProductUsecaseMock.VerifyAll();
+    }
+
     private static UpdateProductViewModel CreateValidViewModel(Guid categoryUuid)
         => new()
         {
@@ -194,5 +317,45 @@ public class UpdateProductControllerTests
         Assert.AreEqual(expectedCode, response.Errors[0].Code);
         Assert.AreEqual(expectedMessage, response.Errors[0].Message);
         Assert.AreEqual(expectedField, response.Errors[0].Field);
+    }
+
+    /// <summary>
+    /// Streamが破棄されたことを確認するための
+    /// テスト用MemoryStream
+    /// </summary>
+    private sealed class TrackingMemoryStream
+        : MemoryStream
+    {
+        public bool IsDisposed
+        {
+            get;
+            private set;
+        }
+
+        public TrackingMemoryStream(
+            byte[] buffer)
+            : base(buffer)
+        {
+        }
+
+        public override ValueTask DisposeAsync()
+        {
+            IsDisposed = true;
+
+            Dispose();
+
+            return ValueTask.CompletedTask;
+        }
+
+        protected override void Dispose(
+            bool disposing)
+        {
+            if (disposing)
+            {
+                IsDisposed = true;
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }
