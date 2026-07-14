@@ -1,6 +1,8 @@
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Repositories;
+using A_exercise_DB.Applications.Interfaces;
+using A_exercise_DB.Applications.Params;
 
 namespace A_exercise_DB.Applications.Usecases.Products;
 
@@ -41,6 +43,9 @@ public class UpdateProductUsecase : IUpdateProductUsecase
     {
         var parsedProductUuid = ValidateProductUuid(productUuid);
         var parsedCategoryUuid = ValidateRequest(request);
+
+        string? newImageUrl = null;
+        string? oldImageUrl = null;
 
         await _unitOfWork.BeginAsync();
 
@@ -147,4 +152,5 @@ public class UpdateProductUsecase : IUpdateProductUsecase
 
         return parsedCategoryUuid;
     }
+
 }

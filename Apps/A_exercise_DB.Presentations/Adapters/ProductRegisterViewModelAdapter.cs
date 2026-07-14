@@ -1,4 +1,5 @@
 using A_exercise_DB.Domains.Models;
+using A_exercise_DB.Applications.Params;
 using A_exercise_DB.Domains.Adapters;
 using A_exercise_DB.Presentations.ViewModels;
 namespace A_exercise_DB.Presentations.Adapters;
@@ -25,4 +26,51 @@ public class ProductRegisterViewModelAdapter : IRestorer<Product, RegisterViewMo
         product.ChangeStock(productStock);
         return Task.FromResult(product);
     }
+
+    /// <summary>
+    /// RegisterViewModelを
+    /// 商品登録ユースケースの入力値へ変換する
+    /// </summary>
+    /// <param name="target">
+    /// 商品登録用ViewModel
+    /// </param>
+    /// <param name="imageStream">
+    /// 商品画像のStream。
+    /// 画像未指定の場合はnull
+    /// </param>
+    /// <returns>
+    /// 商品登録ユースケースの入力値
+    /// </returns>
+    public ProductRegisterParam ToParam(
+        RegisterViewModel target,
+        Stream? imageStream)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+
+        if (string.IsNullOrWhiteSpace(target.Name))
+        {
+            throw new ArgumentException(
+                "商品名が指定されていません。",
+                nameof(target));
+        }
+
+        if (!target.CategoryUuid.HasValue ||
+            target.CategoryUuid.Value == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "商品カテゴリが指定されていません。",
+                nameof(target));
+        }
+
+        return new ProductRegisterParam(
+            Name: target.Name,
+            Price: target.Price,
+            CategoryId: target.CategoryUuid.Value,
+            Quantity: target.Stock,
+            ImageContent: imageStream,
+            ImageFileName: target.Image?.FileName,
+            ImageContentType: target.Image?.ContentType,
+            ImageLength: target.Image?.Length ?? 0);
+    }
+
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 namespace A_exercise_DB.Presentations.ViewModels;
 /// <summary>
 /// ユースケース:[新商品を登録する]を実現するViewModel
@@ -27,4 +28,9 @@ public class RegisterViewModel
     [Required(ErrorMessage = "商品カテゴリ名は必須です。")]
     [StringLength(20, ErrorMessage = "商品名は{1}文字以内で入力してください。")]
     public string CategoryName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 商品画像
+    /// </summary>
+    public IFormFile? Image { get; set; }
 }

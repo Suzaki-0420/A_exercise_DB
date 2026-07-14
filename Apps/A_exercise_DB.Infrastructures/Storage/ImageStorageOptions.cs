@@ -1,4 +1,4 @@
-namespace Backend.Infrastructure.Storage;
+namespace A_exercise_DB.Infrastructures.Storage;
 
 /// <summary>
 /// ローカルファイルシステムへの画像保存の設定

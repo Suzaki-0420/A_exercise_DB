@@ -14,6 +14,9 @@ using A_exercise_DB.Applications.Usecases.Categories;
 using A_exercise_DB.Applications.Usecases.Orders;
 using A_exercise_DB.Applications.Usecases.Accounts;
 using A_exercise_DB.Presentations.Adapters;
+using A_exercise_DB.Applications.Interfaces;
+using A_exercise_DB.Applications.Usecases.Images;
+using A_exercise_DB.Infrastructures.Storage;
 
 namespace A_exercise_DB.Presentations.Configs;
 /// <summary>
@@ -54,6 +57,10 @@ public static class ApplicationDependencyExtensions
             options.LogTo(Console.WriteLine, LogLevel.Debug);
             options.UseNpgsql(connectstr);
         });
+        services.Configure<ImageStorageOptions>(
+        config.GetSection(ImageStorageOptions.SectionName));
+
+        services.AddScoped<IImageStorage, LocalImageStorage>();
 
         services.AddScoped<DepartmentEntityAdapter>();
         services.AddScoped<EmployeeEntityAdapter>();
@@ -105,6 +112,7 @@ public static class ApplicationDependencyExtensions
         //services.AddScoped<IRegisterBookUsecase, RegisterBookUsecase>();
         services.AddScoped<ILoginAdminUsecase, LoginAdminUsecase>();
         services.AddScoped<IDeleteProductUsecase, DeleteProductUsecase>();
+        services.AddScoped<IImageUploadUsecase, ImageUploadUsecase>();
         services.AddScoped<IUpdateProductUsecase, UpdateProductUsecase>();
         services.AddScoped<IRegisterCategoryUsecase, RegisterCategoryUsecase>();
         services.AddScoped<IRegisterProductUsecase, RegisterProductUsecase>();

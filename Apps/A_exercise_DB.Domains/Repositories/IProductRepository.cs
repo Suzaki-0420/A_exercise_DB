@@ -7,6 +7,13 @@ namespace A_exercise_DB.Domains.Repositories;
 public interface IProductRepository
 {
     /// <summary>
+    /// 商品UUIDを指定して商品を取得する
+    /// </summary>
+    /// <param name="productUuid">商品UUID</param>
+    /// <returns>該当商品。存在しない場合はnull</returns>
+    Task<Product?> FindByIdAsync(Guid productUuid);
+
+    /// <summary>
     /// 商品を永続化する
     /// </summary>
     /// <param name="product">永続化する商品</param>

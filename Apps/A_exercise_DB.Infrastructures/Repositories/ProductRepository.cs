@@ -24,6 +24,39 @@ public class ProductRepository : IProductRepository
     }
 
     /// <summary>
+    /// 商品UUIDを指定して商品を取得する
+    /// </summary>
+    /// <param name="productUuid">商品UUID</param>
+    /// <returns>該当商品。存在しない場合はnull</returns>
+    public async Task<Product?> FindByIdAsync(Guid productUuid)
+    {
+        try
+        {
+            var entity = await _context.Products
+                .AsNoTracking()
+                .Include(p => p.ProductCategory)
+                .Include(p => p.ProductStock)
+                .SingleOrDefaultAsync(
+                    p =>
+                        p.ProductUuid == productUuid &&
+                        p.DeleteFlg == 0);
+
+            if (entity is null)
+            {
+                return null;
+            }
+
+            return await _factory.RestoreAsync(entity);
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                $"Id:{productUuid}の商品取得中に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
+
+    /// <summary>
     /// 商品を永続化する
     /// </summary>
     /// <param name="product">永続化する商品</param>
@@ -145,6 +178,7 @@ public class ProductRepository : IProductRepository
             // 商品名と単価を変更する
             entity.Name = product.Name; //引数で渡したDomain Objectの名前に変更する
             entity.Price = product.Price; //引数で渡したDomain Objectの値段に変更する
+            entity.ImageUrl = product.ImageUrl;
             entity.ProductCategoryId = category!.Id;
             // 在庫数を変更する
             entity.ProductStock!.Quantity = product.ProductStock!.Quantity;

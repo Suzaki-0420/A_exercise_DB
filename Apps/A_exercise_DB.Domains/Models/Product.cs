@@ -91,7 +91,7 @@ public class Product
 
 
     }
-    public Product(Guid productUuid, string productName, int productPrice, int deleteFlg)
+    public Product(Guid productUuid, string productName, int productPrice, string imageUrl, int deleteFlg)
     {
         ValidateProductUuid(productUuid);
         ProductUuid = productUuid;
@@ -101,6 +101,9 @@ public class Product
 
         ValidatePrice(productPrice);
         Price = productPrice;
+
+        ValidateImageUrl(imageUrl);
+        ImageUrl = imageUrl;
 
         ValidateDeleteFlg(deleteFlg);
         DeleteFlg = deleteFlg;

@@ -31,4 +31,10 @@ public class UpdateProductViewModel
     /// </summary>
     [Required(ErrorMessage = "カテゴリを選択してください。")]
     public string CategoryUuid { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 差し替える商品画像。
+    /// 未指定の場合は既存画像を維持する。
+    /// </summary>
+    public IFormFile? Image { get; set; }
 }

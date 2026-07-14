@@ -1,6 +1,7 @@
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Repositories;
+using A_exercise_DB.Applications.Params;
 namespace A_exercise_DB.Applications.Usecases.Products;
 /// <summary>
 /// ユースケース:[新商品を登録する]を実現するインターフェイス
@@ -22,8 +23,8 @@ public interface IRegisterProductUsecase
     /// <exception cref="NotFoundException">該当データが存在しない場合にスローされる</exception>
     Task<ProductCategory> GetCategoryByIdAsync(string id);
 
-    
-    Task <Boolean>ExistsByProductNameAsync(string productName);
+
+    Task<Boolean> ExistsByProductNameAsync(string productName);
     /// <summary>
     /// 新商品を登録する
     /// </summary>
@@ -31,4 +32,12 @@ public interface IRegisterProductUsecase
     /// <returns></returns>
     /// <exception cref="NotFoundException">カテゴリーが存在しない場合にスローされる</exception>
     Task RegisterProductAsync(Product product);
+
+    /// <summary>
+    /// 画像を含む商品を登録する
+    /// </summary>
+    /// <param name="param">商品登録の入力値</param>
+    /// <returns>登録した商品</returns>
+    Task<Product> RegisterProductAsync(
+        ProductRegisterParam param);
 }

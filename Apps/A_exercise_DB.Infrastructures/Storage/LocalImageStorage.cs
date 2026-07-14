@@ -4,7 +4,7 @@ using A_exercise_DB.Domains.Exceptions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace Backend.Infrastructure.Storage;
+namespace A_exercise_DB.Infrastructures.Storage;
 
 /// <summary>
 /// ローカルファイルシステムへ画像を保存する実装
@@ -63,4 +63,6 @@ public class LocalImageStorage : IImageStorage
             throw new InternalException("画像の保存に失敗しました。", ex);
         }
     }
+
+
 }

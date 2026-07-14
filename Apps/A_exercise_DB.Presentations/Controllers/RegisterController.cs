@@ -1,71 +1,94 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Applications.Usecases.Products;
+using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Presentations.Adapters;
 using A_exercise_DB.Presentations.ViewModels;
-using A_exercise_DB.Domains.Models;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
 namespace A_exercise_DB.Presentations.Controllers;
+
 /// <summary>
-/// UC014: 新規商品登録
+/// UC010：新商品登録
 /// </summary>
 [ApiController]
 [AllowAnonymous]
-//[Authorize]
-[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+// [Authorize]
+[ProducesResponseType(
+    StatusCodes.Status401Unauthorized)]
 [Route("admin/product")]
 [Tags("UC010: 新商品登録")]
-public class RegisterProductController : ControllerBase
+public class RegisterProductController
+    : ControllerBase
 {
-    private readonly IRegisterProductUsecase _registerProductUsecase;
-    private readonly ProductRegisterViewModelAdapter _adapter;
+    private readonly IRegisterProductUsecase
+        _registerProductUsecase;
+
+    private readonly ProductRegisterViewModelAdapter
+        _adapter;
+
     /// <summary>
     /// コンストラクタ
     /// </summary>
-    /// <param name="registerProductUsecase">ユースケース:[新規商品カテゴリを登録する]を実現するインターフェイス</param>
-    /// <param name="adapter">RegisterProductViewModelからドメインオブジェクト:Productへ変換するアダプタ</param>
+    /// <param name="registerProductUsecase">
+    /// 新商品登録ユースケース
+    /// </param>
+    /// <param name="adapter">
+    /// ViewModelを商品登録ユースケースの入力値へ
+    /// 変換するAdapter
+    /// </param>
     public RegisterProductController(
         IRegisterProductUsecase registerProductUsecase,
         ProductRegisterViewModelAdapter adapter)
     {
-        _registerProductUsecase = registerProductUsecase;
+        _registerProductUsecase =
+            registerProductUsecase;
+
         _adapter = adapter;
     }
 
     /// <summary>
-    /// 商品が既に存在するかを検証する
+    /// 商品名が既に存在するかを確認する
     /// </summary>
-    /// <param name="ProductName">検証対象の商品カテゴリ名</param>
+    /// <param name="productName">
+    /// 検証対象の商品名
+    /// </param>
     /// <returns>
-    /// 存在しない場合:Ok(200)、存在する場合:Conflict(409) 
+    /// 存在しない場合は200、
+    /// 存在する場合は409
     /// </returns>
     [HttpGet("validate")]
-    /*
-    [SwaggerOperation(Summary = "商品カテゴリ名の存在確認",
-                      Description = "商品カテゴリ名が既に存在するかを検証する")]
-    [SwaggerResponse(StatusCodes.Status200OK, "存在しない場合 { exists=false } を返す")]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, "商品カテゴリ名が未入力の場合")]
-    [SwaggerResponse(StatusCodes.Status409Conflict, "商品カテゴリ名が既に存在する場合")]
-    [SwaggerResponse(StatusCodes.Status401Unauthorized, "未認証、またはJWT トークン無効)")]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, "サーバー内部エラー")]
-    */
-    public async Task<IActionResult> ValidateProductName([FromQuery] string productName)
+    [ProducesResponseType(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status409Conflict)]
+    public async Task<IActionResult>
+        ValidateProductName(
+            [FromQuery] string productName)
     {
-        // カテゴリ名がnullか空白
         if (string.IsNullOrWhiteSpace(productName))
         {
             return BadRequest(new
-            { code = "INVALID_Product_NAME", message = "商品名は必須です。" });
+            {
+                code = "INVALID_PRODUCT_NAME",
+                message = "商品名は必須です。"
+            });
         }
+
         var exists =
-        await _registerProductUsecase.ExistsByProductNameAsync(productName);
+            await _registerProductUsecase
+                .ExistsByProductNameAsync(
+                    productName);
 
         if (exists)
         {
             return Conflict(new
             {
                 code = "PRODUCT_ALREADY_EXISTS",
-                message = "同じ商品名の商品が既に存在します。"
+                message =
+                    "同じ商品名の商品が既に存在します。"
             });
         }
 
@@ -76,29 +99,52 @@ public class RegisterProductController : ControllerBase
     }
 
     /// <summary>
-    /// 新商品カテゴリを登録する
+    /// 新商品を登録する
     /// </summary>
-    /// <param name="model">商品登録用ViewModel</param>
-    /// <returns></returns>
+    /// <param name="model">
+    /// 商品登録用ViewModel
+    /// </param>
+    /// <returns>
+    /// 登録された商品
+    /// </returns>
+    /// <remarks>
+    /// 商品画像を含むため、
+    /// multipart/form-dataで受け取る。
+    /// </remarks>
     [HttpPost("register")]
-    /*
-    [SwaggerOperation(Summary = "商品登録",
-                      Description = "新しい商品を登録する【司書のみ】")]
-    [SwaggerResponse(StatusCodes.Status201Created, "商品登録成功", typeof(ProductProduct))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, "入力値の検証エラー、または分類が存在しない")]
-    [SwaggerResponse(StatusCodes.Status401Unauthorized, "未認証、またはJWT トークン無効)")]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, "サーバー内部エラー")]
-    */
-    public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(2 * 1024 * 1024)]
+    [ProducesResponseType(
+        StatusCodes.Status201Created)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Register(
+        [FromForm] RegisterViewModel model)
     {
-        // サーバーサイドバリデーション
+        /*
+         * [ApiController]が付いている場合、
+         * 通常はModelStateが不正なら
+         * Controller実行前に400が返されます。
+         *
+         * 現在の独自レスポンス形式を維持するため、
+         * このチェックを残しています。
+         */
         if (!ModelState.IsValid)
         {
-            var message = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m))
-                ?? "商品名の入力内容に誤りがあります。";
+            var message =
+                ModelState.Values
+                    .SelectMany(
+                        value => value.Errors)
+                    .Select(
+                        error =>
+                            error.ErrorMessage)
+                    .FirstOrDefault(
+                        errorMessage =>
+                            !string.IsNullOrWhiteSpace(
+                                errorMessage))
+                ?? "商品の入力内容に誤りがあります。";
 
             return BadRequest(new
             {
@@ -107,45 +153,142 @@ public class RegisterProductController : ControllerBase
             });
         }
 
+        if (!model.CategoryUuid.HasValue ||
+            model.CategoryUuid.Value ==
+            Guid.Empty)
+        {
+            return BadRequest(new
+            {
+                code = "CATEGORY_REQUIRED",
+                message =
+                    "商品カテゴリを選択してください。"
+            });
+        }
+
+        /*
+         * Controllerが開いたStreamは、
+         * Controllerで破棄する。
+         */
+        Stream? imageStream = null;
+
         try
         {
-            if (model.CategoryUuid.GetValueOrDefault() == Guid.Empty)
+            /*
+             * 画像が指定されている場合だけ
+             * Streamを開く。
+             */
+            if (model.Image is not null)
             {
-                return BadRequest(new
+                imageStream =
+                    model.Image.OpenReadStream();
+            }
+
+            /*
+             * ViewModelをユースケースの入力値へ変換する。
+             *
+             * この時点ではまだProductを作らない。
+             * 画像URLが確定していないため。
+             */
+            var param =
+                _adapter.ToParam(
+                    model,
+                    imageStream);
+
+            /*
+             * 必要であれば、登録前にも
+             * 商品名の重複を確認する。
+             */
+            var exists =
+                await _registerProductUsecase
+                    .ExistsByProductNameAsync(
+                        param.Name);
+
+            if (exists)
+            {
+                return Conflict(new
                 {
-                    code = "CATEGORY_REQUIRED",
-                    message = "商品カテゴリを選択してください。"
+                    code =
+                        "PRODUCT_ALREADY_EXISTS",
+                    message =
+                        "同じ商品名の商品が既に存在します。"
                 });
             }
 
-            var category = await _registerProductUsecase.GetCategoryByIdAsync(model.CategoryUuid.Value.ToString());
-            model.CategoryName = category.Name;
-            var product = await _adapter.RestoreAsync(model);
+            /*
+             * Usecase内で以下を行う。
+             *
+             * 1. 画像保存
+             * 2. カテゴリ取得
+             * 3. 在庫生成
+             * 4. Product生成
+             * 5. DB登録
+             */
+            var product =
+                await _registerProductUsecase
+                    .RegisterProductAsync(param);
 
-            await _registerProductUsecase.ExistsByProductNameAsync(product.Name);
-            await _registerProductUsecase.RegisterProductAsync(product);
-            return Created($"/categories/{product.ProductUuid}", product);
+            /*
+             * 現在、商品ID指定のGET APIがない場合、
+             * CreatedAtActionは使用できないため、
+             * 201と商品をそのまま返す。
+             */
+            return StatusCode(
+                StatusCodes.Status201Created,
+                product);
         }
         catch (NotFoundException ex)
         {
-            return NotFound(new { code = "CATEGORY_NOT_FOUND", message = ex.Message });
+            return NotFound(new
+            {
+                code = "CATEGORY_NOT_FOUND",
+                message = ex.Message
+            });
         }
         catch (ExistsException ex)
         {
-            // 既に存在する商品カテゴリを受信した
-            return BadRequest(new { code = "Product_ALREADY_EXISTS", message = ex.Message });
+            return Conflict(new
+            {
+                code = "PRODUCT_ALREADY_EXISTS",
+                message = ex.Message
+            });
         }
         catch (DomainException ex)
         {
-            // 業務ルール違反のデータを受信した
-            return BadRequest(new { code = "DOMAIN_RULE_VIOLATION", message = ex.Message });
+            return BadRequest(new
+            {
+                code = "DOMAIN_RULE_VIOLATION",
+                message = ex.Message
+            });
+        }
+        finally
+        {
+            /*
+             * OpenReadStreamで開いたStreamを
+             * 必ず破棄する。
+             */
+            if (imageStream is not null)
+            {
+                await imageStream.DisposeAsync();
+            }
         }
     }
 
+    /// <summary>
+    /// 商品登録画面用の商品カテゴリ一覧を取得する
+    /// </summary>
+    /// <returns>
+    /// 商品カテゴリ一覧
+    /// </returns>
     [HttpGet("categories")]
-    public async Task<IActionResult> GetCategories()
+    [ProducesResponseType(
+        StatusCodes.Status200OK)]
+    public async Task<IActionResult>
+        GetCategories()
     {
-        var categories = await _registerProductUsecase.GetCategoriesAsync();
+        var categories =
+            await _registerProductUsecase
+                .GetCategoriesAsync();
+
         return Ok(categories);
     }
 }
