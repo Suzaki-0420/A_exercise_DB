@@ -18,6 +18,8 @@ public class UpdateProductUsecase : IUpdateProductUsecase
 
     private readonly IProductRepository _productRepository;
     private readonly IProductCategoryRepository _productCategoryRepository;
+    private readonly IImageUploadUsecase _imageUploadUsecase;
+    private readonly IImageStorage _imageStorage;
     private readonly IUnitOfWork _unitOfWork;
 
     /// <summary>
@@ -29,10 +31,14 @@ public class UpdateProductUsecase : IUpdateProductUsecase
     public UpdateProductUsecase(
         IProductRepository productRepository,
         IProductCategoryRepository productCategoryRepository,
+        IImageUploadUsecase imageUploadUsecase,
+        IImageStorage imageStorage,
         IUnitOfWork unitOfWork)
     {
         _productRepository = productRepository;
         _productCategoryRepository = productCategoryRepository;
+        _imageUploadUsecase = imageUploadUsecase;
+        _imageStorage = imageStorage;
         _unitOfWork = unitOfWork;
     }
 
@@ -51,6 +57,14 @@ public class UpdateProductUsecase : IUpdateProductUsecase
 
         try
         {
+            var currentProduct = await _productRepository.FindByIdAsync(parsedProductUuid);
+            if (currentProduct is null)
+            {
+                throw new NotFoundException(
+                    "更新対象の商品が見つかりません。");
+            }
+            oldImageUrl = currentProduct.ImageUrl;
+
             var category = await _productCategoryRepository.FindByIdAsync(
                 parsedCategoryUuid.ToString());
 
@@ -59,11 +73,46 @@ public class UpdateProductUsecase : IUpdateProductUsecase
                 throw new NotFoundException("指定された商品カテゴリが見つかりません。");
             }
 
+            /*
+             * 新しい画像が送られている場合だけ保存する。
+             */
+            if (request.ImageContent is not null)
+            {
+                if (string.IsNullOrWhiteSpace(
+                        request.ImageFileName))
+                {
+                    throw new DomainException(
+                        "画像ファイル名が指定されていません。");
+                }
+
+                if (string.IsNullOrWhiteSpace(
+                        request.ImageContentType))
+                {
+                    throw new DomainException(
+                        "画像のContent-Typeが指定されていません。");
+                }
+
+                var imageUploadParam =
+                    new ImageUploadParam(
+                        request.ImageContent,
+                        request.ImageFileName,
+                        request.ImageContentType,
+                        request.ImageLength);
+
+                newImageUrl =
+                    await _imageUploadUsecase
+                        .ExecuteAsync(imageUploadParam);
+            }
+            var finalImageUrl =
+                !string.IsNullOrWhiteSpace(newImageUrl)
+                    ? newImageUrl
+                    : oldImageUrl;
+
             var product = new Product(
                 parsedProductUuid,
                 request.Name,
                 request.Price,
-                request.ImageUrl ?? string.Empty,
+                finalImageUrl!,
                 category,
                 new ProductStock(request.StockQuantity),
                 0);
@@ -76,14 +125,19 @@ public class UpdateProductUsecase : IUpdateProductUsecase
             }
 
             await _unitOfWork.CommitAsync();
+            var completedRequest = request with
+            {
+                ImageUrl = finalImageUrl
+            };
 
             return ProductUpdateCompleteResult.CreateUpdated(
                 parsedProductUuid,
-                request,
+                completedRequest,
                 parsedCategoryUuid);
         }
         catch
         {
+            await _imageStorage.DeleteAsync(newImageUrl!);
             await _unitOfWork.RollbackAsync();
             throw;
         }

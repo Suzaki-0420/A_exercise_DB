@@ -6,6 +6,13 @@ namespace A_exercise_DB.Domains.Repositories;
 /// </summary>
 public interface IProductRepository
 {
+
+    /// <summary>
+    /// すべての商品を取得する
+    /// </summary>
+    /// <returns>商品のリスト</returns>
+    Task<List<Product>> FindAllAsync();
+
     /// <summary>
     /// 商品UUIDを指定して商品を取得する
     /// </summary>

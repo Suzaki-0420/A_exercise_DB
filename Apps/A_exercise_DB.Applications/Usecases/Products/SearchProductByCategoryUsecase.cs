@@ -22,10 +22,20 @@ public class SearchProductByCategoryUsecase : ISearchProductByCategoryUsecase
     /// <param name="productCategoryId">商品カテゴリー</param>
     /// <returns>カテゴリー検索結果</returns>
     // <exception cref="NotFoundException">該当データが存在しない場合にスローされる</exception>
-    public async Task<List<Product>> ExecuteAsync(Guid productCategoryId, bool showDeletedOnly)
+    public async Task<List<Product>> ExecuteAsync(Guid? productCategoryId, bool showDeletedOnly)
     {
-        var result = await _repository
-            .SelectByProductCategoryIdAsync(productCategoryId, showDeletedOnly);
-        return result;
+        if (!productCategoryId.HasValue ||
+           productCategoryId.Value == Guid.Empty)
+        {
+            return await
+                _repository.FindAllAsync();
+        }
+
+        /*
+         * カテゴリ指定ありの場合は、
+         * 指定カテゴリの商品だけ取得する。
+         */
+        return await
+            _repository.SelectByProductCategoryIdAsync(productCategoryId.Value, showDeletedOnly);
     }
 }

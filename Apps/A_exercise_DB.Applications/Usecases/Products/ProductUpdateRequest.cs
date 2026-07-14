@@ -8,4 +8,8 @@ public sealed record ProductUpdateRequest(
     int Price,
     int StockQuantity,
     string CategoryUuid,
-    string? ImageUrl);
+    string? ImageUrl,
+    Stream? ImageContent = null,
+    string? ImageFileName = null,
+    string? ImageContentType = null,
+    long ImageLength = 0);

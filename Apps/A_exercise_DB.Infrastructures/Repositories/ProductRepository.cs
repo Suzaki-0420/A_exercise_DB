@@ -57,6 +57,42 @@ public class ProductRepository : IProductRepository
     }
 
     /// <summary>
+    /// すべての商品を取得する
+    /// </summary>
+    /// <returns>商品のリスト</returns>
+    public async Task<List<Product>> FindAllAsync()
+    {
+        try
+        {
+            /*
+             * 論理削除されていない商品を
+             * 在庫・カテゴリとともに取得する。
+             */
+            var entities = await _context.Products
+                .AsNoTracking()
+                .Include(p => p.ProductStock)
+                .Include(p => p.ProductCategory)
+                .Where(p => p.DeleteFlg == 0)
+                .ToListAsync();
+
+            /*
+             * ProductEntityのリストから
+             * Productのリストへ復元する。
+             */
+            var products =
+                await _factory.RestoreAsync(entities);
+
+            return products;
+        }
+        catch (Exception ex)
+        {
+            throw new InternalException(
+                "商品一覧の取得中に予期しないエラーが発生しました。",
+                ex);
+        }
+    }
+
+    /// <summary>
     /// 商品を永続化する
     /// </summary>
     /// <param name="product">永続化する商品</param>
