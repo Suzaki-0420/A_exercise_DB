@@ -173,15 +173,9 @@ public class RegisterProductController
 
         try
         {
-            /*
-             * 画像が指定されている場合だけ
-             * Streamを開く。
-             */
-            if (model.Image is not null)
-            {
-                imageStream =
-                    model.Image.OpenReadStream();
-            }
+
+            imageStream =
+                model.Image.OpenReadStream();
 
             /*
              * ViewModelをユースケースの入力値へ変換する。

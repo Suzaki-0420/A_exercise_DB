@@ -9,7 +9,7 @@ public sealed record ProductUpdateParam(
     int Price,
     Guid ProductCategoryUuid,
     int StockQuantity,
-    Stream? ImageContent = null,
-    string? ImageFileName = null,
-    string? ImageContentType = null,
+    Stream ImageContent,
+    string ImageFileName,
+    string ImageContentType,
     long ImageLength = 0);

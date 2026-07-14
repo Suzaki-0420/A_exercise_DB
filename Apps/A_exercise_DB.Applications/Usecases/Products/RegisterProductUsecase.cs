@@ -106,30 +106,15 @@ public class RegisterProductUsecase : IRegisterProductUsecase
          * 画像はDBトランザクションで
          * ロールバックできないため、先に保存する。
          */
-        if (param.ImageContent is not null)
-        {
-            if (string.IsNullOrWhiteSpace(
-                    param.ImageFileName))
-            {
-                throw new DomainException(
-                    "画像ファイル名が指定されていません。");
-            }
 
-            if (string.IsNullOrWhiteSpace(
-                    param.ImageContentType))
-            {
-                throw new DomainException(
-                    "画像のContent-Typeが指定されていません。");
-            }
+        imageUrl =
+            await _imageUploadUsecase.ExecuteAsync(
+                new ImageUploadParam(
+                    param.ImageContent!,
+                    param.ImageFileName!,
+                    param.ImageContentType!,
+                    param.ImageLength));
 
-            imageUrl =
-                await _imageUploadUsecase.ExecuteAsync(
-                    new ImageUploadParam(
-                        param.ImageContent,
-                        param.ImageFileName,
-                        param.ImageContentType,
-                        param.ImageLength));
-        }
 
         await _unitOfWork.BeginAsync();
 
