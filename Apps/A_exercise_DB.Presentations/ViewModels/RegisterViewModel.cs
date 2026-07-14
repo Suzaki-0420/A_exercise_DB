@@ -8,7 +8,10 @@ public class RegisterViewModel
 {
     // 商品名
     [Required(ErrorMessage = "商品名は必須です。")]
-    [StringLength(30, ErrorMessage = "商品名は{1}文字以内で入力してください。")]
+    [StringLength(
+        20,
+        MinimumLength = 2,
+        ErrorMessage = "商品名は2～20文字で入力してください。")]
     public string Name { get; set; } = string.Empty;
     // 単価
     [Required(ErrorMessage = "単価は必須です。")]
@@ -16,7 +19,7 @@ public class RegisterViewModel
     public int Price { get; set; }
     // 在庫数
     [Required(ErrorMessage = "在庫数は必須です。")]
-    [Range(0, int.MaxValue, ErrorMessage = "在庫数は0以上の整数を指定してください。")]
+    [Range(0, 1000, ErrorMessage = "在庫数は0以上1000個以下で入力してください。")]
     public int Stock { get; set; }
     // 商品カテゴリId(UUID)
     [Required(ErrorMessage = "商品カテゴリIdは必須です。")]

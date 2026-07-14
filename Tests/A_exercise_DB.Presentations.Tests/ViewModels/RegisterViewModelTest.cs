@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using A_exercise_DB.Presentations.ViewModels;
+using Microsoft.AspNetCore.Http;
 
 namespace A_exercise_DB.Presentations.Tests.ViewModels;
 
@@ -24,6 +25,7 @@ public class RegisterViewModelTest
         Assert.AreEqual(0, viewModel.Stock);
         Assert.IsNull(viewModel.CategoryUuid);
         Assert.AreEqual(string.Empty, viewModel.CategoryName);
+        Assert.IsNull(viewModel.Image);
     }
 
     /// <summary>
@@ -64,7 +66,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -87,7 +90,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -111,7 +115,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -122,20 +127,40 @@ public class RegisterViewModelTest
         Assert.AreEqual("商品名は必須です。", results[0].ErrorMessage);
     }
 
+    [TestMethod(DisplayName = "商品名が1文字の場合、入力検証エラーになる")]
+    public void RegisterViewModel_WhenNameIsOneCharacter_ShouldReturnValidationError()
+    {
+        var viewModel = new RegisterViewModel
+        {
+            Name = "A",
+            Price = 100,
+            Stock = 10,
+            CategoryUuid = Guid.NewGuid(),
+            CategoryName = "食品",
+            Image = CreateValidImage()
+        };
+
+        var results = ValidateModel(viewModel);
+
+        Assert.HasCount(1, results);
+        Assert.AreEqual("商品名は2～20文字で入力してください。", results[0].ErrorMessage);
+    }
+
     /// <summary>
-    /// 商品名が30文字の場合、入力検証エラーにならないこと
+    /// 商品名が20文字の場合、入力検証エラーにならないこと
     /// </summary>
-    [TestMethod(DisplayName = "商品名が30文字の場合、入力検証エラーにならない")]
+    [TestMethod(DisplayName = "商品名が20文字の場合、入力検証エラーにならない")]
     public void RegisterViewModel_WhenNameIsMaxLength_ShouldNotReturnValidationError()
     {
         // Arrange
         var viewModel = new RegisterViewModel
         {
-            Name = "あいうえおかきくけこさしすせそたちつてとなにぬねの",
+            Name = "あいうえおかきくけこさしすせそたちつてと",
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -146,19 +171,20 @@ public class RegisterViewModelTest
     }
 
     /// <summary>
-    /// 商品名が30文字を超える場合、入力検証エラーになること
+    /// 商品名が20文字を超える場合、入力検証エラーになること
     /// </summary>
-    [TestMethod(DisplayName = "商品名が30文字を超える場合、入力検証エラーになる")]
+    [TestMethod(DisplayName = "商品名が20文字を超える場合、入力検証エラーになる")]
     public void RegisterViewModel_WhenNameIsTooLong_ShouldReturnValidationError()
     {
         // Arrange
         var viewModel = new RegisterViewModel
         {
-            Name = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほま",
+            Name = "あいうえおかきくけこさしすせそたちつてとな",
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -166,7 +192,7 @@ public class RegisterViewModelTest
 
         // Assert
         Assert.HasCount(1, results);
-        Assert.AreEqual("商品名は30文字以内で入力してください。", results[0].ErrorMessage);
+        Assert.AreEqual("商品名は2～20文字で入力してください。", results[0].ErrorMessage);
     }
 
     /// <summary>
@@ -182,7 +208,8 @@ public class RegisterViewModelTest
             Price = 0,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -205,7 +232,8 @@ public class RegisterViewModelTest
             Price = -1,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -229,7 +257,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 0,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -252,7 +281,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = -1,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -260,7 +290,44 @@ public class RegisterViewModelTest
 
         // Assert
         Assert.HasCount(1, results);
-        Assert.AreEqual("在庫数は0以上の整数を指定してください。", results[0].ErrorMessage);
+        Assert.AreEqual("在庫数は0以上1000個以下で入力してください。", results[0].ErrorMessage);
+    }
+
+    [TestMethod(DisplayName = "在庫数が1000個の場合、入力検証エラーにならない")]
+    public void RegisterViewModel_WhenStockIsMaximum_ShouldNotReturnValidationError()
+    {
+        var viewModel = new RegisterViewModel
+        {
+            Name = "りんご",
+            Price = 100,
+            Stock = 1000,
+            CategoryUuid = Guid.NewGuid(),
+            CategoryName = "食品",
+            Image = CreateValidImage()
+        };
+
+        var results = ValidateModel(viewModel);
+
+        Assert.IsEmpty(results);
+    }
+
+    [TestMethod(DisplayName = "在庫数が1001個の場合、入力検証エラーになる")]
+    public void RegisterViewModel_WhenStockExceedsMaximum_ShouldReturnValidationError()
+    {
+        var viewModel = new RegisterViewModel
+        {
+            Name = "りんご",
+            Price = 100,
+            Stock = 1001,
+            CategoryUuid = Guid.NewGuid(),
+            CategoryName = "食品",
+            Image = CreateValidImage()
+        };
+
+        var results = ValidateModel(viewModel);
+
+        Assert.HasCount(1, results);
+        Assert.AreEqual("在庫数は0以上1000個以下で入力してください。", results[0].ErrorMessage);
     }
 
     /// <summary>
@@ -276,7 +343,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = null,
-            CategoryName = "食品"
+            CategoryName = "食品",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -300,7 +368,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = ""
+            CategoryName = "",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -324,7 +393,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = null!
+            CategoryName = null!,
+            Image = CreateValidImage()
         };
 
         // Act
@@ -348,7 +418,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "あいうえおかきくけこさしすせそたちつてと"
+            CategoryName = "あいうえおかきくけこさしすせそたちつてと",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -371,7 +442,8 @@ public class RegisterViewModelTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = "あいうえおかきくけこさしすせそたちつてとな"
+            CategoryName = "あいうえおかきくけこさしすせそたちつてとな",
+            Image = CreateValidImage()
         };
 
         // Act
@@ -380,6 +452,25 @@ public class RegisterViewModelTest
         // Assert
         Assert.HasCount(1, results);
         Assert.AreEqual("商品名は20文字以内で入力してください。", results[0].ErrorMessage);
+    }
+
+    [TestMethod(DisplayName = "商品画像が未指定の場合、入力検証エラーになる")]
+    public void RegisterViewModel_WhenImageIsNull_ShouldReturnValidationError()
+    {
+        var viewModel = new RegisterViewModel
+        {
+            Name = "りんご",
+            Price = 100,
+            Stock = 10,
+            CategoryUuid = Guid.NewGuid(),
+            CategoryName = "食品",
+            Image = null
+        };
+
+        var results = ValidateModel(viewModel);
+
+        Assert.HasCount(1, results);
+        Assert.AreEqual("商品画像を選択してください。", results[0].ErrorMessage);
     }
 
     /// <summary>
@@ -398,5 +489,15 @@ public class RegisterViewModelTest
         );
 
         return validationResults;
+    }
+
+    private static IFormFile CreateValidImage()
+    {
+        var content = new MemoryStream([1]);
+        return new FormFile(content, 0, content.Length, "Image", "test.png")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/png"
+        };
     }
 }
