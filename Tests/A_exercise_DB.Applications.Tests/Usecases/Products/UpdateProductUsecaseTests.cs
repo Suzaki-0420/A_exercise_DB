@@ -1,3 +1,4 @@
+using A_exercise_DB.Applications.Interfaces;
 using A_exercise_DB.Applications.Usecases;
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Domains.Exceptions;
@@ -48,6 +49,10 @@ public class UpdateProductUsecaseTests
             .Setup(u => u.BeginAsync())
             .Returns(Task.CompletedTask);
 
+        productRepositoryMock
+            .Setup(r => r.FindByIdAsync(productUuid))
+            .ReturnsAsync(CreateExistingProduct(productUuid, category, request.ImageUrl!));
+
         categoryRepositoryMock
             .Setup(r => r.FindByIdAsync(categoryUuid.ToString()))
             .ReturnsAsync(category);
@@ -70,6 +75,8 @@ public class UpdateProductUsecaseTests
         var usecase = new UpdateProductUsecase(
             productRepositoryMock.Object,
             categoryRepositoryMock.Object,
+            new Mock<IImageUploadUsecase>().Object,
+            new Mock<IImageStorage>().Object,
             unitOfWorkMock.Object);
 
         var result = await usecase.UpdateAsync(productUuid.ToString(), request);
@@ -100,6 +107,8 @@ public class UpdateProductUsecaseTests
         var usecase = new UpdateProductUsecase(
             productRepositoryMock.Object,
             categoryRepositoryMock.Object,
+            new Mock<IImageUploadUsecase>().Object,
+            new Mock<IImageStorage>().Object,
             unitOfWorkMock.Object);
 
         var ex = await ThrowsAsync<DomainException>(() =>
@@ -123,6 +132,8 @@ public class UpdateProductUsecaseTests
         var usecase = new UpdateProductUsecase(
             productRepositoryMock.Object,
             categoryRepositoryMock.Object,
+            new Mock<IImageUploadUsecase>().Object,
+            new Mock<IImageStorage>().Object,
             unitOfWorkMock.Object);
 
         var ex = await ThrowsAsync<DomainException>(() =>
@@ -148,6 +159,10 @@ public class UpdateProductUsecaseTests
             .Setup(u => u.BeginAsync())
             .Returns(Task.CompletedTask);
 
+        productRepositoryMock
+            .Setup(r => r.FindByIdAsync(productUuid))
+            .ReturnsAsync(CreateExistingProduct(productUuid, new ProductCategory(Guid.NewGuid(), "既存カテゴリ"), request.ImageUrl!));
+
         categoryRepositoryMock
             .Setup(r => r.FindByIdAsync(categoryUuid.ToString()))
             .ReturnsAsync((ProductCategory?)null);
@@ -159,6 +174,8 @@ public class UpdateProductUsecaseTests
         var usecase = new UpdateProductUsecase(
             productRepositoryMock.Object,
             categoryRepositoryMock.Object,
+            new Mock<IImageUploadUsecase>().Object,
+            new Mock<IImageStorage>().Object,
             unitOfWorkMock.Object);
 
         var ex = await ThrowsAsync<NotFoundException>(() =>
@@ -187,13 +204,9 @@ public class UpdateProductUsecaseTests
             .Setup(u => u.BeginAsync())
             .Returns(Task.CompletedTask);
 
-        categoryRepositoryMock
-            .Setup(r => r.FindByIdAsync(categoryUuid.ToString()))
-            .ReturnsAsync(category);
-
         productRepositoryMock
-            .Setup(r => r.UpdateByIdAsync(It.IsAny<Product>()))
-            .ReturnsAsync(false);
+            .Setup(r => r.FindByIdAsync(productUuid))
+            .ReturnsAsync((Product?)null);
 
         unitOfWorkMock
             .Setup(u => u.RollbackAsync())
@@ -202,6 +215,8 @@ public class UpdateProductUsecaseTests
         var usecase = new UpdateProductUsecase(
             productRepositoryMock.Object,
             categoryRepositoryMock.Object,
+            new Mock<IImageUploadUsecase>().Object,
+            new Mock<IImageStorage>().Object,
             unitOfWorkMock.Object);
 
         var ex = await ThrowsAsync<NotFoundException>(() =>
@@ -209,8 +224,8 @@ public class UpdateProductUsecaseTests
 
         Assert.AreEqual("更新対象の商品が見つかりません。", ex.Message);
         unitOfWorkMock.Verify(u => u.BeginAsync(), Times.Once);
-        categoryRepositoryMock.Verify(r => r.FindByIdAsync(categoryUuid.ToString()), Times.Once);
-        productRepositoryMock.Verify(r => r.UpdateByIdAsync(It.IsAny<Product>()), Times.Once);
+        categoryRepositoryMock.Verify(r => r.FindByIdAsync(It.IsAny<string>()), Times.Never);
+        productRepositoryMock.Verify(r => r.UpdateByIdAsync(It.IsAny<Product>()), Times.Never);
         unitOfWorkMock.Verify(u => u.CommitAsync(), Times.Never);
         unitOfWorkMock.Verify(u => u.RollbackAsync(), Times.Once);
     }
@@ -231,6 +246,10 @@ public class UpdateProductUsecaseTests
             .Setup(u => u.BeginAsync())
             .Returns(Task.CompletedTask);
 
+        productRepositoryMock
+            .Setup(r => r.FindByIdAsync(productUuid))
+            .ReturnsAsync(CreateExistingProduct(productUuid, category, request.ImageUrl!));
+
         categoryRepositoryMock
             .Setup(r => r.FindByIdAsync(categoryUuid.ToString()))
             .ReturnsAsync(category);
@@ -246,6 +265,8 @@ public class UpdateProductUsecaseTests
         var usecase = new UpdateProductUsecase(
             productRepositoryMock.Object,
             categoryRepositoryMock.Object,
+            new Mock<IImageUploadUsecase>().Object,
+            new Mock<IImageStorage>().Object,
             unitOfWorkMock.Object);
 
         var ex = await ThrowsAsync<InvalidOperationException>(() =>
@@ -266,4 +287,17 @@ public class UpdateProductUsecaseTests
             40,
             categoryUuid.ToString(),
             "https://example.com/images/gel-pen.png");
+
+    private static Product CreateExistingProduct(
+        Guid productUuid,
+        ProductCategory category,
+        string imageUrl)
+        => new(
+            productUuid,
+            "既存商品",
+            100,
+            imageUrl,
+            category,
+            new ProductStock(10),
+            0);
 }
