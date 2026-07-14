@@ -333,15 +333,11 @@ public class LocalImageStorageTest
     /// <summary>
     /// 画像を削除した場合、NotImplementedExceptionが発生すること
     /// </summary>
-    [TestMethod(
-        DisplayName = "画像を削除した場合、NotImplementedExceptionが発生する")]
-    public async Task DeleteAsync_WhenCalled_ShouldThrowNotImplementedException()
+    [TestMethod(DisplayName = "画像削除を呼び出した場合、例外なく完了する")]
+    public async Task DeleteAsync_WhenCalled_ShouldComplete()
     {
-        // Act
-        await Assert.ThrowsExactlyAsync<NotImplementedException>(
-            async () =>
-                await _storage.DeleteAsync(
-                    "/images/sample.png"));
+        await _storage.DeleteAsync(
+            "delete.png");
     }
 
     /// <summary>
