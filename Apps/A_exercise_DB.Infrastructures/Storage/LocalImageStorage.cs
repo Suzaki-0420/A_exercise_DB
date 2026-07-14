@@ -28,11 +28,6 @@ public class LocalImageStorage : IImageStorage
         _absoluteRootPath = Path.Combine(environment.ContentRootPath, _options.RootPath);
     }
 
-    public Task DeleteAsync(string imageUrl)
-    {
-        throw new NotImplementedException();
-    }
-
     /// <summary>
     /// 画像を保存し、公開URLを返す
     /// </summary>
@@ -61,6 +56,45 @@ public class LocalImageStorage : IImageStorage
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             throw new InternalException("画像の保存に失敗しました。", ex);
+        }
+    }
+
+    /// <summary>
+    /// 指定された画像を削除する
+    /// </summary>
+    /// <param name="imageUrl">削除対象画像の公開URL</param>
+    /// <returns>非同期処理を表すTask</returns>
+    /// <exception cref="InternalException">
+    /// ファイルの削除に失敗した場合
+    /// </exception>
+    public Task DeleteAsync(string imageUrl)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(imageUrl);
+
+        try
+        {
+            // 公開URLからファイル名を取得する
+            var fileName = Path.GetFileName(imageUrl);
+
+            // 画像ファイルの絶対パスを作成する
+            var filePath = Path.Combine(
+                _absoluteRootPath,
+                fileName);
+
+            // ファイルが存在する場合のみ削除する
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+            when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new InternalException(
+                "画像の削除に失敗しました。",
+                ex);
         }
     }
 
