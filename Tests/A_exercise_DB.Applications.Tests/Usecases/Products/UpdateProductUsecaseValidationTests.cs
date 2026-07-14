@@ -1,3 +1,4 @@
+using A_exercise_DB.Applications.Interfaces;
 using A_exercise_DB.Applications.Usecases;
 using A_exercise_DB.Applications.Usecases.Products;
 using A_exercise_DB.Domains.Exceptions;
@@ -136,6 +137,8 @@ public class UpdateProductUsecaseValidationTests
         => new(
             productRepositoryMock.Object,
             categoryRepositoryMock.Object,
+            new Mock<IImageUploadUsecase>(MockBehavior.Strict).Object,
+            new Mock<IImageStorage>(MockBehavior.Strict).Object,
             unitOfWorkMock.Object);
 
     private static async Task AssertValidationErrorAsync(
@@ -172,6 +175,16 @@ public class UpdateProductUsecaseValidationTests
         unitOfWorkMock
             .Setup(u => u.BeginAsync())
             .Returns(Task.CompletedTask);
+        productRepositoryMock
+            .Setup(r => r.FindByIdAsync(productUuid))
+            .ReturnsAsync(new Product(
+                productUuid,
+                "既存商品",
+                100,
+                "https://example.com/existing.png",
+                category,
+                new ProductStock(10),
+                0));
         categoryRepositoryMock
             .Setup(r => r.FindByIdAsync(request.CategoryUuid))
             .ReturnsAsync(category);
