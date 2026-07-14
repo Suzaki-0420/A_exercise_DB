@@ -1,4 +1,5 @@
 using A_exercise_DB.Applications.Usecases.Products;
+using A_exercise_DB.Applications.Params;
 using A_exercise_DB.Domains.Exceptions;
 using A_exercise_DB.Domains.Models;
 using A_exercise_DB.Presentations.Adapters;
@@ -6,6 +7,7 @@ using A_exercise_DB.Presentations.Controllers;
 using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Http;
 using Moq;
 
 namespace A_exercise_DB.Presentations.Tests.Controllers;
@@ -50,7 +52,7 @@ public class RegisterProductControllerTest
         Assert.AreEqual(400, badRequestResult.StatusCode);
 
         Assert.AreEqual(
-            "INVALID_Product_NAME",
+            "INVALID_PRODUCT_NAME",
             GetPropertyValue<string>(badRequestResult.Value!, "code")
         );
 
@@ -83,7 +85,7 @@ public class RegisterProductControllerTest
         Assert.AreEqual(400, badRequestResult.StatusCode);
 
         Assert.AreEqual(
-            "INVALID_Product_NAME",
+            "INVALID_PRODUCT_NAME",
             GetPropertyValue<string>(badRequestResult.Value!, "code")
         );
 
@@ -162,12 +164,8 @@ public class RegisterProductControllerTest
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.GetCategoryByIdAsync(It.IsAny<string>()),
-            Times.Never
-        );
-
-        _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
+            x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()),
             Times.Never
         );
     }
@@ -206,12 +204,8 @@ public class RegisterProductControllerTest
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.GetCategoryByIdAsync(It.IsAny<string>()),
-            Times.Never
-        );
-
-        _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
+            x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()),
             Times.Never
         );
     }
@@ -250,12 +244,8 @@ public class RegisterProductControllerTest
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.GetCategoryByIdAsync(It.IsAny<string>()),
-            Times.Never
-        );
-
-        _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
+            x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()),
             Times.Never
         );
     }
@@ -274,7 +264,8 @@ public class RegisterProductControllerTest
             Name = "りんご",
             Price = 100,
             Stock = 10,
-            CategoryUuid = categoryUuid
+            CategoryUuid = categoryUuid,
+            Image = CreateValidImage()
         };
 
         var category = new ProductCategory(
@@ -282,44 +273,38 @@ public class RegisterProductControllerTest
             "食品"
         );
 
-        _registerProductUsecaseMock
-            .Setup(x => x.GetCategoryByIdAsync(categoryUuid.ToString()))
-            .ReturnsAsync(category);
+        var product = new Product(
+            Guid.NewGuid(),
+            "りんご",
+            100);
+        product.ChangeCategory(category);
+        product.ChangeStock(new ProductStock(10));
 
         _registerProductUsecaseMock
             .Setup(x => x.ExistsByProductNameAsync("りんご"))
             .ReturnsAsync(false);
 
         _registerProductUsecaseMock
-            .Setup(x => x.RegisterProductAsync(It.IsAny<Product>()))
-            .Returns(Task.CompletedTask);
+            .Setup(x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()))
+            .ReturnsAsync(product);
 
         // Act
         var result = await _controller.Register(model);
 
         // Assert
-        var createdResult = result as CreatedResult;
+        var createdResult = result as ObjectResult;
         Assert.IsNotNull(createdResult);
         Assert.AreEqual(201, createdResult.StatusCode);
 
-        var product = createdResult.Value as Product;
-        Assert.IsNotNull(product);
-        Assert.AreEqual("りんご", product.Name);
-        Assert.AreEqual(100, product.Price);
-        Assert.IsNotNull(product.ProductCategory);
-        Assert.AreEqual("食品", product.ProductCategory!.Name);
-        Assert.IsNotNull(product.ProductStock);
-        Assert.AreEqual(10, product.ProductStock!.Quantity);
-
-        Assert.AreEqual(
-            $"/categories/{product.ProductUuid}",
-            createdResult.Location
-        );
-
-        _registerProductUsecaseMock.Verify(
-            x => x.GetCategoryByIdAsync(categoryUuid.ToString()),
-            Times.Once
-        );
+        var returnedProduct = createdResult.Value as Product;
+        Assert.IsNotNull(returnedProduct);
+        Assert.AreEqual("りんご", returnedProduct.Name);
+        Assert.AreEqual(100, returnedProduct.Price);
+        Assert.IsNotNull(returnedProduct.ProductCategory);
+        Assert.AreEqual("食品", returnedProduct.ProductCategory!.Name);
+        Assert.IsNotNull(returnedProduct.ProductStock);
+        Assert.AreEqual(10, returnedProduct.ProductStock!.Quantity);
 
         _registerProductUsecaseMock.Verify(
             x => x.ExistsByProductNameAsync("りんご"),
@@ -327,7 +312,14 @@ public class RegisterProductControllerTest
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
+            x => x.RegisterProductAsync(
+                It.Is<ProductRegisterParam>(param =>
+                    param.Name == "りんご" &&
+                    param.Price == 100 &&
+                    param.Quantity == 10 &&
+                    param.CategoryId == categoryUuid &&
+                    param.ImageFileName == "test.png" &&
+                    param.ImageContentType == "image/png")),
             Times.Once
         );
     }
@@ -346,11 +338,17 @@ public class RegisterProductControllerTest
             Name = "りんご",
             Price = 100,
             Stock = 10,
-            CategoryUuid = categoryUuid
+            CategoryUuid = categoryUuid,
+            Image = CreateValidImage()
         };
 
         _registerProductUsecaseMock
-            .Setup(x => x.GetCategoryByIdAsync(categoryUuid.ToString()))
+            .Setup(x => x.ExistsByProductNameAsync("りんご"))
+            .ReturnsAsync(false);
+
+        _registerProductUsecaseMock
+            .Setup(x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()))
             .ThrowsAsync(new NotFoundException("カテゴリーが存在しません。"));
 
         // Act
@@ -372,21 +370,17 @@ public class RegisterProductControllerTest
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.GetCategoryByIdAsync(categoryUuid.ToString()),
+            x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()),
             Times.Once
-        );
-
-        _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
-            Times.Never
         );
     }
 
     /// <summary>
-    /// 商品名が既に存在する場合、BadRequestを返すこと
+    /// 商品名が既に存在する場合、Conflictを返すこと
     /// </summary>
-    [TestMethod(DisplayName = "商品名が既に存在する場合、BadRequestを返す")]
-    public async Task Register_WhenProductNameExists_ShouldReturnBadRequest()
+    [TestMethod(DisplayName = "商品名が既に存在する場合、Conflictを返す")]
+    public async Task Register_WhenProductNameExists_ShouldReturnConflict()
     {
         // Arrange
         var categoryUuid = Guid.NewGuid();
@@ -396,43 +390,30 @@ public class RegisterProductControllerTest
             Name = "りんご",
             Price = 100,
             Stock = 10,
-            CategoryUuid = categoryUuid
+            CategoryUuid = categoryUuid,
+            Image = CreateValidImage()
         };
-
-        var category = new ProductCategory(
-            categoryUuid,
-            "食品"
-        );
-
-        _registerProductUsecaseMock
-            .Setup(x => x.GetCategoryByIdAsync(categoryUuid.ToString()))
-            .ReturnsAsync(category);
 
         _registerProductUsecaseMock
             .Setup(x => x.ExistsByProductNameAsync("りんご"))
-            .ThrowsAsync(new ExistsException("この商品名は既に登録されています"));
+            .ReturnsAsync(true);
 
         // Act
         var result = await _controller.Register(model);
 
         // Assert
-        var badRequestResult = result as BadRequestObjectResult;
-        Assert.IsNotNull(badRequestResult);
-        Assert.AreEqual(400, badRequestResult.StatusCode);
+        var conflictResult = result as ConflictObjectResult;
+        Assert.IsNotNull(conflictResult);
+        Assert.AreEqual(409, conflictResult.StatusCode);
 
         Assert.AreEqual(
-            "Product_ALREADY_EXISTS",
-            GetPropertyValue<string>(badRequestResult.Value!, "code")
+            "PRODUCT_ALREADY_EXISTS",
+            GetPropertyValue<string>(conflictResult.Value!, "code")
         );
 
         Assert.AreEqual(
-            "この商品名は既に登録されています",
-            GetPropertyValue<string>(badRequestResult.Value!, "message")
-        );
-
-        _registerProductUsecaseMock.Verify(
-            x => x.GetCategoryByIdAsync(categoryUuid.ToString()),
-            Times.Once
+            "同じ商品名の商品が既に存在します。",
+            GetPropertyValue<string>(conflictResult.Value!, "message")
         );
 
         _registerProductUsecaseMock.Verify(
@@ -441,7 +422,8 @@ public class RegisterProductControllerTest
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
+            x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()),
             Times.Never
         );
     }
@@ -460,24 +442,17 @@ public class RegisterProductControllerTest
             Name = "りんご",
             Price = 100,
             Stock = 10,
-            CategoryUuid = categoryUuid
+            CategoryUuid = categoryUuid,
+            Image = CreateValidImage()
         };
-
-        var category = new ProductCategory(
-            categoryUuid,
-            "食品"
-        );
-
-        _registerProductUsecaseMock
-            .Setup(x => x.GetCategoryByIdAsync(categoryUuid.ToString()))
-            .ReturnsAsync(category);
 
         _registerProductUsecaseMock
             .Setup(x => x.ExistsByProductNameAsync("りんご"))
             .ReturnsAsync(false);
 
         _registerProductUsecaseMock
-            .Setup(x => x.RegisterProductAsync(It.IsAny<Product>()))
+            .Setup(x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()))
             .ThrowsAsync(new DomainException("商品価格が不正です。"));
 
         // Act
@@ -499,7 +474,8 @@ public class RegisterProductControllerTest
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
+            x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()),
             Times.Once
         );
     }
@@ -617,20 +593,31 @@ public class RegisterProductControllerTest
         );
 
         Assert.AreEqual(
-            "商品名の入力内容に誤りがあります。",
+            "商品の入力内容に誤りがあります。",
             GetPropertyValue<string>(
                 badRequestResult.Value!,
                 "message")
         );
 
         _registerProductUsecaseMock.Verify(
-            x => x.GetCategoryByIdAsync(It.IsAny<string>()),
+            x => x.RegisterProductAsync(
+                It.IsAny<ProductRegisterParam>()),
             Times.Never
         );
+    }
 
-        _registerProductUsecaseMock.Verify(
-            x => x.RegisterProductAsync(It.IsAny<Product>()),
-            Times.Never
-        );
+    private static IFormFile CreateValidImage()
+    {
+        var content = new MemoryStream([1]);
+        return new FormFile(
+            content,
+            0,
+            content.Length,
+            "Image",
+            "test.png")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/png"
+        };
     }
 }
