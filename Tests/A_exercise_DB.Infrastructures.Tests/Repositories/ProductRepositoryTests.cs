@@ -520,4 +520,190 @@ public class ProductRepositoryTests
             p => p.ProductCategory is not null
                 && p.ProductCategory.CategoryUuid == categoryEntity.CategoryUuid));
     }
+
+    /// <summary>
+    /// 商品一覧を正常に取得できる
+    /// </summary>
+    [TestMethod(DisplayName = "商品一覧を正常に取得できる")]
+    public async Task FindAllAsync_WhenProductsExist_ShouldReturnProducts()
+    {
+        // Act
+        var products = await _repository.FindAllAsync();
+
+        // Assert
+        Assert.IsNotNull(products);
+        Assert.IsNotEmpty(products);
+
+        Assert.IsTrue(
+            products.All(p => p.ProductCategory is not null));
+
+        Assert.IsTrue(
+            products.All(p => p.ProductStock is not null));
+
+        Assert.IsTrue(
+            products.All(p => p.DeleteFlg == 0));
+    }
+
+    /// <summary>
+    /// FindAllAsyncでDB接続エラーが発生した場合のテスト
+    /// </summary>
+    [TestMethod(
+        DisplayName =
+            "FindAllAsyncでDB接続エラー時にInternalExceptionが発生する")]
+    public async Task FindAllAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        // Arrange
+        var options =
+            new DbContextOptionsBuilder<AppDbContext>()
+                .UseNpgsql(
+                    "Host=localhost;" +
+                    "Port=9999;" +
+                    "Database=All_Exercise;" +
+                    "Username=postgres;" +
+                    "Password=postgres")
+                .Options;
+
+        await using var context =
+            new AppDbContext(options);
+
+        var factory =
+            _scope.ServiceProvider
+                .GetRequiredService<ProductFactory>();
+
+        var repository =
+            new ProductRepository(
+                context,
+                factory);
+
+        // Act & Assert
+        await Assert.ThrowsExactlyAsync<InternalException>(
+            async () =>
+            {
+                await repository.FindAllAsync();
+            });
+    }
+
+    [TestMethod(DisplayName = "存在する商品UUIDを指定した場合、商品を取得できる")]
+    public async Task FindByIdAsync_WhenProductExists_ShouldReturnProduct()
+    {
+        var productUuid = Guid.NewGuid();
+        var stockUuid = Guid.NewGuid();
+
+        var stock = new ProductStock(
+            stockUuid,
+            10);
+
+        var product = new Product(
+            productUuid,
+            "FindByIdテスト商品",
+            100,
+            "https://example.com/test.png",
+            _stationeryCategory,
+            stock,
+            0);
+
+        try
+        {
+            await _repository.CreateAsync(product);
+
+            // Act
+            var result =
+                await _repository.FindByIdAsync(productUuid);
+
+            // Assert
+            Assert.IsNotNull(result);
+
+            Assert.AreEqual(
+                productUuid,
+                result.ProductUuid);
+
+            Assert.AreEqual(
+                "FindByIdテスト商品",
+                result.Name);
+
+            Assert.AreEqual(
+                100,
+                result.Price);
+
+            Assert.AreEqual(
+                "https://example.com/test.png",
+                result.ImageUrl);
+
+            Assert.IsNotNull(result.ProductCategory);
+
+            Assert.AreEqual(
+                _stationeryCategory.CategoryUuid,
+                result.ProductCategory.CategoryUuid);
+
+            Assert.IsNotNull(result.ProductStock);
+
+            Assert.AreEqual(
+                10,
+                result.ProductStock.Quantity);
+        }
+        finally
+        {
+            var deleteTarget = await _dbContext.Products
+                .Include(p => p.ProductStock)
+                .SingleOrDefaultAsync(
+                    p => p.ProductUuid == productUuid);
+
+            if (deleteTarget is not null)
+            {
+                _dbContext.Products.Remove(deleteTarget);
+
+                await _dbContext.SaveChangesAsync();
+            }
+        }
+    }
+
+    [TestMethod(DisplayName = "存在しない商品UUIDを指定した場合、nullを返す")]
+    public async Task FindByIdAsync_WhenProductDoesNotExist_ShouldReturnNull()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+
+        // Act
+        var result =
+            await _repository.FindByIdAsync(productUuid);
+
+        // Assert
+        Assert.IsNull(result);
+    }
+
+    [TestMethod(DisplayName = "FindByIdAsyncでDB接続エラー時にInternalExceptionが発生する")]
+    public async Task FindByIdAsync_WhenDatabaseConnectionError_ShouldThrowInternalException()
+    {
+        // Arrange
+        var options =
+            new DbContextOptionsBuilder<AppDbContext>()
+                .UseNpgsql(
+                    "Host=localhost;" +
+                    "Port=9999;" +
+                    "Database=All_Exercise;" +
+                    "Username=postgres;" +
+                    "Password=postgres")
+                .Options;
+
+        await using var context =
+            new AppDbContext(options);
+
+        var factory =
+            _scope.ServiceProvider
+                .GetRequiredService<ProductFactory>();
+
+        var repository =
+            new ProductRepository(
+                context,
+                factory);
+
+        var productUuid = Guid.NewGuid();
+
+        // Act & Assert
+        await Assert.ThrowsExactlyAsync<InternalException>(
+            async () =>
+            {
+                await repository.FindByIdAsync(productUuid);
+            });
+    }
 }

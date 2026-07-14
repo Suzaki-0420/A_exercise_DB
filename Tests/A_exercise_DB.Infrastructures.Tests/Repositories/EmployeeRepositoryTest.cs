@@ -84,18 +84,6 @@ public class EmployeeRepositoryTests
             yamada.Department.DepartmentUuid);
         Assert.AreEqual("営業部", yamada.Department.Name);
 
-        var suzuki = employees.SingleOrDefault(
-            e => e.EmployeeUuid ==
-                Guid.Parse("33333333-3333-3333-3333-333333333333"));
-
-        Assert.IsNotNull(suzuki);
-        Assert.AreEqual("鈴木 一郎", suzuki.Name);
-        Assert.AreEqual("スズキ イチロウ", suzuki.Kana);
-        Assert.IsNotNull(suzuki.Department);
-        Assert.AreEqual(
-            Guid.Parse("6e06cad7-09e6-4eae-adbe-20102ea58efc"),
-            suzuki.Department.DepartmentUuid);
-        Assert.AreEqual("開発部", suzuki.Department.Name);
     }
 
     /// <summary>

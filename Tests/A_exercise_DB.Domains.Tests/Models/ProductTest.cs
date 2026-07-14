@@ -159,6 +159,58 @@ public class ProductTests
         Assert.AreEqual(productPrice, product.Price);
     }
 
+    /// <summary>
+    /// 5引数コンストラクタに正常値を指定した場合のテスト
+    /// </summary>
+    [TestMethod(
+        DisplayName =
+            "5引数コンストラクタに正常値を指定すると各プロパティが設定される")]
+    public void Constructor_WithFiveArguments_ShouldSetProperties()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var productName = "商品A";
+        var productPrice = 1000;
+        var imageUrl = "https://example.com/image.png";
+        var deleteFlg = 0;
+
+        // Act
+        var product = new Product(
+            productUuid,
+            productName,
+            productPrice,
+            imageUrl,
+            deleteFlg);
+
+        // Assert
+        Assert.AreEqual(
+            productUuid,
+            product.ProductUuid);
+
+        Assert.AreEqual(
+            productName,
+            product.Name);
+
+        Assert.AreEqual(
+            productPrice,
+            product.Price);
+
+        Assert.AreEqual(
+            imageUrl,
+            product.ImageUrl);
+
+        Assert.AreEqual(
+            deleteFlg,
+            product.DeleteFlg);
+
+        /*
+         * このコンストラクタでは
+         * カテゴリと在庫を設定しない。
+         */
+        Assert.IsNull(product.ProductCategory);
+        Assert.IsNull(product.ProductStock);
+    }
+
     [TestMethod(DisplayName = "商品識別IDが空の場合、DomainExceptionがスローされる")]
     public void EmptyProductUuid_ShouldThrowDomainException()
     {

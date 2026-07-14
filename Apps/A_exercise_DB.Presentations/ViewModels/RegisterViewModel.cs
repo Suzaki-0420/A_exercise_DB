@@ -33,5 +33,5 @@ public class RegisterViewModel
     /// 商品画像
     /// </summary>
     [Required(ErrorMessage = "商品画像を選択してください。")]
-    public required IFormFile Image { get; set; }
+    public IFormFile? Image { get; set; }
 }

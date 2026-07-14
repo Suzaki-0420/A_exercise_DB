@@ -161,19 +161,48 @@ public class ProductCategoryRepositoryTests
     public async Task CreateAsync_WhenValidCategory_ShouldCreateCategory()
     {
         var categoryUuid = Guid.NewGuid();
-        var categoryName = $"新規カテゴリ";
+        var categoryName = "新規カテゴリ";
 
-        var category = new ProductCategory(categoryUuid, categoryName);
+        var category = new ProductCategory(
+            categoryUuid,
+            categoryName);
 
-        await _repository.CreateAsync(category);
+        try
+        {
+            await _repository.CreateAsync(category);
 
-        var saved = await _dbContext.ProductCategories
-            .AsNoTracking()
-            .SingleOrDefaultAsync(c => c.CategoryUuid == categoryUuid);
+            var saved = await _dbContext.ProductCategories
+                .AsNoTracking()
+                .SingleOrDefaultAsync(
+                    c => c.CategoryUuid == categoryUuid);
 
-        Assert.IsNotNull(saved);
-        Assert.AreEqual(categoryUuid, saved.CategoryUuid);
-        Assert.AreEqual(categoryName, saved.Name);
+            Assert.IsNotNull(saved);
+            Assert.AreEqual(
+                categoryUuid,
+                saved.CategoryUuid);
+
+            Assert.AreEqual(
+                categoryName,
+                saved.Name);
+        }
+        finally
+        {
+            /*
+             * テスト途中で失敗した場合でも、
+             * 登録されたカテゴリを削除する。
+             */
+            var deleteTarget = await _dbContext.ProductCategories
+                .SingleOrDefaultAsync(
+                    c => c.CategoryUuid == categoryUuid);
+
+            if (deleteTarget is not null)
+            {
+                _dbContext.ProductCategories.Remove(
+                    deleteTarget);
+
+                await _dbContext.SaveChangesAsync();
+            }
+        }
     }
 
     [TestMethod(DisplayName = "商品カテゴリ名が空の場合DomainExceptionが発生する")]
