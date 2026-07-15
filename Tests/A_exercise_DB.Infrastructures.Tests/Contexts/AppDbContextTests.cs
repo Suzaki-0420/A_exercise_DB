@@ -65,8 +65,6 @@ public class AddDbContextTests
             _dbContext.Database.OpenConnection();
 
             TestContext.WriteLine("DB接続成功しました。");
-
-            Assert.IsTrue(true);
         }
         catch (Exception ex)
         {
@@ -97,8 +95,6 @@ public class AddDbContextTests
             _ = _dbContext.Products.Count();
             _ = _dbContext.ProductCategories.Count();
             _ = _dbContext.ProductStocks.Count();
-
-            Assert.IsTrue(true);
         }
         catch (Exception ex)
         {

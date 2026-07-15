@@ -696,64 +696,64 @@ public class RegisterEmployeeAccountControllerTest
     }
 
     [TestMethod(DisplayName = "Confirm_社員UUIDが空Guidの場合はBadRequestを返す")]
-public async Task Confirm_WhenEmployeeUuidIsEmpty_ShouldReturnBadRequest()
-{
-    // Arrange
-    var model = new RegisterEmployeeAccountViewModel
+    public async Task Confirm_WhenEmployeeUuidIsEmpty_ShouldReturnBadRequest()
     {
-        EmployeeUuid = Guid.Empty,
-        AccountName = "yamada01",
-        Password = "pass01"
-    };
+        // Arrange
+        var model = new RegisterEmployeeAccountViewModel
+        {
+            EmployeeUuid = Guid.Empty,
+            AccountName = "yamada01",
+            Password = "pass01"
+        };
 
-    // Act
-    var result = await _controller.Confirm(model);
+        // Act
+        var result = await _controller.Confirm(model);
 
-    // Assert
-    var badRequestResult = result as BadRequestObjectResult;
+        // Assert
+        var badRequestResult = result as BadRequestObjectResult;
 
-    Assert.IsNotNull(badRequestResult);
-    Assert.AreEqual(400, badRequestResult.StatusCode);
-    Assert.AreEqual(
-        "VALIDATION_ERROR",
-        GetPropertyValue<string>(
-            badRequestResult.Value!,
-            "code"));
-    Assert.AreEqual(
-        "社員名を選択してください",
-        GetPropertyValue<string>(
-            badRequestResult.Value!,
-            "message"));
-}
+        Assert.IsNotNull(badRequestResult);
+        Assert.AreEqual(400, badRequestResult.StatusCode);
+        Assert.AreEqual(
+            "VALIDATION_ERROR",
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "code"));
+        Assert.AreEqual(
+            "社員名を選択してください",
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "message"));
+    }
 
-[TestMethod(DisplayName = "Register_社員UUIDがnullの場合はBadRequestを返す")]
-public async Task Register_WhenEmployeeUuidIsNull_ShouldReturnBadRequest()
-{
-    // Arrange
-    var model = new RegisterEmployeeAccountViewModel
+    [TestMethod(DisplayName = "Register_社員UUIDがnullの場合はBadRequestを返す")]
+    public async Task Register_WhenEmployeeUuidIsNull_ShouldReturnBadRequest()
     {
-        EmployeeUuid = null,
-        AccountName = "yamada01",
-        Password = "pass01"
-    };
+        // Arrange
+        var model = new RegisterEmployeeAccountViewModel
+        {
+            EmployeeUuid = null,
+            AccountName = "yamada01",
+            Password = "pass01"
+        };
 
-    // Act
-    var result = await _controller.Register(model);
+        // Act
+        var result = await _controller.Register(model);
 
-    // Assert
-    var badRequestResult = result as BadRequestObjectResult;
+        // Assert
+        var badRequestResult = result as BadRequestObjectResult;
 
-    Assert.IsNotNull(badRequestResult);
-    Assert.AreEqual(400, badRequestResult.StatusCode);
-    Assert.AreEqual(
-        "VALIDATION_ERROR",
-        GetPropertyValue<string>(
-            badRequestResult.Value!,
-            "code"));
-    Assert.AreEqual(
-        "社員名を選択してください",
-        GetPropertyValue<string>(
-            badRequestResult.Value!,
-            "message"));
-}
+        Assert.IsNotNull(badRequestResult);
+        Assert.AreEqual(400, badRequestResult.StatusCode);
+        Assert.AreEqual(
+            "VALIDATION_ERROR",
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "code"));
+        Assert.AreEqual(
+            "社員名を選択してください",
+            GetPropertyValue<string>(
+                badRequestResult.Value!,
+                "message"));
+    }
 }
