@@ -1,6 +1,1 @@
 @A_exercise_DB.Presentation_HostAddress = http://localhost:5126
-
-GET {{A_exercise_DB.Presentation_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
