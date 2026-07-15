@@ -31,9 +31,15 @@ public class EmployeeAccountRepositoryTests
     public static void ClassInit(TestContext context)
     {
         var config = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false)
-            .Build();
+       .SetBasePath(AppContext.BaseDirectory)
+       .AddJsonFile(
+           "appsettings.Test.json",
+           optional: false)
+       .AddJsonFile(
+           "appsettings.Test.local.json",
+           optional: true)
+       .AddEnvironmentVariables()
+       .Build();
 
         _provider = ApplicationDependencyExtensions.BuildAppProvider(config);
     }
