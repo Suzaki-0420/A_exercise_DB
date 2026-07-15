@@ -98,5 +98,19 @@ public class LocalImageStorage : IImageStorage
         }
     }
 
+    /// <summary>
+    /// ファイルが存在するか確認する
+    /// </summary>
+    protected virtual bool FileExists(string filePath)
+    {
+        return File.Exists(filePath);
+    }
 
+    /// <summary>
+    /// ファイルを削除する
+    /// </summary>
+    protected virtual void DeleteFile(string filePath)
+    {
+        File.Delete(filePath);
+    }
 }
