@@ -46,7 +46,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ProductCategoryEntity>(e =>
         {
             e.HasIndex(c => c.CategoryUuid).IsUnique();
-            e.Property(c => c.Name).HasMaxLength(20);
+            e.Property(c => c.Name).HasMaxLength(30);
 
         });
 

@@ -17,7 +17,7 @@ public class ProductCategory
     /// <summary>
     /// 商品カテゴリ名の最大長
     /// </summary>
-    private const int MaxLengthCategoryName = 20;
+    private const int MaxLengthCategoryName = 30;
 
     /// <summary>
     /// コンストラクタ

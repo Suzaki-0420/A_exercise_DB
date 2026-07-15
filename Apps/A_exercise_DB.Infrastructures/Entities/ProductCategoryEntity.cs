@@ -19,7 +19,7 @@ public class ProductCategoryEntity
 
     [Column("name")]
     [Required] // NOT NULL
-    [StringLength(20)]// データ長は20文字
+    [StringLength(30)]// データ長は30文字
     // 列名と同じ名称のプロパティなので[Column]は使わない
     public string Name { get; set; } = string.Empty;
 
