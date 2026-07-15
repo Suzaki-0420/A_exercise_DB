@@ -240,7 +240,7 @@ public class ProductRepository : IProductRepository
         {
             // 削除対象の商品を取得する
             // 指定したid (引数) と同じidを持つエンティティを取得する（見つからなければnull）
-            var entity = await _context.Products.SingleOrDefaultAsync(p => p.ProductUuid == Guid.Parse(id));
+            var entity = await _context.Products.SingleOrDefaultAsync(p => p.ProductUuid == Guid.Parse(id) && p.DeleteFlg == 0);
             if (entity is null)
             {
                 return false; // 該当商品が存在しない場合はfalseを返す

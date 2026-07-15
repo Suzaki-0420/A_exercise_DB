@@ -312,7 +312,7 @@ var assemblies = [
       { "name": "A_exercise_DB.Applications.Usecases.Products.RegisterProductUsecase", "rp": "A_exercise_DB.Applications_RegisterProductUsecase.html", "cl": 90, "ucl": 0, "cal": 90, "tl": 183, "cb": 6, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Applications.Usecases.Products.SearchProductByCategoryUsecase", "rp": "A_exercise_DB.Applications_SearchProductByCategoryUsecase.html", "cl": 13, "ucl": 0, "cal": 13, "tl": 41, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Applications.Usecases.Products.SearchProductByKeywordUsecase", "rp": "A_exercise_DB.Applications_SearchProductByKeywordUsecase.html", "cl": 9, "ucl": 0, "cal": 9, "tl": 33, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "A_exercise_DB.Applications.Usecases.Products.UpdateProductUsecase", "rp": "A_exercise_DB.Applications_UpdateProductUsecase.html", "cl": 120, "ucl": 0, "cal": 120, "tl": 210, "cb": 38, "tb": 38, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "A_exercise_DB.Applications.Usecases.Products.UpdateProductUsecase", "rp": "A_exercise_DB.Applications_UpdateProductUsecase.html", "cl": 133, "ucl": 0, "cal": 133, "tl": 229, "cb": 40, "tb": 40, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
     "name": "A_exercise_DB.Domains",
@@ -397,10 +397,16 @@ var riskHotspotMetrics = [
 
 var riskHotspots = [
   {
-    "assembly": "A_exercise_DB.Applications", "class": "A_exercise_DB.Applications.Usecases.Products.UpdateProductUsecase", "reportPath": "A_exercise_DB.Applications_UpdateProductUsecase.html", "methodName": "ValidateRequest(A_exercise_DB.Applications.Usecases.Products.ProductUpdateRequest)", "methodShortName": "ValidateRequest(...)", "fileIndex": 0, "line": 164,
+    "assembly": "A_exercise_DB.Applications", "class": "A_exercise_DB.Applications.Usecases.Products.UpdateProductUsecase", "reportPath": "A_exercise_DB.Applications_UpdateProductUsecase.html", "methodName": "ValidateRequest(A_exercise_DB.Applications.Usecases.Products.ProductUpdateRequest)", "methodShortName": "ValidateRequest(...)", "fileIndex": 0, "line": 183,
     "metrics": [
       { "value": 20, "exceeded": false },
       { "value": 20, "exceeded": true },
+    ]},
+  {
+    "assembly": "A_exercise_DB.Applications", "class": "A_exercise_DB.Applications.Usecases.Products.UpdateProductUsecase", "reportPath": "A_exercise_DB.Applications_UpdateProductUsecase.html", "methodName": "UpdateAsync()", "methodShortName": "UpdateAsync()", "fileIndex": 0, "line": 49,
+    "metrics": [
+      { "value": 16, "exceeded": false },
+      { "value": 16, "exceeded": true },
     ]},
 ];
 

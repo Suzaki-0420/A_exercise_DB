@@ -721,6 +721,291 @@ public class UpdateProductUsecaseTests
             Times.Once);
     }
 
+    /// <summary>
+    /// RollbackAsyncが失敗した場合でも、
+    /// 元の例外が上書きされないこと
+    /// </summary>
+    [TestMethod(
+        DisplayName =
+            "Rollbackに失敗した場合でも元のRepository例外が再スローされる")]
+    public async Task UpdateAsync_WhenRollbackThrows_ShouldRethrowOriginalException()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var categoryUuid = Guid.NewGuid();
+        var category = new ProductCategory(
+            categoryUuid,
+            "文具");
+
+        var request =
+            CreateValidRequest(categoryUuid);
+
+        var originalException =
+            new InvalidOperationException(
+                "Repository error");
+
+        var rollbackException =
+            new InternalException(
+                "Rollback error");
+
+        var productRepositoryMock =
+            new Mock<IProductRepository>(
+                MockBehavior.Strict);
+
+        var categoryRepositoryMock =
+            new Mock<IProductCategoryRepository>(
+                MockBehavior.Strict);
+
+        var imageUploadUsecaseMock =
+            new Mock<IImageUploadUsecase>(
+                MockBehavior.Strict);
+
+        var imageStorageMock =
+            new Mock<IImageStorage>(
+                MockBehavior.Strict);
+
+        var unitOfWorkMock =
+            new Mock<IUnitOfWork>(
+                MockBehavior.Strict);
+
+        unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        productRepositoryMock
+            .Setup(x =>
+                x.FindByIdAsync(productUuid))
+            .ReturnsAsync(
+                CreateExistingProduct(
+                    productUuid,
+                    category,
+                    request.ImageUrl!));
+
+        categoryRepositoryMock
+            .Setup(x =>
+                x.FindByIdAsync(
+                    categoryUuid.ToString()))
+            .ReturnsAsync(category);
+
+        productRepositoryMock
+            .Setup(x =>
+                x.UpdateByIdAsync(
+                    It.IsAny<Product>()))
+            .ThrowsAsync(originalException);
+
+        /*
+         * RollbackAsync自体も失敗させる。
+         */
+        unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .ThrowsAsync(rollbackException);
+
+        var usecase = new UpdateProductUsecase(
+            productRepositoryMock.Object,
+            categoryRepositoryMock.Object,
+            imageUploadUsecaseMock.Object,
+            imageStorageMock.Object,
+            unitOfWorkMock.Object);
+
+        // Act
+        var actualException =
+            await Assert.ThrowsExactlyAsync<
+                InvalidOperationException>(
+                async () =>
+                    await usecase.UpdateAsync(
+                        productUuid.ToString(),
+                        request));
+
+        // Assert
+        /*
+         * RollbackExceptionではなく、
+         * 最初のRepository例外が返ることを確認する。
+         */
+        Assert.AreSame(
+            originalException,
+            actualException);
+
+        unitOfWorkMock.Verify(
+            x => x.BeginAsync(),
+            Times.Once);
+
+        productRepositoryMock.Verify(
+            x => x.UpdateByIdAsync(
+                It.IsAny<Product>()),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never);
+
+        /*
+         * 新しい画像は保存していないため、
+         * 削除処理は呼ばれない。
+         */
+        imageStorageMock.Verify(
+            x => x.DeleteAsync(
+                It.IsAny<string>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 保存済み新画像の削除が失敗した場合でも、
+    /// 元の例外が上書きされないこと
+    /// </summary>
+    [TestMethod(
+        DisplayName =
+            "新画像の削除に失敗した場合でも元のNotFoundExceptionが再スローされる")]
+    public async Task UpdateAsync_WhenDeleteNewImageThrows_ShouldRethrowOriginalException()
+    {
+        // Arrange
+        var productUuid = Guid.NewGuid();
+        var categoryUuid = Guid.NewGuid();
+
+        var category = new ProductCategory(
+            categoryUuid,
+            "文具");
+
+        const string oldImageUrl =
+            "https://example.com/images/old-image.png";
+
+        const string newImageUrl =
+            "https://example.com/images/new-image.png";
+
+        using var imageContent =
+            new MemoryStream([1, 2, 3, 4]);
+
+        var request =
+            CreateValidRequest(categoryUuid) with
+            {
+                ImageContent = imageContent,
+                ImageFileName = "new-image.png",
+                ImageContentType = "image/png",
+                ImageLength = imageContent.Length
+            };
+
+        var productRepositoryMock =
+            new Mock<IProductRepository>(
+                MockBehavior.Strict);
+
+        var categoryRepositoryMock =
+            new Mock<IProductCategoryRepository>(
+                MockBehavior.Strict);
+
+        var imageUploadUsecaseMock =
+            new Mock<IImageUploadUsecase>(
+                MockBehavior.Strict);
+
+        var imageStorageMock =
+            new Mock<IImageStorage>(
+                MockBehavior.Strict);
+
+        var unitOfWorkMock =
+            new Mock<IUnitOfWork>(
+                MockBehavior.Strict);
+
+        unitOfWorkMock
+            .Setup(x => x.BeginAsync())
+            .Returns(Task.CompletedTask);
+
+        productRepositoryMock
+            .Setup(x =>
+                x.FindByIdAsync(productUuid))
+            .ReturnsAsync(
+                CreateExistingProduct(
+                    productUuid,
+                    category,
+                    oldImageUrl));
+
+        categoryRepositoryMock
+            .Setup(x =>
+                x.FindByIdAsync(
+                    categoryUuid.ToString()))
+            .ReturnsAsync(category);
+
+        imageUploadUsecaseMock
+            .Setup(x =>
+                x.ExecuteAsync(
+                    It.IsAny<ImageUploadParam>()))
+            .ReturnsAsync(newImageUrl);
+
+        /*
+         * Repositoryの更新を失敗させ、
+         * Usecase内でNotFoundExceptionを発生させる。
+         */
+        productRepositoryMock
+            .Setup(x =>
+                x.UpdateByIdAsync(
+                    It.Is<Product>(product =>
+                        product.ImageUrl ==
+                        newImageUrl)))
+            .ReturnsAsync(false);
+
+        unitOfWorkMock
+            .Setup(x => x.RollbackAsync())
+            .Returns(Task.CompletedTask);
+
+        /*
+         * 後処理の新画像削除も失敗させる。
+         */
+        imageStorageMock
+            .Setup(x =>
+                x.DeleteAsync(newImageUrl))
+            .ThrowsAsync(
+                new InternalException(
+                    "画像削除エラー"));
+
+        var usecase = new UpdateProductUsecase(
+            productRepositoryMock.Object,
+            categoryRepositoryMock.Object,
+            imageUploadUsecaseMock.Object,
+            imageStorageMock.Object,
+            unitOfWorkMock.Object);
+
+        // Act
+        var actualException =
+            await Assert.ThrowsExactlyAsync<
+                NotFoundException>(
+                async () =>
+                    await usecase.UpdateAsync(
+                        productUuid.ToString(),
+                        request));
+
+        // Assert
+        /*
+         * 画像削除時のInternalExceptionではなく、
+         * 更新失敗時のNotFoundExceptionが返ることを確認する。
+         */
+        Assert.AreEqual(
+            "更新対象の商品が見つかりません。",
+            actualException.Message);
+
+        imageUploadUsecaseMock.Verify(
+            x => x.ExecuteAsync(
+                It.IsAny<ImageUploadParam>()),
+            Times.Once);
+
+        productRepositoryMock.Verify(
+            x => x.UpdateByIdAsync(
+                It.IsAny<Product>()),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            x => x.RollbackAsync(),
+            Times.Once);
+
+        imageStorageMock.Verify(
+            x => x.DeleteAsync(newImageUrl),
+            Times.Once);
+
+        unitOfWorkMock.Verify(
+            x => x.CommitAsync(),
+            Times.Never);
+    }
+
     private static ProductUpdateRequest CreateValidRequest(Guid categoryUuid)
         => new(
             "ゲルインクペン",

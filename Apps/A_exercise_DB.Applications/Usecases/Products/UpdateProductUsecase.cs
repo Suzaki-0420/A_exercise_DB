@@ -137,8 +137,27 @@ public class UpdateProductUsecase : IUpdateProductUsecase
         }
         catch
         {
-            await _imageStorage.DeleteAsync(newImageUrl!);
-            await _unitOfWork.RollbackAsync();
+            try
+            {
+                await _unitOfWork.RollbackAsync();
+            }
+            catch
+            {
+                // 元の例外を上書きしない
+            }
+
+            if (!string.IsNullOrWhiteSpace(newImageUrl))
+            {
+                try
+                {
+                    await _imageStorage.DeleteAsync(newImageUrl);
+                }
+                catch
+                {
+                    // 元の例外を上書きしない
+                }
+            }
+
             throw;
         }
     }

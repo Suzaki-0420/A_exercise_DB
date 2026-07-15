@@ -453,6 +453,44 @@ public class ProductRepositoryTests
         await _dbContext.SaveChangesAsync();
     }
 
+    [TestMethod(DisplayName = "削除済みの商品を削除した場合falseが返る")]
+    public async Task DeleteByIdAsync_WhenProductAlreadyDeleted_ShouldReturnFalse()
+    {
+        var stock = new ProductStock(Guid.NewGuid(), 5);
+
+        var product = new Product(
+            Guid.NewGuid(),
+            "削除済みテスト",
+            100,
+            "https://example.com/deleted.png",
+            _stationeryCategory,
+            stock,
+            1);
+
+        await _repository.CreateAsync(product);
+
+        var result = await _repository.DeleteByIdAsync(
+            product.ProductUuid.ToString());
+
+        Assert.IsFalse(result);
+
+        // クリーンアップ
+        var deleteTarget = await _dbContext.Products
+            .Include(p => p.ProductStock)
+            .SingleAsync(
+                p => p.ProductUuid == product.ProductUuid);
+
+        if (deleteTarget.ProductStock is not null)
+        {
+            _dbContext.ProductStocks.Remove(
+                deleteTarget.ProductStock);
+        }
+
+        _dbContext.Products.Remove(deleteTarget);
+
+        await _dbContext.SaveChangesAsync();
+    }
+
     [TestMethod(DisplayName = "存在しない商品を削除した場合falseが返る")]
     public async Task DeleteByIdAsync_WhenProductDoesNotExist_ShouldReturnFalse()
     {
