@@ -1,0 +1,36 @@
+# ワークフロー名
+name: .NET CS_WebApp CI
+
+# いつ実行するか
+on: 
+  push: # pushされたときに実行する
+    branches: # mainブランチにpushされたときだけ実行する
+      - main
+
+# 実行する処理のまとまり
+jobs:
+  build-and-test: # jobの名前(自分で設定)
+    runs-on: ubuntu-latest # jobを事項する環境
+
+    # ジョブ内で順番に実行される手順（ステップ）のリスト
+    steps:
+      - name: リポジトリのチェックアウト # GitHub上のソースコードを、GitHub Actions Runner(GitHub Actions の処理を実際に実行するコンピューター)の中に持ってくる
+        uses: actions/checkout@v4 # GitHub公式の actions/checkout という Action
+
+      - name: .NET SDKのセットアップ # .NETコマンドを使えるようにする
+        uses: actions/setup-dotnet@v4 # GitHub公式の actions/setup-dotnet という Action
+        with:
+          dotnet-version: '10.0.x' # .NET SDK 10.0 系の最新版を使う
+
+      # ----- ここから追記 -----
+      - name: コードフォーマットの検証 (Lint)
+        run: dotnet format --verify-no-changes
+      # ----- ここまで追記 -----
+
+      - name: プロジェクトのビルド
+        run: dotnet build --configuration Release
+    
+      - name: 単体・結合テストの実行
+      # ビルド済みのバイナリを再利用(--no-build)してテストを実行
+      # verbosity=detailedを付けることで、Console.WriteLineの出力がGitHub Actionsのログに表示される
+        run: dotnet test --configuration Release --no-build --logger "console;verbosity=detailed"
