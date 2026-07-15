@@ -1,20 +1,13 @@
-# GitHub Actionsの画面に表示されるワークフロー名
 name: Backend CD
 
 on:
-  # mainブランチのBackend CIが完了した後に実行する
   workflow_run:
-    workflows:
-      - "Backend CI"
-    types:
-      - completed
-    branches:
-      - main
+    workflows: ["Backend CI"] # ci.ymlのnameと一致させる
+    types: [completed]
+    branches: [main]
 
-  # GitHub Actions画面から手動でも実行できる
-  workflow_dispatch:
+  workflow_dispatch: # GitHub Actions画面から手動実行できる
 
-# リポジトリの読み取りだけを許可する
 permissions:
   contents: read
 
@@ -28,39 +21,44 @@ jobs:
     name: Azure VMへデプロイ
     runs-on: ubuntu-latest
 
+    # ENABLE_PRODUCTION_DEPLOYがtrueの場合だけデプロイする
+    #
     # 自動実行：
-    # mainへのpushでBackend CIが成功した場合だけ実行
+    # mainのBackend CIが成功した場合
     #
     # 手動実行：
-    # mainを対象に実行
+    # GitHub Actions画面から実行した場合
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      vars.ENABLE_PRODUCTION_DEPLOY == 'true' &&
       (
-        github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.event == 'push' &&
-        github.event.workflow_run.head_branch == 'main'
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch == 'main'
+        )
       )
 
     env:
-      # Web APIプロジェクト
+      # リポジトリ内のWeb APIプロジェクト
       PROJECT_PATH: Apps/A_exercise_DB.Presentations/A_exercise_DB.Presentations.csproj
 
-      # Azure VM上の新しい配置先
-      APP_DIR: /var/www/fullness-api
+      # Azure VM上の配置先
+      DEPLOY_DIR: /var/www/fullness-api
 
-      # 新しく登録したsystemdサービス
+      # 新しいsystemdサービス
       SERVICE_NAME: fullness-api
 
       # 現在稼働している旧systemdサービス
       LEGACY_SERVICE_NAME: a-exercise-api
 
-      # SSH接続情報
-      AZURE_HOST: ${{ secrets.AZURE_HOST }}
-      AZURE_USER: ${{ secrets.AZURE_USER }}
-      SSH_PORT: "22"
+      # Azure Blobコンテナ名
+      AZURE_BLOB_CONTAINER_NAME: product-images
 
     steps:
-      # workflow_runの場合は、CIで検証されたコミットを取得する
+      # workflow_runの場合は、
+      # Backend CIで検証されたコミットを取得する
       - name: CIで検証されたコミットをチェックアウト
         if: github.event_name == 'workflow_run'
         uses: actions/checkout@v4
@@ -85,37 +83,36 @@ jobs:
         run: |
           dotnet restore "${PROJECT_PATH}"
 
-      # Azure VMへ配置する成果物を作成する
-      - name: アプリケーションを発行
+      # Azure VMへ配置するファイルを作成する
+      - name: 発行
         run: |
           dotnet publish "${PROJECT_PATH}" \
             --configuration Release \
             --output "${{ github.workspace }}/publish" \
             --no-restore
 
-      # 発行対象のDLLが存在することを確認する
+      # 発行結果を確認する
       - name: 発行結果を確認
         run: |
           set -euo pipefail
 
-          test -f publish/A_exercise_DB.Presentations.dll
+          test -f \
+            "${{ github.workspace }}/publish/A_exercise_DB.Presentations.dll"
 
-          find publish \
-            -maxdepth 1 \
-            -type f \
-            -printf '%f\n' \
-            | sort
+          echo "発行対象のDLLを確認しました"
 
-      # GitHub Secretsの秘密鍵をSSH用ファイルにする
+      # GitHub Secretに登録したSSH秘密鍵を準備する
       - name: SSH鍵を準備
         env:
           SSH_PRIVATE_KEY: ${{ secrets.TRAININGSERVER_KEY }}
+          VM_HOST: ${{ secrets.AZURE_HOST }}
+          VM_USER: ${{ secrets.AZURE_USER }}
         run: |
           set -euo pipefail
 
-          test -n "${AZURE_HOST}"
-          test -n "${AZURE_USER}"
           test -n "${SSH_PRIVATE_KEY}"
+          test -n "${VM_HOST}"
+          test -n "${VM_USER}"
 
           mkdir -p ~/.ssh
 
@@ -126,39 +123,56 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
 
           ssh-keyscan \
-            -p "${SSH_PORT}" \
-            -H "${AZURE_HOST}" \
+            -H "${VM_HOST}" \
             >> ~/.ssh/known_hosts
 
           chmod 600 ~/.ssh/known_hosts
 
-      # Azure VMへSSH接続できることを確認する
+      # SSH接続だけ先に確認する
       - name: SSH接続を確認
+        env:
+          VM_HOST: ${{ secrets.AZURE_HOST }}
+          VM_USER: ${{ secrets.AZURE_USER }}
         run: |
           set -euo pipefail
 
           ssh \
             -i ~/.ssh/deploy_key \
-            -p "${SSH_PORT}" \
-            "${AZURE_USER}@${AZURE_HOST}" \
+            "${VM_USER}@${VM_HOST}" \
             "echo 'SSH connection successful' && hostname"
 
-      # systemdが読み込む本番用環境変数ファイルを作成する
-      - name: 本番用環境変数ファイルを生成
+      # systemdが読み込むapi.envを作成する
+      - name: 環境変数ファイルを生成
         shell: bash
         env:
+          VM_HOST: ${{ secrets.AZURE_HOST }}
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+          JWT_SIGNING_KEY: ${{ secrets.JWT_SIGNING_KEY }}
+          AZURE_BLOB_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_CONNECTION_STRING }}
         run: |
           set -euo pipefail
 
+          test -n "${VM_HOST}"
           test -n "${DB_CONNECTION_STRING}"
+          test -n "${JWT_SIGNING_KEY}"
+          test -n "${AZURE_BLOB_CONNECTION_STRING}"
+          test -n "${AZURE_BLOB_CONTAINER_NAME}"
 
-          # systemdのEnvironmentFileは1設定1行で記述するため、
-          # 接続文字列に改行が入っていたら失敗させる
-          if [[ "${DB_CONNECTION_STRING}" == *$'\n'* ]]; then
-            echo "::error::DB_CONNECTION_STRINGに改行が含まれています"
-            exit 1
-          fi
+          # EnvironmentFileは1設定1行なので、
+          # Secretに改行が含まれていたら失敗させる
+          for variable_name in \
+            DB_CONNECTION_STRING \
+            JWT_SIGNING_KEY \
+            AZURE_BLOB_CONNECTION_STRING
+          do
+            variable_value="${!variable_name}"
+
+            if [[ "${variable_value}" == *$'\n'* ]] ||
+               [[ "${variable_value}" == *$'\r'* ]]; then
+              echo "::error::${variable_name}に改行が含まれています"
+              exit 1
+            fi
+          done
 
           umask 077
 
@@ -167,101 +181,125 @@ jobs:
             printf 'DOTNET_ENVIRONMENT=Production\n'
             printf 'ASPNETCORE_URLS=http://127.0.0.1:5000\n'
 
+            # PostgreSQL
             printf 'ConnectionStrings__PostgreSQLConnection=%s\n' \
               "${DB_CONNECTION_STRING}"
 
-            printf 'ImageStorage__RootPath=wwwroot/images/products\n'
-            printf 'ImageStorage__RequestPath=/images/products\n'
+            # JWT
+            printf 'Jwt__SigningKey=%s\n' \
+              "${JWT_SIGNING_KEY}"
 
-            printf 'ImageStorage__PublicBaseUrl=http://%s\n' \
-              "${AZURE_HOST}"
+            printf 'Jwt__Issuer=http://%s\n' \
+              "${VM_HOST}"
 
+            printf 'Jwt__Audience=http://%s\n' \
+              "${VM_HOST}"
+
+            # Azure Blob Storage
+            printf 'ImageStorage__Provider=AzureBlob\n'
+
+            printf 'AzureBlobStorage__ConnectionString=%s\n' \
+              "${AZURE_BLOB_CONNECTION_STRING}"
+
+            printf 'AzureBlobStorage__ContainerName=%s\n' \
+              "${AZURE_BLOB_CONTAINER_NAME}"
+
+            # Cookie
             printf 'AuthCookie__Secure=false\n'
+
+            # Swagger
             printf 'Swagger__Enabled=true\n'
 
+            # CORS
             printf 'Cors__AllowedOrigins__0=http://%s\n' \
-              "${AZURE_HOST}"
+              "${VM_HOST}"
           } > api.env
 
-      # Publish結果を1ファイルにまとめる
-      - name: デプロイファイルを圧縮
+          chmod 600 api.env
+
+          # Secretの内容は表示せず、設定名だけ確認する
+          sed \
+            -E \
+            's/=.*/=<masked>/' \
+            api.env
+
+      # VM上の一時配置先を準備する
+      - name: VMの一時配置先を準備
+        env:
+          VM_HOST: ${{ secrets.AZURE_HOST }}
+          VM_USER: ${{ secrets.AZURE_USER }}
         run: |
           set -euo pipefail
 
-          tar \
-            -czf backend.tar.gz \
-            -C publish \
-            .
+          ssh \
+            -i ~/.ssh/deploy_key \
+            "${VM_USER}@${VM_HOST}" \
+            "rm -rf /tmp/fullness-publish &&
+             mkdir -p /tmp/fullness-publish"
 
-      # 成果物と環境変数ファイルをVMの一時領域へ転送する
-      - name: Azure VMへ転送
+      # dotnet publishの成果物をVMへ送る
+      - name: 成果物を転送
+        env:
+          VM_HOST: ${{ secrets.AZURE_HOST }}
+          VM_USER: ${{ secrets.AZURE_USER }}
+        run: |
+          set -euo pipefail
+
+          rsync \
+            -az \
+            --delete \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            "${{ github.workspace }}/publish/" \
+            "${VM_USER}@${VM_HOST}:/tmp/fullness-publish/"
+
+      # api.envをVMへ送る
+      - name: 環境変数ファイルを転送
+        env:
+          VM_HOST: ${{ secrets.AZURE_HOST }}
+          VM_USER: ${{ secrets.AZURE_USER }}
         run: |
           set -euo pipefail
 
           scp \
             -i ~/.ssh/deploy_key \
-            -P "${SSH_PORT}" \
-            backend.tar.gz \
             api.env \
-            "${AZURE_USER}@${AZURE_HOST}:/tmp/"
+            "${VM_USER}@${VM_HOST}:/tmp/api.env"
 
-      # VM上で配置し、新しいsystemdサービスへ切り替える
-      - name: 配置してサービスを切り替え
+      # 発行成果物と環境変数ファイルを本番配置先へ移す
+      - name: 成果物を配置
+        env:
+          VM_HOST: ${{ secrets.AZURE_HOST }}
+          VM_USER: ${{ secrets.AZURE_USER }}
         run: |
-          ssh \
-            -i ~/.ssh/deploy_key \
-            -p "${SSH_PORT}" \
-            "${AZURE_USER}@${AZURE_HOST}" \
-            "APP_DIR='${APP_DIR}' \
-             SERVICE_NAME='${SERVICE_NAME}' \
-             LEGACY_SERVICE_NAME='${LEGACY_SERVICE_NAME}' \
-             bash -s" <<'REMOTE_SCRIPT'
           set -euo pipefail
 
-          RELEASE_DIR=/tmp/fullness-api-release
-
-          echo "=== 発行ファイルを展開 ==="
-
-          rm -rf "${RELEASE_DIR}"
-          mkdir -p "${RELEASE_DIR}"
-
-          tar \
-            -xzf /tmp/backend.tar.gz \
-            -C "${RELEASE_DIR}"
-
-          test -f \
-            "${RELEASE_DIR}/A_exercise_DB.Presentations.dll"
-
-          echo "=== systemdユニットを確認 ==="
-
-          test -f \
-            "/etc/systemd/system/${SERVICE_NAME}.service"
-
-          echo "=== 配置先を準備 ==="
+          ssh \
+            -i ~/.ssh/deploy_key \
+            "${VM_USER}@${VM_HOST}" \
+            "DEPLOY_DIR='${DEPLOY_DIR}' bash -s" <<'REMOTE_SCRIPT'
+          set -euo pipefail
 
           sudo mkdir -p \
-            "${APP_DIR}/wwwroot/images/products"
+            "${DEPLOY_DIR}/wwwroot/images/products"
 
-          sudo mkdir -p /etc/fullness
+          sudo mkdir -p \
+            /etc/fullness
 
-          echo "=== アプリケーションを配置 ==="
-
-          # 既にアップロードされている画像は削除しない
           sudo rsync \
             -a \
             --delete \
             --exclude 'wwwroot/images/products/' \
-            "${RELEASE_DIR}/" \
-            "${APP_DIR}/"
+            /tmp/fullness-publish/ \
+            "${DEPLOY_DIR}/"
 
+          # systemdユニットのReadWritePathsとの互換性のため、
+          # Azure Blobへ移行後もディレクトリは残す
           sudo mkdir -p \
-            "${APP_DIR}/wwwroot/images/products"
+            "${DEPLOY_DIR}/wwwroot/images/products"
 
           sudo chown \
             -R fullness:fullness \
-            "${APP_DIR}"
-
-          echo "=== 環境変数ファイルを配置 ==="
+            "${DEPLOY_DIR}"
 
           sudo install \
             -o root \
@@ -269,8 +307,25 @@ jobs:
             -m 640 \
             /tmp/api.env \
             /etc/fullness/api.env
+          REMOTE_SCRIPT
 
-          echo "=== 新しいサービスを自動起動に設定 ==="
+      # 旧サービスを停止し、新しいサービスを起動する
+      - name: サービスを再起動
+        env:
+          VM_HOST: ${{ secrets.AZURE_HOST }}
+          VM_USER: ${{ secrets.AZURE_USER }}
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i ~/.ssh/deploy_key \
+            "${VM_USER}@${VM_HOST}" \
+            "SERVICE_NAME='${SERVICE_NAME}' \
+             LEGACY_SERVICE_NAME='${LEGACY_SERVICE_NAME}' \
+             bash -s" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+
+          echo "=== 新サービスを有効化 ==="
 
           sudo systemctl enable \
             "${SERVICE_NAME}.service"
@@ -285,7 +340,7 @@ jobs:
             "${LEGACY_SERVICE_NAME}.service" \
             || true
 
-          echo "=== 新しいサービスを起動 ==="
+          echo "=== 新サービスを起動 ==="
 
           if ! sudo systemctl restart \
             "${SERVICE_NAME}.service"; then
@@ -335,7 +390,7 @@ jobs:
 
           echo "=== Kestrelへの接続を確認 ==="
 
-          curl \
+          if ! curl \
             --retry 5 \
             --retry-connrefused \
             --retry-delay 2 \
@@ -343,9 +398,37 @@ jobs:
             --silent \
             --show-error \
             --output /dev/null \
-            http://127.0.0.1:5000/
+            http://127.0.0.1:5000/; then
 
-          echo "=== 新サービスが正常に起動しました ==="
+            echo "Kestrelへ接続できませんでした"
+
+            sudo journalctl \
+              -u "${SERVICE_NAME}.service" \
+              -n 100 \
+              --no-pager
+
+            echo "旧サービスへ戻します"
+
+            sudo systemctl stop \
+              "${SERVICE_NAME}.service" \
+              || true
+
+            sudo systemctl disable \
+              "${SERVICE_NAME}.service" \
+              || true
+
+            sudo systemctl enable \
+              "${LEGACY_SERVICE_NAME}.service" \
+              || true
+
+            sudo systemctl start \
+              "${LEGACY_SERVICE_NAME}.service" \
+              || true
+
+            exit 1
+          fi
+
+          echo "=== 起動状態 ==="
 
           sudo systemctl \
             --no-pager \
@@ -355,7 +438,6 @@ jobs:
           echo "=== 一時ファイルを削除 ==="
 
           rm -rf \
-            "${RELEASE_DIR}" \
-            /tmp/backend.tar.gz \
+            /tmp/fullness-publish \
             /tmp/api.env
           REMOTE_SCRIPT
