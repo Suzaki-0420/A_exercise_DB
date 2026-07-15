@@ -82,9 +82,9 @@ public class LocalImageStorage : IImageStorage
                 fileName);
 
             // ファイルが存在する場合のみ削除する
-            if (File.Exists(filePath))
+            if (FileExists(filePath))
             {
-                File.Delete(filePath);
+                DeleteFile(filePath);
             }
 
             return Task.CompletedTask;

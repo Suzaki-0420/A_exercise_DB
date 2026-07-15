@@ -18,6 +18,9 @@ public class LocalImageStorageTest
 
     private LocalImageStorage _storage = null!;
 
+    private IOptions<ImageStorageOptions> _options = null!;
+    private IHostEnvironment _environment = null!;
+
     [TestInitialize]
     public void TestInitialize()
     {
@@ -46,7 +49,7 @@ public class LocalImageStorageTest
                 RequestPath = "/images"
             };
 
-        var options =
+        _options =
             Options.Create(
                 imageStorageOptions);
 
@@ -57,10 +60,13 @@ public class LocalImageStorageTest
             .SetupGet(x => x.ContentRootPath)
             .Returns(_contentRootPath);
 
+        _environment =
+            environmentMock.Object;
+
         _storage =
             new LocalImageStorage(
-                options,
-                environmentMock.Object);
+                _options,
+                _environment);
     }
 
     [TestCleanup]
@@ -362,5 +368,261 @@ public class LocalImageStorageTest
             return Task.FromException(
                 _exception);
         }
+    }
+    /// <summary>
+    /// 画像URLがnullの場合、ArgumentNullExceptionが発生すること
+    /// </summary>
+    [TestMethod(
+        DisplayName = "画像URLがnullの場合、ArgumentNullExceptionが発生する")]
+    public async Task DeleteAsync_WhenImageUrlIsNull_ShouldThrowArgumentNullException()
+    {
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<ArgumentNullException>(
+                async () =>
+                    await _storage.DeleteAsync(
+                        null!));
+
+        // Assert
+        Assert.AreEqual(
+            "imageUrl",
+            exception.ParamName);
+    }
+    /// <summary>
+    /// 画像URLが空文字または空白の場合、ArgumentExceptionが発生すること
+    /// </summary>
+    [TestMethod(
+        DisplayName = "画像URLが空文字または空白の場合、ArgumentExceptionが発生する")]
+    [DataRow("")]
+    [DataRow(" ")]
+    [DataRow("　")]
+    public async Task DeleteAsync_WhenImageUrlIsEmptyOrWhiteSpace_ShouldThrowArgumentException(
+        string imageUrl)
+    {
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<ArgumentException>(
+                async () =>
+                    await _storage.DeleteAsync(
+                        imageUrl));
+
+        // Assert
+        Assert.AreEqual(
+            "imageUrl",
+            exception.ParamName);
+    }
+
+    /// <summary>
+    /// ファイルが存在しない場合、例外なく完了すること
+    /// </summary>
+    [TestMethod(
+        DisplayName = "ファイルが存在しない場合、例外なく完了する")]
+    public async Task DeleteAsync_WhenFileDoesNotExist_ShouldComplete()
+    {
+        // Arrange
+        var filePath =
+            Path.Combine(
+                _absoluteRootPath,
+                "not-exist.png");
+
+        Assert.IsFalse(
+            File.Exists(filePath));
+
+        // Act
+        await _storage.DeleteAsync(
+            "/images/not-exist.png");
+
+        // Assert
+        Assert.IsFalse(
+            File.Exists(filePath));
+    }
+
+    /// <summary>
+    /// ファイルが存在する場合、ファイルが削除されること
+    /// </summary>
+    [TestMethod(
+        DisplayName = "ファイルが存在する場合、ファイルが削除される")]
+    public async Task DeleteAsync_WhenFileExists_ShouldDeleteFile()
+    {
+        // Arrange
+        Directory.CreateDirectory(
+            _absoluteRootPath);
+
+        const string fileName =
+            "delete.png";
+
+        var filePath =
+            Path.Combine(
+                _absoluteRootPath,
+                fileName);
+
+        await File.WriteAllBytesAsync(
+            filePath,
+            [1, 2, 3]);
+
+        Assert.IsTrue(
+            File.Exists(filePath));
+
+        // Act
+        await _storage.DeleteAsync(
+            $"https://example.com/images/{fileName}");
+
+        // Assert
+        Assert.IsFalse(
+            File.Exists(filePath));
+    }
+
+    /// <summary>
+    /// ファイル操作時の例外を再現するためのLocalImageStorage
+    /// </summary>
+    private sealed class TestableLocalImageStorage
+        : LocalImageStorage
+    {
+        private readonly Func<string, bool>? _fileExists;
+        private readonly Action<string>? _deleteFile;
+
+        public TestableLocalImageStorage(
+            IOptions<ImageStorageOptions> options,
+            IHostEnvironment environment,
+            Func<string, bool>? fileExists = null,
+            Action<string>? deleteFile = null)
+            : base(
+                options,
+                environment)
+        {
+            _fileExists = fileExists;
+            _deleteFile = deleteFile;
+        }
+
+        protected override bool FileExists(
+            string filePath)
+        {
+            if (_fileExists is not null)
+            {
+                return _fileExists(
+                    filePath);
+            }
+
+            return base.FileExists(
+                filePath);
+        }
+
+        protected override void DeleteFile(
+            string filePath)
+        {
+            if (_deleteFile is not null)
+            {
+                _deleteFile(
+                    filePath);
+
+                return;
+            }
+
+            base.DeleteFile(
+                filePath);
+        }
+    }
+
+    /// <summary>
+    /// ファイル確認時にIOExceptionが発生した場合、
+    /// InternalExceptionに変換されること
+    /// </summary>
+    [TestMethod(
+        DisplayName = "削除処理でIOExceptionが発生した場合、InternalExceptionに変換される")]
+    public async Task DeleteAsync_WhenIOExceptionOccurs_ShouldThrowInternalException()
+    {
+        // Arrange
+        var expectedException =
+            new IOException(
+                "ファイルにアクセスできません。");
+
+        var storage =
+            new TestableLocalImageStorage(
+                _options,
+                _environment,
+                fileExists: _ => throw expectedException);
+
+        // Act
+        var actualException =
+            await Assert.ThrowsExactlyAsync<InternalException>(
+                async () =>
+                    await storage.DeleteAsync(
+                        "/images/sample.png"));
+
+        // Assert
+        Assert.AreEqual(
+            "画像の削除に失敗しました。",
+            actualException.Message);
+
+        Assert.AreSame(
+            expectedException,
+            actualException.InnerException);
+    }
+    /// <summary>
+    /// ファイル削除時にUnauthorizedAccessExceptionが発生した場合、
+    /// InternalExceptionに変換されること
+    /// </summary>
+    [TestMethod(
+        DisplayName = "削除処理でUnauthorizedAccessExceptionが発生した場合、InternalExceptionに変換される")]
+    public async Task DeleteAsync_WhenUnauthorizedAccessExceptionOccurs_ShouldThrowInternalException()
+    {
+        // Arrange
+        var expectedException =
+            new UnauthorizedAccessException(
+                "削除権限がありません。");
+
+        var storage =
+            new TestableLocalImageStorage(
+                _options,
+                _environment,
+                fileExists: _ => true,
+                deleteFile: _ => throw expectedException);
+
+        // Act
+        var actualException =
+            await Assert.ThrowsExactlyAsync<InternalException>(
+                async () =>
+                    await storage.DeleteAsync(
+                        "/images/sample.png"));
+
+        // Assert
+        Assert.AreEqual(
+            "画像の削除に失敗しました。",
+            actualException.Message);
+
+        Assert.AreSame(
+            expectedException,
+            actualException.InnerException);
+    }
+    /// <summary>
+    /// 対象外の例外が発生した場合、
+    /// InternalExceptionに変換されないこと
+    /// </summary>
+    [TestMethod(
+        DisplayName = "削除処理で対象外の例外が発生した場合、元の例外がスローされる")]
+    public async Task DeleteAsync_WhenUnexpectedExceptionOccurs_ShouldRethrowOriginalException()
+    {
+        // Arrange
+        var expectedException =
+            new InvalidOperationException(
+                "予期しないエラーです。");
+
+        var storage =
+            new TestableLocalImageStorage(
+                _options,
+                _environment,
+                fileExists: _ => throw expectedException);
+
+        // Act
+        var actualException =
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+                async () =>
+                    await storage.DeleteAsync(
+                        "/images/sample.png"));
+
+        // Assert
+        Assert.AreSame(
+            expectedException,
+            actualException);
     }
 }

@@ -6,10 +6,8 @@ using A_exercise_DB.Presentations.Adapters;
 using A_exercise_DB.Presentations.Controllers;
 using A_exercise_DB.Presentations.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using Microsoft.AspNetCore.Http;
 
 namespace A_exercise_DB.Presentations.Tests.Controllers;
 
@@ -662,5 +660,160 @@ public class RegisterProductControllerTest
             Headers = new HeaderDictionary(),
             ContentType = "image/png"
         };
+    }
+    /// <summary>
+    /// 登録処理中に商品名の重複が判明した場合、
+    /// Conflictを返すこと
+    /// </summary>
+    [TestMethod(
+        DisplayName =
+            "登録処理中にExistsExceptionが発生した場合、Conflictを返す")]
+    public async Task
+        Register_WhenExistsExceptionThrown_ShouldReturnConflict()
+    {
+        // Arrange
+        var categoryUuid = Guid.NewGuid();
+
+        var model = new RegisterViewModel
+        {
+            Name = "りんご",
+            Price = 100,
+            Stock = 10,
+            CategoryUuid = categoryUuid,
+            Image = CreateValidImage()
+        };
+
+        /*
+         * Controllerでの事前確認時点では、
+         * 同名商品が存在しない。
+         */
+        _registerProductUsecaseMock
+            .Setup(x =>
+                x.ExistsByProductNameAsync("りんご"))
+            .ReturnsAsync(false);
+
+        /*
+         * 実際の登録処理では、
+         * 排他制御や再確認によって重複が判明する。
+         */
+        _registerProductUsecaseMock
+            .Setup(x =>
+                x.RegisterProductAsync(
+                    It.IsAny<ProductRegisterParam>()))
+            .ThrowsAsync(
+                new ExistsException(
+                    "同じ商品名の商品が既に存在します。"));
+
+        // Act
+        var result =
+            await _controller.Register(model);
+
+        // Assert
+        var conflictResult =
+            result as ConflictObjectResult;
+
+        Assert.IsNotNull(conflictResult);
+
+        Assert.AreEqual(
+            StatusCodes.Status409Conflict,
+            conflictResult.StatusCode
+        );
+
+        Assert.AreEqual(
+            "PRODUCT_ALREADY_EXISTS",
+            GetPropertyValue<string>(
+                conflictResult.Value!,
+                "code"
+            )
+        );
+
+        Assert.AreEqual(
+            "同じ商品名の商品が既に存在します。",
+            GetPropertyValue<string>(
+                conflictResult.Value!,
+                "message"
+            )
+        );
+
+        _registerProductUsecaseMock.Verify(
+            x =>
+                x.ExistsByProductNameAsync("りんご"),
+            Times.Once
+        );
+
+        _registerProductUsecaseMock.Verify(
+            x =>
+                x.RegisterProductAsync(
+                    It.Is<ProductRegisterParam>(
+                        param =>
+                            param.Name == "りんご" &&
+                            param.CategoryId ==
+                                categoryUuid)),
+            Times.Once
+        );
+    }
+    /// <summary>
+    /// 画像Streamを開く処理で例外が発生した場合、
+    /// 例外がそのまま伝播すること
+    /// </summary>
+    [TestMethod(
+        DisplayName =
+            "画像Streamを開けない場合、IOExceptionが伝播する")]
+    public async Task
+        Register_WhenOpenReadStreamThrows_ShouldPropagateIOException()
+    {
+        // Arrange
+        var categoryUuid = Guid.NewGuid();
+
+        var imageMock = new Mock<IFormFile>();
+
+        imageMock
+            .Setup(image =>
+                image.OpenReadStream())
+            .Throws(
+                new IOException(
+                    "画像ファイルを開けません。"));
+
+        var model = new RegisterViewModel
+        {
+            Name = "りんご",
+            Price = 100,
+            Stock = 10,
+            CategoryUuid = categoryUuid,
+            Image = imageMock.Object
+        };
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<IOException>(
+                async () =>
+                    await _controller.Register(model)
+            );
+
+        // Assert
+        Assert.AreEqual(
+            "画像ファイルを開けません。",
+            exception.Message
+        );
+
+        imageMock.Verify(
+            image =>
+                image.OpenReadStream(),
+            Times.Once
+        );
+
+        _registerProductUsecaseMock.Verify(
+            x =>
+                x.ExistsByProductNameAsync(
+                    It.IsAny<string>()),
+            Times.Never
+        );
+
+        _registerProductUsecaseMock.Verify(
+            x =>
+                x.RegisterProductAsync(
+                    It.IsAny<ProductRegisterParam>()),
+            Times.Never
+        );
     }
 }
