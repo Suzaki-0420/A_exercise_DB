@@ -40,23 +40,41 @@ public class LocalImageStorage : IImageStorage
         ArgumentNullException.ThrowIfNull(content);
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
 
+        string publicUrl;
+
         try
         {
-            Directory.CreateDirectory(_absoluteRootPath);
+            Directory.CreateDirectory(
+                _absoluteRootPath);
 
-            var filePath = Path.Combine(_absoluteRootPath, fileName);
+            var filePath =
+                Path.Combine(
+                    _absoluteRootPath,
+                    fileName);
 
-            await using var fileStream = new FileStream(
-                filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            await using var fileStream =
+                new FileStream(
+                    filePath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None);
 
-            await content.CopyToAsync(fileStream);
+            await content.CopyToAsync(
+                fileStream);
 
-            return $"{_options.PublicBaseUrl.TrimEnd('/')}{_options.RequestPath}/{fileName}";
+            publicUrl =
+                $"{_options.PublicBaseUrl.TrimEnd('/')}" +
+                $"{_options.RequestPath}/{fileName}";
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex)
+            when (ex is IOException or UnauthorizedAccessException)
         {
-            throw new InternalException("画像の保存に失敗しました。", ex);
+            throw new InternalException(
+                "画像の保存に失敗しました。",
+                ex);
         }
+
+        return publicUrl;
     }
 
     /// <summary>

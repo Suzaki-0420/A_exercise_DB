@@ -360,7 +360,7 @@ var assemblies = [
       { "name": "A_exercise_DB.Infrastructures.Repositories.ProductCategoryRepository", "rp": "A_exercise_DB.Infrastructures_ProductCategoryRepository.html", "cl": 53, "ucl": 0, "cal": 53, "tl": 129, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Infrastructures.Repositories.ProductRepository", "rp": "A_exercise_DB.Infrastructures_ProductRepository.html", "cl": 139, "ucl": 0, "cal": 139, "tl": 280, "cb": 12, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "A_exercise_DB.Infrastructures.Shared.UnitOfWork", "rp": "A_exercise_DB.Infrastructures_UnitOfWork.html", "cl": 26, "ucl": 0, "cal": 26, "tl": 68, "cb": 6, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "A_exercise_DB.Infrastructures.Storage.LocalImageStorage", "rp": "A_exercise_DB.Infrastructures_LocalImageStorage.html", "cl": 32, "ucl": 12, "cal": 44, "tl": 116, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "A_exercise_DB.Infrastructures.Storage.LocalImageStorage", "rp": "A_exercise_DB.Infrastructures_LocalImageStorage.html", "cl": 43, "ucl": 1, "cal": 44, "tl": 116, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
     "name": "A_exercise_DB.Presentations",
