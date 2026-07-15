@@ -13,7 +13,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// </summary>
 [ApiController]
 //[AllowAnonymous]
-// [Authorize]
+[Authorize]
 [ProducesResponseType(
     StatusCodes.Status401Unauthorized)]
 [Route("admin/product")]
