@@ -88,7 +88,7 @@ public class ProductRegisterViewModelAdapterTest
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
-            CategoryName = null
+            CategoryName = null!
         };
 
         // Act
@@ -109,7 +109,7 @@ public class ProductRegisterViewModelAdapterTest
         // Arrange
         var viewModel = new RegisterViewModel
         {
-            Name = null,
+            Name = null!,
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),
@@ -243,7 +243,7 @@ public class ProductRegisterViewModelAdapterTest
         // Arrange
         var viewModel = new RegisterViewModel
         {
-            Name = null,
+            Name = null!,
             Price = 100,
             Stock = 10,
             CategoryUuid = Guid.NewGuid(),

@@ -79,7 +79,7 @@ public class OrdersDetailEntityAdapterTests
         {
             Id = 1,
             Count = 3,
-            Product = null
+            Product = null!
         };
 
         // Act

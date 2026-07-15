@@ -175,7 +175,7 @@ public class RegisterProductController
         {
 
             imageStream =
-                model.Image.OpenReadStream();
+                model.Image!.OpenReadStream();
 
             /*
              * ViewModelをユースケースの入力値へ変換する。
