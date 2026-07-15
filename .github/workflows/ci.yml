@@ -1,36 +1,78 @@
-# ワークフロー名
-name: .NET CS_WebApp CI
+name: Backend CI
 
-# いつ実行するか
-on: 
-  push: # pushされたときに実行する
-    branches: # mainブランチにpushされたときだけ実行する
-      - main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-# 実行する処理のまとまり
 jobs:
-  build-and-test: # jobの名前(自分で設定)
-    runs-on: ubuntu-latest # jobを事項する環境
+  build-and-test:
+    name: ビルドとテスト
+    runs-on: ubuntu-latest
 
-    # ジョブ内で順番に実行される手順（ステップ）のリスト
+    # リポジトリ統合テストで使用するPostgreSQL
+    # ジョブの実行中だけ起動する使い捨てのコンテナで、テスト終了後に破棄される
+    services:
+      postgres:
+        # PostgreSQL 17 の公式イメージを使用する
+        image: postgres:17
+        env:
+          # コンテナ起動時に作成する管理ユーザーとパスワードは、使い捨てのため固定値を利用
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          # コンテナ起動時に自動作成するデータベース名
+          POSTGRES_DB: fullness_ec
+        ports:
+          # コンテナの5432番を、ジョブ実行環境の5432番へ公開する
+          - 5432:5432
+          # DBが接続を受け付けられる状態になるまでヘルスチェックで待機する
+          # これが完了する前にテストが走ると接続エラーになるため、起動完了を保証する
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # インフラストラクチャ層のテストプロジェクトに作成した、appsettings.Test.json の接続文字列を上書きする
+      ConnectionStrings__FullnessEc: "Host=localhost;Port=5432;Database=fullness_ec;Username=postgres;Password=postgres"
+     
     steps:
-      - name: リポジトリのチェックアウト # GitHub上のソースコードを、GitHub Actions Runner(GitHub Actions の処理を実際に実行するコンピューター)の中に持ってくる
-        uses: actions/checkout@v4 # GitHub公式の actions/checkout という Action
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
 
       - name: .NET SDKのセットアップ # .NETコマンドを使えるようにする
         uses: actions/setup-dotnet@v4 # GitHub公式の actions/setup-dotnet という Action
         with:
           dotnet-version: '10.0.x' # .NET SDK 10.0 系の最新版を使う
 
-      # ----- ここから追記 -----
-      - name: コードフォーマットの検証 (Lint)
-        run: dotnet format --verify-no-changes
-      # ----- ここまで追記 -----
+      - name: スキーマとサンプルデータを投入
+        # パスの基準はリポジトリのルートになるので環境に合わせて修正する
+        # データベースは POSTGRES_DBにより作成済みのためデータベース作成は実行しない
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d fullness_ec -v ON_ERROR_STOP=1 -f db/02_create_tables.sql
+          psql -h localhost -U postgres -d fullness_ec -v ON_ERROR_STOP=1 -f db/03_insert_sample_data.sql
 
-      - name: プロジェクトのビルド
-        run: dotnet build --configuration Release
-    
-      - name: 単体・結合テストの実行
-      # ビルド済みのバイナリを再利用(--no-build)してテストを実行
-      # verbosity=detailedを付けることで、Console.WriteLineの出力がGitHub Actionsのログに表示される
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=detailed"
+      - name: 依存パッケージを復元
+        run: dotnet restore
+
+      - name: ビルド（警告をエラーとして扱う）
+        run: dotnet build --configuration Release --no-restore -warnaserror
+
+      - name: 書式チェック
+        run: dotnet format --verify-no-changes --severity warn --no-restore    
+
+      - name: テスト（ドメイン層）
+        run: dotnet test Tests/A_exercise_DB.Domains.Tests/A_exercise_DB.Domains.Tests.csproj --configuration Release --no-build
+
+      - name: テスト（アプリケーション層）
+        run: dotnet test Tests/A_exercise_DB.Applications.Tests/A_exercise_DB.Applications.Tests.csproj --configuration Release --no-build
+
+      - name: テスト（インフラストラクチャ層）
+        run: dotnet test Tests/A_exercise_DB.Infrastructures.Tests/A_exercise_DB.Infrastructures.Tests.csproj --configuration Release --no-build
+
+      - name: テスト（API層）
+        run: dotnet test Tests/A_exercise_DB.Presentations.Tests/A_exercise_DB.Presentations.Tests.csproj --configuration Release --no-build
