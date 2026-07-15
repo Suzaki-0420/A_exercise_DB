@@ -1,40 +1,361 @@
-# GitHub Actionsの画面上に表示されるワークフローの名前
-name: .NET CS_WebApp CD
+# GitHub Actionsの画面に表示されるワークフロー名
+name: Backend CD
 
-# ワークフローが実行される条件（トリガー）の定義
-# 【修正後】CIワークフローが「完了」した時に実行
 on:
+  # mainブランチのBackend CIが完了した後に実行する
   workflow_run:
-    workflows: [".NET CS_WebApp CI"] # ※ci.ymlの「name:」で指定している名前と完全に一致させる必要がある
+    workflows:
+      - "Backend CI"
     types:
       - completed
     branches:
       - main
 
-# 実行するジョブ（作業のまとまり）の定義
+  # GitHub Actions画面から手動でも実行できる
+  workflow_dispatch:
+
+# リポジトリの読み取りだけを許可する
+permissions:
+  contents: read
+
+# 複数のデプロイを同時実行しない
+concurrency:
+  group: backend-production
+  cancel-in-progress: false
+
 jobs:
-  deploy: # ジョブの識別名（任意の名前）
-    # GitHub側が用意する使い捨ての仮想環境（Runner）のOSを指定
+  deploy:
+    name: Azure VMへデプロイ
     runs-on: ubuntu-latest
-    
-    # ジョブ内で順番に実行される手順（ステップ）のリスト
+
+    # 自動実行：
+    # mainへのpushでBackend CIが成功した場合だけ実行
+    #
+    # 手動実行：
+    # mainを対象に実行
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+
+    env:
+      # Web APIプロジェクト
+      PROJECT_PATH: Apps/A_exercise_DB.Presentations/A_exercise_DB.Presentations.csproj
+
+      # Azure VM上の新しい配置先
+      APP_DIR: /var/www/fullness-api
+
+      # 新しく登録したsystemdサービス
+      SERVICE_NAME: fullness-api
+
+      # 現在稼働している旧systemdサービス
+      LEGACY_SERVICE_NAME: a-exercise-api
+
+      # SSH接続情報
+      AZURE_HOST: ${{ secrets.AZURE_HOST }}
+      AZURE_USER: ${{ secrets.AZURE_USER }}
+      SSH_PORT: "22"
+
     steps:
-      - name: 運用環境へのSSH疎通確認
-        # サードパーティ製（コミュニティ作成）のSSH接続アクションを利用
-        uses: appleboy/ssh-action@v1.0.3
-        
-        # 上記のアクションに渡すパラメータ（引数）の定義
+      # workflow_runの場合は、CIで検証されたコミットを取得する
+      - name: CIで検証されたコミットをチェックアウト
+        if: github.event_name == 'workflow_run'
+        uses: actions/checkout@v4
         with:
-          # GitHub Secretsから認証情報を安全に取得し、環境に展開（注入）する
-          host: ${{ secrets.AZURE_HOST }}         # 接続先サーバーのIPアドレス
-          username: ${{ secrets.AZURE_USER }}     # ログインユーザー名（ubuntu）
-          key: ${{ secrets.TRAININGSERVER_KEY }}      # 秘密鍵（PEM）のテキストデータ
-          
-          # SSH接続が成功した後に、リモートサーバー上で実行されるシェルコマンド
-          # （「|」は複数行の文字列を記述するためのYAMLの記法）
-          script: |
-            echo "=== SSH Connection Successful ==="
-            echo "--- System Information ---"
-            uname -a # サーバーのOSやカーネル情報を出力し、Linuxであることを確認
-            echo "--- Current User ---"
-            whoami   # 実行ユーザーを出力し、指定したユーザーでログインできたか確認
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # 手動実行の場合はmainを取得する
+      - name: mainをチェックアウト
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      # .NET 10 SDKを準備する
+      - name: .NET SDKをセットアップ
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      # 依存パッケージを復元する
+      - name: 依存パッケージを復元
+        run: |
+          dotnet restore "${PROJECT_PATH}"
+
+      # Azure VMへ配置する成果物を作成する
+      - name: アプリケーションを発行
+        run: |
+          dotnet publish "${PROJECT_PATH}" \
+            --configuration Release \
+            --output "${{ github.workspace }}/publish" \
+            --no-restore
+
+      # 発行対象のDLLが存在することを確認する
+      - name: 発行結果を確認
+        run: |
+          set -euo pipefail
+
+          test -f publish/A_exercise_DB.Presentations.dll
+
+          find publish \
+            -maxdepth 1 \
+            -type f \
+            -printf '%f\n' \
+            | sort
+
+      # GitHub Secretsの秘密鍵をSSH用ファイルにする
+      - name: SSH鍵を準備
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.TRAININGSERVER_KEY }}
+        run: |
+          set -euo pipefail
+
+          test -n "${AZURE_HOST}"
+          test -n "${AZURE_USER}"
+          test -n "${SSH_PRIVATE_KEY}"
+
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "${SSH_PRIVATE_KEY}" \
+            | tr -d '\r' \
+            > ~/.ssh/deploy_key
+
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan \
+            -p "${SSH_PORT}" \
+            -H "${AZURE_HOST}" \
+            >> ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      # Azure VMへSSH接続できることを確認する
+      - name: SSH接続を確認
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -p "${SSH_PORT}" \
+            "${AZURE_USER}@${AZURE_HOST}" \
+            "echo 'SSH connection successful' && hostname"
+
+      # systemdが読み込む本番用環境変数ファイルを作成する
+      - name: 本番用環境変数ファイルを生成
+        shell: bash
+        env:
+          DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        run: |
+          set -euo pipefail
+
+          test -n "${DB_CONNECTION_STRING}"
+
+          # systemdのEnvironmentFileは1設定1行で記述するため、
+          # 接続文字列に改行が入っていたら失敗させる
+          if [[ "${DB_CONNECTION_STRING}" == *$'\n'* ]]; then
+            echo "::error::DB_CONNECTION_STRINGに改行が含まれています"
+            exit 1
+          fi
+
+          umask 077
+
+          {
+            printf 'ASPNETCORE_ENVIRONMENT=Production\n'
+            printf 'DOTNET_ENVIRONMENT=Production\n'
+            printf 'ASPNETCORE_URLS=http://127.0.0.1:5000\n'
+
+            printf 'ConnectionStrings__PostgreSQLConnection=%s\n' \
+              "${DB_CONNECTION_STRING}"
+
+            printf 'ImageStorage__RootPath=wwwroot/images/products\n'
+            printf 'ImageStorage__RequestPath=/images/products\n'
+
+            printf 'ImageStorage__PublicBaseUrl=http://%s\n' \
+              "${AZURE_HOST}"
+
+            printf 'AuthCookie__Secure=false\n'
+            printf 'Swagger__Enabled=true\n'
+
+            printf 'Cors__AllowedOrigins__0=http://%s\n' \
+              "${AZURE_HOST}"
+          } > api.env
+
+      # Publish結果を1ファイルにまとめる
+      - name: デプロイファイルを圧縮
+        run: |
+          set -euo pipefail
+
+          tar \
+            -czf backend.tar.gz \
+            -C publish \
+            .
+
+      # 成果物と環境変数ファイルをVMの一時領域へ転送する
+      - name: Azure VMへ転送
+        run: |
+          set -euo pipefail
+
+          scp \
+            -i ~/.ssh/deploy_key \
+            -P "${SSH_PORT}" \
+            backend.tar.gz \
+            api.env \
+            "${AZURE_USER}@${AZURE_HOST}:/tmp/"
+
+      # VM上で配置し、新しいsystemdサービスへ切り替える
+      - name: 配置してサービスを切り替え
+        run: |
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -p "${SSH_PORT}" \
+            "${AZURE_USER}@${AZURE_HOST}" \
+            "APP_DIR='${APP_DIR}' \
+             SERVICE_NAME='${SERVICE_NAME}' \
+             LEGACY_SERVICE_NAME='${LEGACY_SERVICE_NAME}' \
+             bash -s" <<'REMOTE_SCRIPT'
+          set -euo pipefail
+
+          RELEASE_DIR=/tmp/fullness-api-release
+
+          echo "=== 発行ファイルを展開 ==="
+
+          rm -rf "${RELEASE_DIR}"
+          mkdir -p "${RELEASE_DIR}"
+
+          tar \
+            -xzf /tmp/backend.tar.gz \
+            -C "${RELEASE_DIR}"
+
+          test -f \
+            "${RELEASE_DIR}/A_exercise_DB.Presentations.dll"
+
+          echo "=== systemdユニットを確認 ==="
+
+          test -f \
+            "/etc/systemd/system/${SERVICE_NAME}.service"
+
+          echo "=== 配置先を準備 ==="
+
+          sudo mkdir -p \
+            "${APP_DIR}/wwwroot/images/products"
+
+          sudo mkdir -p /etc/fullness
+
+          echo "=== アプリケーションを配置 ==="
+
+          # 既にアップロードされている画像は削除しない
+          sudo rsync \
+            -a \
+            --delete \
+            --exclude 'wwwroot/images/products/' \
+            "${RELEASE_DIR}/" \
+            "${APP_DIR}/"
+
+          sudo mkdir -p \
+            "${APP_DIR}/wwwroot/images/products"
+
+          sudo chown \
+            -R fullness:fullness \
+            "${APP_DIR}"
+
+          echo "=== 環境変数ファイルを配置 ==="
+
+          sudo install \
+            -o root \
+            -g fullness \
+            -m 640 \
+            /tmp/api.env \
+            /etc/fullness/api.env
+
+          echo "=== 新しいサービスを自動起動に設定 ==="
+
+          sudo systemctl enable \
+            "${SERVICE_NAME}.service"
+
+          echo "=== 旧サービスを停止 ==="
+
+          sudo systemctl stop \
+            "${LEGACY_SERVICE_NAME}.service" \
+            || true
+
+          sudo systemctl disable \
+            "${LEGACY_SERVICE_NAME}.service" \
+            || true
+
+          echo "=== 新しいサービスを起動 ==="
+
+          if ! sudo systemctl restart \
+            "${SERVICE_NAME}.service"; then
+
+            echo "新サービスの起動に失敗しました"
+            echo "旧サービスへ戻します"
+
+            sudo systemctl enable \
+              "${LEGACY_SERVICE_NAME}.service" \
+              || true
+
+            sudo systemctl start \
+              "${LEGACY_SERVICE_NAME}.service" \
+              || true
+
+            exit 1
+          fi
+
+          sleep 8
+
+          if ! sudo systemctl is-active \
+            --quiet "${SERVICE_NAME}.service"; then
+
+            echo "新サービスがactiveになりませんでした"
+
+            sudo journalctl \
+              -u "${SERVICE_NAME}.service" \
+              -n 100 \
+              --no-pager
+
+            echo "旧サービスへ戻します"
+
+            sudo systemctl stop \
+              "${SERVICE_NAME}.service" \
+              || true
+
+            sudo systemctl enable \
+              "${LEGACY_SERVICE_NAME}.service" \
+              || true
+
+            sudo systemctl start \
+              "${LEGACY_SERVICE_NAME}.service" \
+              || true
+
+            exit 1
+          fi
+
+          echo "=== Kestrelへの接続を確認 ==="
+
+          curl \
+            --retry 5 \
+            --retry-connrefused \
+            --retry-delay 2 \
+            --connect-timeout 5 \
+            --silent \
+            --show-error \
+            --output /dev/null \
+            http://127.0.0.1:5000/
+
+          echo "=== 新サービスが正常に起動しました ==="
+
+          sudo systemctl \
+            --no-pager \
+            --full \
+            status "${SERVICE_NAME}.service"
+
+          echo "=== 一時ファイルを削除 ==="
+
+          rm -rf \
+            "${RELEASE_DIR}" \
+            /tmp/backend.tar.gz \
+            /tmp/api.env
+          REMOTE_SCRIPT
