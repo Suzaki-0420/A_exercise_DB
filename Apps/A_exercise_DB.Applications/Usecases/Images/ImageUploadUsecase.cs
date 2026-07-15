@@ -158,12 +158,6 @@ public class ImageUploadUsecase
             var imageInfo =
                 await Image.IdentifyAsync(content);
 
-            if (imageInfo is null)
-            {
-                throw new DomainException(
-                    "画像ファイルを読み取れませんでした。");
-            }
-
             /*
              * 横幅または縦幅のどちらかが
              * 1000pxを超えた場合はエラーにする。

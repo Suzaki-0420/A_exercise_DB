@@ -106,32 +106,47 @@ public class ProductCategoryTests
         Assert.AreEqual("商品カテゴリ名は必須です", ex.Message);
     }
 
-    [TestMethod(DisplayName = "商品カテゴリ名が20文字の場合、インスタンス生成される")]
-    public void CategoryName_With20Chars_ShouldCreateInstance()
+    [TestMethod(
+        DisplayName =
+            "商品カテゴリ名が30文字の場合、インスタンス生成される")]
+    public void CategoryName_With30Chars_ShouldCreateInstance()
     {
-        // データを用意する
-        var categoryName = new string('あ', 20);
+        // Arrange
+        var categoryName = new string('あ', 30);
 
-        // インスタンスを生成する
-        var productCategory = CreateProductCategory(categoryName: categoryName);
+        // Act
+        var productCategory =
+            CreateProductCategory(
+                categoryName: categoryName);
 
-        // 商品カテゴリ名を検証する
-        Assert.AreEqual(categoryName, productCategory.Name);
+        // Assert
+        Assert.AreEqual(
+            categoryName,
+            productCategory.Name);
     }
 
-    [TestMethod(DisplayName = "商品カテゴリ名が21文字以上の場合、DomainExceptionがスローされる")]
-    public void CategoryName_LongerThan20Chars_ShouldThrowDomainException()
+    [TestMethod(
+     DisplayName =
+         "商品カテゴリ名が31文字の場合、DomainExceptionがスローされる")]
+    public void
+     CategoryName_With31Chars_ShouldThrowDomainException()
     {
-        // データを用意する
-        var categoryName = new string('あ', 21);
+        // Arrange
+        var categoryName = new string('あ', 31);
 
-        var ex = Assert.ThrowsExactly<DomainException>(() =>
-        {
-            _ = CreateProductCategory(categoryName: categoryName);
-        });
+        // Act
+        var exception =
+            Assert.ThrowsExactly<DomainException>(
+                () =>
+                {
+                    _ = CreateProductCategory(
+                        categoryName: categoryName);
+                });
 
-        // 例外メッセージを検証する
-        Assert.AreEqual("商品カテゴリ名は20文字以内で入力してください", ex.Message);
+        // Assert
+        Assert.AreEqual(
+            "商品カテゴリ名は30文字以内で入力してください",
+            exception.Message);
     }
 
     [TestMethod(DisplayName = "新規作成で商品カテゴリ名が空白の場合、DomainExceptionがスローされる")]
@@ -146,19 +161,28 @@ public class ProductCategoryTests
         Assert.AreEqual("商品カテゴリ名は必須です", ex.Message);
     }
 
-    [TestMethod(DisplayName = "新規作成で商品カテゴリ名が21文字以上の場合、DomainExceptionがスローされる")]
-    public void NewInstance_CategoryNameLongerThan20Chars_ShouldThrowDomainException()
+    [TestMethod(
+     DisplayName =
+         "新規作成で商品カテゴリ名が31文字の場合、DomainExceptionがスローされる")]
+    public void
+     NewInstance_CategoryNameWith31Chars_ShouldThrowDomainException()
     {
-        // データを用意する
-        var categoryName = new string('あ', 21);
+        // Arrange
+        var categoryName = new string('あ', 31);
 
-        var ex = Assert.ThrowsExactly<DomainException>(() =>
-        {
-            _ = new ProductCategory(categoryName);
-        });
+        // Act
+        var exception =
+            Assert.ThrowsExactly<DomainException>(
+                () =>
+                {
+                    _ = new ProductCategory(
+                        categoryName);
+                });
 
-        // 例外メッセージを検証する
-        Assert.AreEqual("商品カテゴリ名は20文字以内で入力してください", ex.Message);
+        // Assert
+        Assert.AreEqual(
+            "商品カテゴリ名は30文字以内で入力してください",
+            exception.Message);
     }
 
     [TestMethod(DisplayName = "同一インスタンスの場合、等価と判定される")]

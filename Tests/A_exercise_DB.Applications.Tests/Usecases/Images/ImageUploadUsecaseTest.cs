@@ -2,9 +2,9 @@ using A_exercise_DB.Applications.Interfaces;
 using A_exercise_DB.Applications.Params;
 using A_exercise_DB.Applications.Usecases.Images;
 using A_exercise_DB.Domains.Exceptions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 namespace A_exercise_DB.Applications.Tests.Usecases.Images;
 
 [TestClass]
@@ -311,21 +311,23 @@ public sealed class ImageUploadUsecaseTest
     }
 
     [TestMethod(
-        DisplayName = "画像サイズがちょうど2MBの場合、画像が保存される")]
+    DisplayName = "画像サイズがちょうど2MBの場合、画像が保存される")]
     public async Task ExecuteAsync_WhenLengthIsExactlyTwoMegabytes_ShouldSaveImage()
     {
         // Arrange
         const long maxFileSize =
             2 * 1024 * 1024;
 
-        using var content =
-            new MemoryStream([1]);
+        await using var content =
+            await CreateImageStreamAsync(
+                ".png");
 
-        var param = new ImageUploadParam(
-            content,
-            "sample.png",
-            "image/png",
-            maxFileSize);
+        var param =
+            new ImageUploadParam(
+                content,
+                "sample.png",
+                "image/png",
+                maxFileSize);
 
         const string expectedResult =
             "images/saved-image.png";
@@ -338,11 +340,13 @@ public sealed class ImageUploadUsecaseTest
                         fileName.EndsWith(
                             ".png",
                             StringComparison.Ordinal))))
-            .ReturnsAsync(expectedResult);
+            .ReturnsAsync(
+                expectedResult);
 
         // Act
         var result =
-            await _usecase.ExecuteAsync(param);
+            await _usecase.ExecuteAsync(
+                param);
 
         // Assert
         Assert.AreEqual(
@@ -360,20 +364,250 @@ public sealed class ImageUploadUsecaseTest
             Times.Once);
     }
 
-    private async Task ExecuteValidImageTestAsync(
-        string fileName,
-        string contentType,
-        string expectedExtension)
+    [TestMethod(
+    DisplayName = "画像として認識できない内容の場合、DomainExceptionがスローされる")]
+    public async Task ExecuteAsync_WhenImageFormatIsUnknown_ShouldThrowDomainException()
     {
         // Arrange
-        using var content =
-            new MemoryStream([1, 2, 3]);
+        await using var content =
+            new MemoryStream(
+                [1, 2, 3]);
 
-        var param = new ImageUploadParam(
-            content,
-            fileName,
-            contentType,
-            content.Length);
+        var param =
+            new ImageUploadParam(
+                content,
+                "sample.png",
+                "image/png",
+                content.Length);
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                () => _usecase.ExecuteAsync(
+                    param));
+
+        // Assert
+        Assert.AreEqual(
+            "画像ファイルの形式が正しくありません。",
+            exception.Message);
+
+        Assert.IsNotNull(
+            exception.InnerException);
+
+        Assert.IsInstanceOfType<UnknownImageFormatException>(
+            exception.InnerException);
+
+        Assert.AreEqual(
+            0,
+            content.Position);
+
+        _imageStorageMock.Verify(
+            x => x.SaveAsync(
+                It.IsAny<Stream>(),
+                It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [TestMethod(
+        DisplayName = "画像の横幅が1000pxを超える場合、DomainExceptionがスローされる")]
+    public async Task ExecuteAsync_WhenImageWidthExceedsLimit_ShouldThrowDomainException()
+    {
+        // Arrange
+        await using var content =
+            await CreateImageStreamAsync(
+                extension: ".png",
+                width: 1001,
+                height: 10);
+
+        var param =
+            new ImageUploadParam(
+                content,
+                "sample.png",
+                "image/png",
+                content.Length);
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                () => _usecase.ExecuteAsync(
+                    param));
+
+        // Assert
+        Assert.AreEqual(
+            "画像の縦横サイズは1000px以下にしてください。",
+            exception.Message);
+
+        Assert.AreEqual(
+            0,
+            content.Position);
+
+        _imageStorageMock.Verify(
+            x => x.SaveAsync(
+                It.IsAny<Stream>(),
+                It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [TestMethod(
+        DisplayName = "画像の縦幅が1000pxを超える場合、DomainExceptionがスローされる")]
+    public async Task ExecuteAsync_WhenImageHeightExceedsLimit_ShouldThrowDomainException()
+    {
+        // Arrange
+        await using var content =
+            await CreateImageStreamAsync(
+                extension: ".png",
+                width: 10,
+                height: 1001);
+
+        var param =
+            new ImageUploadParam(
+                content,
+                "sample.png",
+                "image/png",
+                content.Length);
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                () => _usecase.ExecuteAsync(
+                    param));
+
+        // Assert
+        Assert.AreEqual(
+            "画像の縦横サイズは1000px以下にしてください。",
+            exception.Message);
+
+        Assert.AreEqual(
+            0,
+            content.Position);
+
+        _imageStorageMock.Verify(
+            x => x.SaveAsync(
+                It.IsAny<Stream>(),
+                It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [TestMethod(
+        DisplayName = "画像の縦横がちょうど1000pxの場合、画像が保存される")]
+    public async Task ExecuteAsync_WhenImageDimensionsAreExactlyLimit_ShouldSaveImage()
+    {
+        // Arrange
+        await using var content =
+            await CreateImageStreamAsync(
+                extension: ".png",
+                width: 1000,
+                height: 1000);
+
+        var param =
+            new ImageUploadParam(
+                content,
+                "sample.png",
+                "image/png",
+                content.Length);
+
+        const string expectedResult =
+            "images/saved-image.png";
+
+        _imageStorageMock
+            .Setup(x => x.SaveAsync(
+                content,
+                It.IsAny<string>()))
+            .ReturnsAsync(
+                expectedResult);
+
+        // Act
+        var result =
+            await _usecase.ExecuteAsync(
+                param);
+
+        // Assert
+        Assert.AreEqual(
+            expectedResult,
+            result);
+
+        _imageStorageMock.Verify(
+            x => x.SaveAsync(
+                content,
+                It.Is<string>(
+                    fileName =>
+                        fileName.EndsWith(
+                            ".png",
+                            StringComparison.Ordinal))),
+            Times.Once);
+    }
+
+    [TestMethod(
+        DisplayName = "破損した画像の場合、DomainExceptionがスローされる")]
+    public async Task ExecuteAsync_WhenImageContentIsInvalid_ShouldThrowDomainException()
+    {
+        // Arrange
+        await using var validContent =
+            await CreateImageStreamAsync(
+                ".png");
+
+        var validBytes =
+            validContent.ToArray();
+
+        var brokenBytes =
+            validBytes
+                .Take(16)
+                .ToArray();
+
+        await using var content =
+            new MemoryStream(
+                brokenBytes);
+
+        var param =
+            new ImageUploadParam(
+                content,
+                "broken.png",
+                "image/png",
+                content.Length);
+
+        // Act
+        var exception =
+            await Assert.ThrowsExactlyAsync<DomainException>(
+                () => _usecase.ExecuteAsync(
+                    param));
+
+        // Assert
+        Assert.AreEqual(
+            "画像ファイルが破損しているか、内容が正しくありません。",
+            exception.Message);
+
+        Assert.IsNotNull(
+            exception.InnerException);
+
+        Assert.IsInstanceOfType<InvalidImageContentException>(
+            exception.InnerException);
+
+        Assert.AreEqual(
+            0,
+            content.Position);
+
+        _imageStorageMock.Verify(
+            x => x.SaveAsync(
+                It.IsAny<Stream>(),
+                It.IsAny<string>()),
+            Times.Never);
+    }
+    private async Task ExecuteValidImageTestAsync(
+    string fileName,
+    string contentType,
+    string expectedExtension)
+    {
+        // Arrange
+        await using var content =
+            await CreateImageStreamAsync(
+                expectedExtension);
+
+        var param =
+            new ImageUploadParam(
+                content,
+                fileName,
+                contentType,
+                content.Length);
 
         const string expectedResult =
             "images/saved-image";
@@ -387,11 +621,13 @@ public sealed class ImageUploadUsecaseTest
             .Callback<Stream, string>(
                 (_, savedFileName) =>
                     actualSavedFileName = savedFileName)
-            .ReturnsAsync(expectedResult);
+            .ReturnsAsync(
+                expectedResult);
 
         // Act
         var result =
-            await _usecase.ExecuteAsync(param);
+            await _usecase.ExecuteAsync(
+                param);
 
         // Assert
         Assert.AreEqual(
@@ -403,7 +639,8 @@ public sealed class ImageUploadUsecaseTest
 
         Assert.AreEqual(
             expectedExtension,
-            Path.GetExtension(actualSavedFileName));
+            Path.GetExtension(
+                actualSavedFileName));
 
         var uuidPart =
             Path.GetFileNameWithoutExtension(
@@ -414,10 +651,54 @@ public sealed class ImageUploadUsecaseTest
                 uuidPart,
                 out _));
 
+        Assert.AreEqual(
+            0,
+            content.Position);
+
         _imageStorageMock.Verify(
             x => x.SaveAsync(
                 content,
                 actualSavedFileName),
             Times.Once);
+    }
+    private static async Task<MemoryStream> CreateImageStreamAsync(
+    string extension = ".png",
+    int width = 10,
+    int height = 10)
+    {
+        var stream =
+            new MemoryStream();
+
+        using var image =
+            new Image<Rgba32>(
+                width,
+                height);
+
+        switch (extension.ToLowerInvariant())
+        {
+            case ".jpg":
+            case ".jpeg":
+                await image.SaveAsJpegAsync(
+                    stream);
+                break;
+
+            case ".png":
+                await image.SaveAsPngAsync(
+                    stream);
+                break;
+
+            case ".webp":
+                await image.SaveAsWebpAsync(
+                    stream);
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(
+                    nameof(extension));
+        }
+
+        stream.Position = 0;
+
+        return stream;
     }
 }
