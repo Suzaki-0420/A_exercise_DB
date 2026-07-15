@@ -9,7 +9,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// ユースケース:[商品をカテゴリー検索をする]を実現するコントローラ
 /// </summary>
 [ApiController]
-[AllowAnonymous]
+//[AllowAnonymous]
 [Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/product/category")]

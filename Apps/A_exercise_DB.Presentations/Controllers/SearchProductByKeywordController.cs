@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace A_exercise_DB.Presentations.Controllers;
 
 [ApiController]
-[AllowAnonymous]
+//[AllowAnonymous]
 [Authorize]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [Route("admin/product/keyword")]

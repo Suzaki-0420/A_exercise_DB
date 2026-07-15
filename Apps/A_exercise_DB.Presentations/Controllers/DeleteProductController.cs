@@ -9,7 +9,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// UC013 商品削除API
 /// </summary>
 [ApiController]
-[AllowAnonymous]
+//[AllowAnonymous]
 [Authorize]
 [Route("api/admin/products")]
 [Tags("UC013: 商品削除")]

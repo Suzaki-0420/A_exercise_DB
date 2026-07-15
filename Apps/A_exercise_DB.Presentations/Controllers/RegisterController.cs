@@ -12,7 +12,7 @@ namespace A_exercise_DB.Presentations.Controllers;
 /// UC010：新商品登録
 /// </summary>
 [ApiController]
-[AllowAnonymous]
+//[AllowAnonymous]
 // [Authorize]
 [ProducesResponseType(
     StatusCodes.Status401Unauthorized)]
