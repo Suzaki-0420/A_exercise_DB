@@ -1,25 +1,30 @@
-namespace A_exercise_DB.Infrastructures.Storage;
+namespace A_exercise_DB.Infrastructure.Storage;
 
 /// <summary>
-/// Azure Blob Storageの設定
+/// Azure Blob Storageへの画像保存の設定
 /// </summary>
 public class AzureBlobStorageOptions
 {
     /// <summary>
-    /// 設定セクション名
+    /// 設定ファイル上のセクション名
     /// </summary>
-    public const string SectionName =
-        "AzureBlobStorage";
+    public const string SectionName = "AzureBlobStorage";
 
     /// <summary>
-    /// Azure Blob Storageの接続文字列
+    /// ストレージアカウントへの接続文字列
     /// </summary>
-    public string ConnectionString { get; set; } =
-        string.Empty;
+    public string ConnectionString { get; set; } = string.Empty;
 
     /// <summary>
-    /// コンテナ名
+    /// 画像を格納するコンテナ名
     /// </summary>
-    public string ContainerName { get; set; } =
-        string.Empty;
+    public string ContainerName { get; set; } = "images";
+
+    /// <summary>
+    /// コンテナ内で画像を配置する仮想ディレクトリ(プレフィックス)
+    /// </summary>
+    /// <remarks>
+    /// Blobにフォルダの概念はないが、ファイル名にプレフィックスを付けることでポータル上ではフォルダのように扱える
+    /// </remarks>
+    public string Prefix { get; set; } = "products";
 }
