@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 
 bin/
 obj/
+Tests/A_exercise_DB.Infrastructures.Tests/appsettings.Test.local.json
