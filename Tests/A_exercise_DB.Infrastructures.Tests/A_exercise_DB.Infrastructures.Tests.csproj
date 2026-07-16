@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="10.0.1">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="MSTest" Version="4.0.1" />
   </ItemGroup>
@@ -19,6 +23,14 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Apps\A_exercise_DB.Infrastructures\A_exercise_DB.Infrastructures.csproj" />
     <ProjectReference Include="..\..\Apps\A_exercise_DB.Domains\A_exercise_DB.Domains.csproj" />
+    <ProjectReference Include="..\..\Apps\A_exercise_DB.Presentations\A_exercise_DB.Presentations.csproj" />
+    <ProjectReference Include="..\..\Apps\A_exercise_DB.Applications\A_exercise_DB.Applications.csproj" />
   </ItemGroup>
+
+<ItemGroup>
+  <None Update="appsettings.Test*.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
 
 </Project>
