@@ -1,36 +1,194 @@
-# ワークフロー名
-name: .NET CS_WebApp CI
+name: Backend CI
 
-# いつ実行するか
-on: 
-  push: # pushされたときに実行する
-    branches: # mainブランチにpushされたときだけ実行する
+on:
+  # devでCIの動作を確認し、main反映後にも再実行する
+  push:
+    branches:
+      - dev
       - main
 
-# 実行する処理のまとまり
+  # mainへのPull Requestでも実行する
+  pull_request:
+    branches:
+      - main
+
+  # GitHub Actions画面から手動でも実行できる
+  workflow_dispatch:
+
+# リポジトリの読み取りだけを許可する
+permissions:
+  contents: read
+
 jobs:
-  build-and-test: # jobの名前(自分で設定)
-    runs-on: ubuntu-latest # jobを事項する環境
+  build-and-test:
+    name: ビルドとテスト
+    runs-on: ubuntu-latest
 
-    # ジョブ内で順番に実行される手順（ステップ）のリスト
+    # インフラストラクチャ層のテストで使用する、
+    # GitHub Actions内の使い捨てPostgreSQL
+    services:
+      postgres:
+        image: postgres:17
+
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: All_Exercise
+
+        ports:
+          - 5432:5432
+
+        # PostgreSQLが接続可能になるまで待機する
+        options: >-
+          --health-cmd "pg_isready -U postgres -d All_Exercise"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # テストコードのappsettings.Test.jsonにある接続文字列を
+      # GitHub Actions上ではこの値で上書きする
+      ConnectionStrings__PostgreSQLConnection: >-
+        Host=localhost;
+        Port=5432;
+        Database=All_Exercise;
+        Username=postgres;
+        Password=postgres
+
+      DOTNET_ENVIRONMENT: Test
+      ASPNETCORE_ENVIRONMENT: Test
+
     steps:
-      - name: リポジトリのチェックアウト # GitHub上のソースコードを、GitHub Actions Runner(GitHub Actions の処理を実際に実行するコンピューター)の中に持ってくる
-        uses: actions/checkout@v4 # GitHub公式の actions/checkout という Action
+      # GitHub上のソースコードをRunnerへ取得する
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
 
-      - name: .NET SDKのセットアップ # .NETコマンドを使えるようにする
-        uses: actions/setup-dotnet@v4 # GitHub公式の actions/setup-dotnet という Action
+      # .NET 10 SDKを使用できるようにする
+      - name: .NET SDKをセットアップ
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x' # .NET SDK 10.0 系の最新版を使う
+          dotnet-version: "10.0.x"
 
-      # ----- ここから追記 -----
-      - name: コードフォーマットの検証 (Lint)
-        run: dotnet format --verify-no-changes
-      # ----- ここまで追記 -----
+      # psqlコマンドが使用できることを確認する
+      - name: PostgreSQLクライアントを確認
+        run: |
+          if ! command -v psql > /dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
 
-      - name: プロジェクトのビルド
-        run: dotnet build --configuration Release
-    
-      - name: 単体・結合テストの実行
-      # ビルド済みのバイナリを再利用(--no-build)してテストを実行
-      # verbosity=detailedを付けることで、Console.WriteLineの出力がGitHub Actionsのログに表示される
-        run: dotnet test --configuration Release --no-build --logger "console;verbosity=detailed"
+          psql --version
+
+      # pg_dump 17で生成されたSQLに含まれる
+      # \restrictと\unrestrictを除去して、Runner側のpsqlとの互換性を確保する
+      - name: DB初期化SQLを準備
+        run: |
+          mkdir -p /tmp/db
+
+          sed \
+            -e '/^\\restrict /d' \
+            -e '/^\\unrestrict /d' \
+            db/02_create_tables.sql \
+            > /tmp/db/02_create_tables.sql
+
+          sed \
+            -e '/^\\restrict /d' \
+            -e '/^\\unrestrict /d' \
+            db/03_insert_sample_data.sql \
+            > /tmp/db/03_insert_sample_data.sql
+
+      # 空の一時DBにテーブルとテストデータを作成する
+      - name: スキーマとテストデータを投入
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql \
+            -h localhost \
+            -p 5432 \
+            -U postgres \
+            -d All_Exercise \
+            -v ON_ERROR_STOP=1 \
+            -f /tmp/db/02_create_tables.sql
+
+          psql \
+            -h localhost \
+            -p 5432 \
+            -U postgres \
+            -d All_Exercise \
+            -v ON_ERROR_STOP=1 \
+            -f /tmp/db/03_insert_sample_data.sql
+
+      # DBが正しく作られたことを確認する
+      - name: テストDBを確認
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql \
+            -h localhost \
+            -p 5432 \
+            -U postgres \
+            -d All_Exercise \
+            -v ON_ERROR_STOP=1 \
+            -c "
+              SELECT 'customer' AS table_name, COUNT(*) FROM customer
+              UNION ALL
+              SELECT 'product', COUNT(*) FROM product
+              UNION ALL
+              SELECT 'orders', COUNT(*) FROM orders;
+            "
+
+      # ソリューション全体の依存パッケージを復元する
+      - name: 依存パッケージを復元
+        run: dotnet restore A_exercise_DB.slnx
+
+      # コードの書式がdotnet formatに一致しているか確認する
+      - name: 書式チェック
+        run: |
+          dotnet format A_exercise_DB.slnx \
+            --verify-no-changes \
+            --severity warn \
+            --no-restore
+
+      # ソリューション全体をRelease構成でビルドする
+      - name: ビルド
+        run: |
+          dotnet build A_exercise_DB.slnx \
+            --configuration Release \
+            --no-restore \
+            -warnaserror
+
+      # ドメイン層のテスト
+      - name: テスト（ドメイン層）
+        run: |
+          dotnet test \
+            Tests/A_exercise_DB.Domains.Tests/A_exercise_DB.Domains.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --logger "console;verbosity=detailed"
+
+      # アプリケーション層のテスト
+      - name: テスト（アプリケーション層）
+        run: |
+          dotnet test \
+            Tests/A_exercise_DB.Applications.Tests/A_exercise_DB.Applications.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --logger "console;verbosity=detailed"
+
+      # インフラストラクチャ層のテスト
+      - name: テスト（インフラストラクチャ層）
+        run: |
+          dotnet test \
+            Tests/A_exercise_DB.Infrastructures.Tests/A_exercise_DB.Infrastructures.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --logger "console;verbosity=detailed"
+
+      # プレゼンテーション層のテスト
+      - name: テスト（プレゼンテーション層）
+        run: |
+          dotnet test \
+            Tests/A_exercise_DB.Presentations.Tests/A_exercise_DB.Presentations.Tests.csproj \
+            --configuration Release \
+            --no-build \
+            --logger "console;verbosity=detailed"
