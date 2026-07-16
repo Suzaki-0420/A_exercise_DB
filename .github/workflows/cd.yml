@@ -47,14 +47,17 @@ jobs:
       # Azure VM上の配置先
       DEPLOY_DIR: /var/www/fullness-api
 
-      # 新しいsystemdサービス
-      SERVICE_NAME: fullness-api
+      # 直前のデプロイ成果物を保存する場所
+      BACKUP_DIR: /var/www/fullness-api.previous
 
-      # 現在稼働している旧systemdサービス
-      LEGACY_SERVICE_NAME: a-exercise-api
+      # systemdサービス
+      SERVICE_NAME: fullness-api
 
       # Azure Blobコンテナ名
       AZURE_BLOB_CONTAINER_NAME: product-images
+
+      # 起動確認に使用するURL
+      HEALTHCHECK_URL: http://127.0.0.1:5000/swagger/index.html
 
     steps:
       # workflow_runの場合は、
@@ -252,7 +255,8 @@ jobs:
             api.env \
             "${VM_USER}@${VM_HOST}:/tmp/api.env"
 
-      # 発行成果物と環境変数ファイルを本番配置先へ移す
+ # 現在の成果物をバックアップしてから、
+      # 新しい成果物と環境変数ファイルを配置する
       - name: 成果物を配置
         env:
           VM_HOST: ${{ secrets.AZURE_HOST }}
@@ -263,14 +267,68 @@ jobs:
           ssh \
             -i ~/.ssh/deploy_key \
             "${VM_USER}@${VM_HOST}" \
-            "DEPLOY_DIR='${DEPLOY_DIR}' bash -s" <<'REMOTE_SCRIPT'
+            "DEPLOY_DIR='${DEPLOY_DIR}' \
+             BACKUP_DIR='${BACKUP_DIR}' \
+             bash -s" <<'REMOTE_SCRIPT'
           set -euo pipefail
+
+          test -n "${DEPLOY_DIR}"
+          test -n "${BACKUP_DIR}"
+
+          echo "=== 配置先を準備 ==="
 
           sudo mkdir -p \
             "${DEPLOY_DIR}/wwwroot/images/products"
 
           sudo mkdir -p \
             /etc/fullness
+
+          echo "=== 現在の成果物をバックアップ ==="
+
+          if sudo test -f \
+            "${DEPLOY_DIR}/A_exercise_DB.Presentations.dll"; then
+
+            sudo rm -rf \
+              "${BACKUP_DIR}"
+
+            sudo mkdir -p \
+              "${BACKUP_DIR}"
+
+            sudo rsync \
+              -a \
+              --delete \
+              --exclude 'wwwroot/images/products/' \
+              "${DEPLOY_DIR}/" \
+              "${BACKUP_DIR}/"
+
+            echo "現在の成果物を${BACKUP_DIR}へ保存しました"
+          else
+            echo "現在の成果物がないため、成果物のバックアップを省略します"
+          fi
+
+          echo "=== 現在のapi.envをバックアップ ==="
+
+          if sudo test -f \
+            /etc/fullness/api.env; then
+
+            sudo cp \
+              /etc/fullness/api.env \
+              /etc/fullness/api.env.previous
+
+            sudo chown \
+              root:fullness \
+              /etc/fullness/api.env.previous
+
+            sudo chmod \
+              640 \
+              /etc/fullness/api.env.previous
+
+            echo "現在のapi.envを保存しました"
+          else
+            echo "現在のapi.envがないため、バックアップを省略します"
+          fi
+
+          echo "=== 新しい成果物を配置 ==="
 
           sudo rsync \
             -a \
@@ -280,13 +338,15 @@ jobs:
             "${DEPLOY_DIR}/"
 
           # systemdユニットのReadWritePathsとの互換性のため、
-          # Azure Blobへ移行後もディレクトリは残す
+          # Azure Blob使用後もディレクトリは残す
           sudo mkdir -p \
             "${DEPLOY_DIR}/wwwroot/images/products"
 
           sudo chown \
             -R fullness:fullness \
             "${DEPLOY_DIR}"
+
+          echo "=== 新しいapi.envを配置 ==="
 
           sudo install \
             -o root \
@@ -296,7 +356,8 @@ jobs:
             /etc/fullness/api.env
           REMOTE_SCRIPT
 
-      # 旧サービスを停止し、新しいサービスを起動する
+      # fullness-apiだけを再起動し、
+      # 失敗した場合は直前の成果物へ戻す
       - name: サービスを再起動
         env:
           VM_HOST: ${{ secrets.AZURE_HOST }}
@@ -308,76 +369,141 @@ jobs:
             -i ~/.ssh/deploy_key \
             "${VM_USER}@${VM_HOST}" \
             "SERVICE_NAME='${SERVICE_NAME}' \
-             LEGACY_SERVICE_NAME='${LEGACY_SERVICE_NAME}' \
+             DEPLOY_DIR='${DEPLOY_DIR}' \
+             BACKUP_DIR='${BACKUP_DIR}' \
+             HEALTHCHECK_URL='${HEALTHCHECK_URL}' \
              bash -s" <<'REMOTE_SCRIPT'
           set -euo pipefail
 
-          echo "=== 新サービスを有効化 ==="
+          test -n "${SERVICE_NAME}"
+          test -n "${DEPLOY_DIR}"
+          test -n "${BACKUP_DIR}"
+          test -n "${HEALTHCHECK_URL}"
+
+          rollback()
+          {
+            echo "=== 直前のバージョンへロールバック ==="
+
+            # ロールバック処理中は、
+            # 途中のコマンド失敗だけで終了しない
+            set +e
+
+            sudo systemctl stop \
+              "${SERVICE_NAME}.service"
+
+            if sudo test -f \
+              "${BACKUP_DIR}/A_exercise_DB.Presentations.dll"; then
+
+              sudo rsync \
+                -a \
+                --delete \
+                --exclude 'wwwroot/images/products/' \
+                "${BACKUP_DIR}/" \
+                "${DEPLOY_DIR}/"
+
+              sudo mkdir -p \
+                "${DEPLOY_DIR}/wwwroot/images/products"
+
+              sudo chown \
+                -R fullness:fullness \
+                "${DEPLOY_DIR}"
+
+              echo "直前の成果物を復元しました"
+            else
+              echo "復元可能な成果物がありません"
+            fi
+
+            if sudo test -f \
+              /etc/fullness/api.env.previous; then
+
+              sudo install \
+                -o root \
+                -g fullness \
+                -m 640 \
+                /etc/fullness/api.env.previous \
+                /etc/fullness/api.env
+
+              echo "直前のapi.envを復元しました"
+            else
+              echo "復元可能なapi.envがありません"
+            fi
+
+            sudo systemctl daemon-reload
+
+            sudo systemctl restart \
+              "${SERVICE_NAME}.service"
+
+            sleep 8
+
+            echo "=== ロールバック後の状態 ==="
+
+            sudo systemctl \
+              --no-pager \
+              --full \
+              status "${SERVICE_NAME}.service"
+
+            curl \
+              --fail \
+              --connect-timeout 5 \
+              --silent \
+              --show-error \
+              --output /dev/null \
+              "${HEALTHCHECK_URL}"
+
+            echo "デプロイに失敗したため、直前のバージョンへ戻しました"
+
+            rm -rf \
+              /tmp/fullness-publish \
+              /tmp/api.env
+
+            exit 1
+          }
+
+          echo "=== systemd設定を再読み込み ==="
+
+          sudo systemctl daemon-reload
+
+          echo "=== fullness-apiを有効化 ==="
 
           sudo systemctl enable \
             "${SERVICE_NAME}.service"
 
-          echo "=== 旧サービスを停止 ==="
-
-          sudo systemctl stop \
-            "${LEGACY_SERVICE_NAME}.service" \
-            || true
-
-          sudo systemctl disable \
-            "${LEGACY_SERVICE_NAME}.service" \
-            || true
-
-          echo "=== 新サービスを起動 ==="
+          echo "=== fullness-apiを再起動 ==="
 
           if ! sudo systemctl restart \
             "${SERVICE_NAME}.service"; then
 
-            echo "新サービスの起動に失敗しました"
-            echo "旧サービスへ戻します"
-
-            sudo systemctl enable \
-              "${LEGACY_SERVICE_NAME}.service" \
-              || true
-
-            sudo systemctl start \
-              "${LEGACY_SERVICE_NAME}.service" \
-              || true
-
-            exit 1
-          fi
-
-          sleep 8
-
-          if ! sudo systemctl is-active \
-            --quiet "${SERVICE_NAME}.service"; then
-
-            echo "新サービスがactiveになりませんでした"
+            echo "サービスの再起動に失敗しました"
 
             sudo journalctl \
               -u "${SERVICE_NAME}.service" \
               -n 100 \
               --no-pager
 
-            echo "旧サービスへ戻します"
-
-            sudo systemctl stop \
-              "${SERVICE_NAME}.service" \
-              || true
-
-            sudo systemctl enable \
-              "${LEGACY_SERVICE_NAME}.service" \
-              || true
-
-            sudo systemctl start \
-              "${LEGACY_SERVICE_NAME}.service" \
-              || true
-
-            exit 1
+            rollback
           fi
 
-          echo "=== Kestrelへの接続を確認 ==="
+          sleep 8
+
+          echo "=== active状態を確認 ==="
+
+          if ! sudo systemctl is-active \
+            --quiet "${SERVICE_NAME}.service"; then
+
+            echo "サービスがactiveになりませんでした"
+
+            sudo journalctl \
+              -u "${SERVICE_NAME}.service" \
+              -n 100 \
+              --no-pager
+
+            rollback
+          fi
+
+          echo "=== Swaggerへの接続を確認 ==="
 
           if ! curl \
+            --fail \
             --retry 5 \
             --retry-connrefused \
             --retry-delay 2 \
@@ -385,34 +511,16 @@ jobs:
             --silent \
             --show-error \
             --output /dev/null \
-            http://127.0.0.1:5000/; then
+            "${HEALTHCHECK_URL}"; then
 
-            echo "Kestrelへ接続できませんでした"
+            echo "Swaggerへ接続できませんでした"
 
             sudo journalctl \
               -u "${SERVICE_NAME}.service" \
               -n 100 \
               --no-pager
 
-            echo "旧サービスへ戻します"
-
-            sudo systemctl stop \
-              "${SERVICE_NAME}.service" \
-              || true
-
-            sudo systemctl disable \
-              "${SERVICE_NAME}.service" \
-              || true
-
-            sudo systemctl enable \
-              "${LEGACY_SERVICE_NAME}.service" \
-              || true
-
-            sudo systemctl start \
-              "${LEGACY_SERVICE_NAME}.service" \
-              || true
-
-            exit 1
+            rollback
           fi
 
           echo "=== 起動状態 ==="
@@ -421,6 +529,10 @@ jobs:
             --no-pager \
             --full \
             status "${SERVICE_NAME}.service"
+
+          echo "=== デプロイ完了 ==="
+
+          echo "fullness-apiが正常に起動しました"
 
           echo "=== 一時ファイルを削除 ==="
 
