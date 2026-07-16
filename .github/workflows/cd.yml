@@ -147,14 +147,12 @@ jobs:
         env:
           VM_HOST: ${{ secrets.AZURE_HOST }}
           DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
-          JWT_SIGNING_KEY: ${{ secrets.JWT_SIGNING_KEY }}
           AZURE_BLOB_CONNECTION_STRING: ${{ secrets.AZURE_BLOB_CONNECTION_STRING }}
         run: |
           set -euo pipefail
 
           test -n "${VM_HOST}"
           test -n "${DB_CONNECTION_STRING}"
-          test -n "${JWT_SIGNING_KEY}"
           test -n "${AZURE_BLOB_CONNECTION_STRING}"
           test -n "${AZURE_BLOB_CONTAINER_NAME}"
 
@@ -162,7 +160,6 @@ jobs:
           # Secretに改行が含まれていたら失敗させる
           for variable_name in \
             DB_CONNECTION_STRING \
-            JWT_SIGNING_KEY \
             AZURE_BLOB_CONNECTION_STRING
           do
             variable_value="${!variable_name}"
@@ -184,16 +181,6 @@ jobs:
             # PostgreSQL
             printf 'ConnectionStrings__PostgreSQLConnection=%s\n' \
               "${DB_CONNECTION_STRING}"
-
-            # JWT
-            printf 'Jwt__SigningKey=%s\n' \
-              "${JWT_SIGNING_KEY}"
-
-            printf 'Jwt__Issuer=http://%s\n' \
-              "${VM_HOST}"
-
-            printf 'Jwt__Audience=http://%s\n' \
-              "${VM_HOST}"
 
             # Azure Blob Storage
             printf 'ImageStorage__Provider=AzureBlob\n'

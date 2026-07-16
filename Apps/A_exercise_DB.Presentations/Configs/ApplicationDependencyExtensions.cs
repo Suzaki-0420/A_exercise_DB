@@ -57,11 +57,40 @@ public static class ApplicationDependencyExtensions
             options.LogTo(Console.WriteLine, LogLevel.Debug);
             options.UseNpgsql(connectstr);
         });
+        // 本番ImageStorageに変更
+        var imageStorageProvider =
+            config["ImageStorage:Provider"]
+            ?? "Local";
+
+        if (string.Equals(
+            imageStorageProvider,
+            "AzureBlob",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            services.Configure<AzureBlobStorageOptions>(
+                config.GetSection(
+                    AzureBlobStorageOptions.SectionName));
+
+            services.AddScoped<
+                IImageStorage,
+                AzureBlobImageStorage>();
+        }
+        else
+        {
+            services.Configure<ImageStorageOptions>(
+                config.GetSection(
+                    ImageStorageOptions.SectionName));
+
+            services.AddScoped<
+                IImageStorage,
+                LocalImageStorage>();
+        }
+        /*
         services.Configure<ImageStorageOptions>(
         config.GetSection(ImageStorageOptions.SectionName));
 
         services.AddScoped<IImageStorage, LocalImageStorage>();
-
+*/
         services.AddScoped<DepartmentEntityAdapter>();
         services.AddScoped<EmployeeEntityAdapter>();
         services.AddScoped<EmployeeAccountEntityAdapter>();
