@@ -1,12 +1,12 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
-using A_exercise_DB.Application.Interfaces;
-using A_exercise_DB.Infrastructure.Exceptions;
+using A_exercise_DB.Applications.Interfaces;
+using A_exercise_DB.Domains.Exceptions;
 
 using Microsoft.Extensions.Options;
 
-namespace A_exercise_DB.Infrastructure.Storage;
+namespace A_exercise_DB.Infrastructures.Storage;
 /// <summary>
 /// Azure Blob Storageへ画像を保存する実装
 /// </summary>

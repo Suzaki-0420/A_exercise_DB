@@ -1,4 +1,4 @@
-namespace A_exercise_DB.Infrastructure.Storage;
+namespace A_exercise_DB.Infrastructures.Storage;
 
 /// <summary>
 /// Azure Blob Storageへの画像保存の設定
